@@ -38,6 +38,8 @@ void SetConstantParams(const RooArgSet* params);
 RooFitResult* fitresult[NCAT]; // container for the fit results
 RooFitResult* BkgModelFitBernstein(RooWorkspace*, Bool_t);
 
+Bool_t doblinding = false; //True if you want to blind
+
 RooArgSet* defineVariables()
 {
   RooRealVar* mgg = new RooRealVar("mgg","M(#gamma#gamma)",100,180,"GeV");
@@ -156,7 +158,7 @@ void AddSigData(RooWorkspace* w, Float_t mass, TString signalfile) {
   const Int_t ncat = NCAT;
   Float_t MASS(mass);
   // Luminosity:
-  Float_t Lum = 19785.0; // pb-1
+  Float_t Lum = 19712.0; // pb-1
   RooRealVar lumi("lumi","lumi",Lum);
   w->import(lumi);
   RooArgSet* ntplVars = defineVariables();
@@ -234,20 +236,34 @@ void AddBkgData(RooWorkspace* w, TString datafile) {
   dataToFit[0] = (RooDataSet*) Data.reduce(
 					   *w->var("mgg"),
 					   mainCut+TString::Format(" && cut_based_ct==%d",0)+cut0+cutj0);
-  dataToPlot[0] = (RooDataSet*) Data.reduce(
+  if(doblinding){ dataToPlot[0] = (RooDataSet*) Data.reduce(
 					    *w->var("mgg"),
 					    mainCut+TString::Format(" && cut_based_ct==%d",0)
 					    +TString::Format(" && (mgg > 130 || mgg < 120)")// blind
 					    +cut0+cutj0);
+  }else{
+
+                  dataToPlot[0] = (RooDataSet*) Data.reduce(
+					    *w->var("mgg"),
+					    mainCut+TString::Format(" && cut_based_ct==%d",0)
+					    +cut0+cutj0);
+
+  }
    
   dataToFit[1] = (RooDataSet*) Data.reduce(
 					   *w->var("mgg"),
 					   mainCut+TString::Format(" && cut_based_ct==%d",1)+cut1);
-  dataToPlot[1] = (RooDataSet*) Data.reduce(
+  if(doblinding){ dataToPlot[1] = (RooDataSet*) Data.reduce(
 					    *w->var("mgg"),
 					    mainCut+TString::Format(" && cut_based_ct==%d",1)
 					    +TString::Format(" && (mgg > 130 || mgg < 120)") // blind
 					    +cut1);
+  }else{
+                  dataToPlot[1] = (RooDataSet*) Data.reduce(
+					    *w->var("mgg"),
+					    mainCut+TString::Format(" && cut_based_ct==%d",1)
+					    +cut1);  
+  }
 
   for (int c = 0; c < ncat; ++c) {
     w->import(*dataToFit[c],Rename(TString::Format("Data_cat%d",c)));
@@ -1205,12 +1221,12 @@ void MakeDataCard(RooWorkspace* w, const char* fileBaseName, const char* fileBkg
   ////////////////////////////////////////////////////////////////////////////////////
   //RooRealVar* lumi = w->var("lumi");
   cout << "======== Expected Events Number =====================" << endl;
-  cout << ".........Measured Data for L = " << "19785" << " pb-1 ............................" << endl;
+  cout << ".........Measured Data for L = " << "19712" << " pb-1 ............................" << endl;
   cout << "#Events data: " << w->data("Data")->sumEntries() << endl;
   for (int c = 0; c < ncat; ++c) {
     cout << TString::Format("#Events data cat%d: ",c) << data[c]->sumEntries() << endl;
   }
-  cout << ".........Expected Signal for L = " << "19785" << " pb-1 ............................" << endl;
+  cout << ".........Expected Signal for L = " << "19712" << " pb-1 ............................" << endl;
   cout << "#Events Signal: " << w->data("Data")->sumEntries() << endl;
   Float_t siglikeErr[ncat];
   for (int c = 0; c < ncat; ++c) {
@@ -1223,7 +1239,7 @@ void MakeDataCard(RooWorkspace* w, const char* fileBaseName, const char* fileBkg
 
   // outFile << "#CMS-HGG DataCard for Unbinned Limit Setting, " << lumi->getVal() << " pb-1 " << endl;
   outFile << "#Run with: combine -d hgg.mH350.0.shapes-Unbinned.txt -U -m 130 -H ProfileLikelihood -M MarkovChainMC --rMin=0 --rMax=20.0 -b 3500 -i 50000 --optimizeSim=1 --tries 30" << endl;
-  outFile << "# Lumi = " << "19785" << " pb-1" << endl;
+  outFile << "# Lumi = " << "19712" << " pb-1" << endl;
   outFile << "imax "<<ncat << endl;
   outFile << "jmax 6" << endl; // number of BKG
   outFile << "kmax *" << endl;
@@ -1361,13 +1377,13 @@ void MakeDataCardonecatnohiggs(RooWorkspace* w, const char* fileBaseName, const 
   }
   //RooRealVar* lumi = w->var("lumi");
   cout << "======== Expected Events Number =====================" << endl;
-  cout << ".........Measured Data for L = " << "19785" << " pb-1 ............................" << endl;
+  cout << ".........Measured Data for L = " << "19712" << " pb-1 ............................" << endl;
   cout << "#Events data: " << w->data("Data")->sumEntries() << endl;
   for (int c = 0; c < ncat; ++c) {
     cout << TString::Format("#Events data cat%d: ",c) << data[c]->sumEntries() << endl;
   }
   // cout << ".........Expected Signal for L = " << lumi->getVal() << " pb-1 ............................" << endl;
-  cout << ".........Expected Signal for L = " << "19785" << " pb-1 ............................" << endl;
+  cout << ".........Expected Signal for L = " << "19712" << " pb-1 ............................" << endl;
   cout << "#Events Signal: " << w->data("Data")->sumEntries() << endl;
   Float_t siglikeErr[ncat];
   for (int c = 0; c < ncat; ++c) {
@@ -1381,7 +1397,7 @@ void MakeDataCardonecatnohiggs(RooWorkspace* w, const char* fileBaseName, const 
   //outFile << "#CMS-HGG DataCard for Unbinned Limit Setting, " << lumi->getVal() << " pb-1 " << endl;
   outFile << "#Run with: combine -d hgg.mH350.0.shapes-Unbinned.txt -U -m 130 -H ProfileLikelihood -M MarkovChainMC --rMin=0 --rMax=20.0 -b 3500 -i 50000 --optimizeSim=1 --tries 30" << endl;
   // outFile << "# Lumi = " << lumi->getVal() << " pb-1" << endl;
-  outFile << "# Lumi = " << "19785" << " pb-1" << endl;
+  outFile << "# Lumi = " << "19712" << " pb-1" << endl;
   outFile << "imax 1" << endl;
   outFile << "jmax 1" << endl; // number of BKG
   outFile << "kmax *" << endl;

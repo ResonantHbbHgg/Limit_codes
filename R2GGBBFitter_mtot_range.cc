@@ -37,6 +37,8 @@ RooFitResult* BkgModelFitBernstein(RooWorkspace*, Bool_t);
 
 const int minfit =320,minfit =320, maxfit=1200;
 
+Bool_t doblinding = false; //True if you want to blind
+
 RooArgSet* defineVariables()
 {
   // define variables of the input ntuple
@@ -101,7 +103,7 @@ void AddSigData(RooWorkspace* w, Float_t mass, TString signalfile) {
   const Int_t ncat = NCAT;
   Float_t MASS(mass);
   // Luminosity:
-  Float_t Lum = 19620.0; // pb-1
+  Float_t Lum = 19712.0; // pb-1
   RooRealVar lumi("lumi","lumi",Lum);
   w->import(lumi);
   RooArgSet* ntplVars = defineVariables();
@@ -160,7 +162,11 @@ void AddBkgData(RooWorkspace* w, TString datafile) {
 
   RooDataSet* dataToFit[ncat];
   RooDataSet* dataToPlot[ncat];
-  TString cut0 = "&& mgg > 120 && mgg < 130 && mjj > 90 && mjj < 165 "; // " && 1>0";//
+
+  TString cut0;
+  if(doblinding){ cut0 = "&& mgg > 120 && mgg < 130 && mjj > 90 && mjj < 165 "; }
+  else{ cut0 = "&& 1>0 "; }
+
   for (int c = 0; c < ncat; ++c) {
     if(c==0) dataToFit[c] = (RooDataSet*) Data.reduce(
         *w->var("mtot"),

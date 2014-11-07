@@ -15,7 +15,7 @@ for (( i = 4 ; i < 5 ; i++ )); do # for each working point
 #   for (( j = 0 ; j < ${#radion[@]} ; j++ )); do # for each mass
 #  for (( j = 1 ; j < 7; j++ )); do # for each mass
 #   for (( j = 0 ; j < 1 ; j++ )); do # for each mass
-   for (( j = 2 ; j < 5 ; j++ )); do # for each mass
+   for (( j = 1 ; j < 2 ; j++ )); do # for each mass
         # the signal file
         sed -i -r -e "s/WP[0-9]/WP$i/g" R2GGBBFitter_mgg_addhiggs.cc
         sed -i -r -e "s/m[0-9]+.root/m${radion[$j]}.root/g" R2GGBBFitter_mgg_addhiggs.cc 
@@ -73,7 +73,7 @@ for (( i = 4 ; i < 5 ; i++ )); do # for each working point
         #mv higgsCombineTest.Asymptotic.mH120.root higgsCombineTest.Asymptotic.mH125.mR${radion[$j]}.root
 	#echo did with reparametrization
 	#
-        combine -M Asymptotic hgg.mH125.6_8TeV.txt >> higgsCombineTest.Asymptotic.mH125.6.mR${radion[$j]}_higgs.txt
+        combine -M Asymptotic hgg.mH125.0_8TeV.txt >> higgsCombineTest.Asymptotic.mH125.6.mR${radion[$j]}_higgs.txt
         mv higgsCombineTest.Asymptotic.mH120.root higgsCombineTest.Asymptotic.mH125.mR${radion[$j]}_higgs.root
 	echo did with Higgs
 	#
@@ -89,11 +89,11 @@ for (( i = 4 ; i < 5 ; i++ )); do # for each working point
         #mv higgsCombineTest.Asymptotic.mH120.root higgsCombineTest.Asymptotic.mH125.mR${radion[$j]}_onecat.root
 	#echo did one categ with higgs
 	#
-        combine -M Asymptotic hgg.mH125.6_8TeVonecatnohiggs.txt >> higgsCombineTest.Asymptotic.mH125.6.mR${radion[$j]}_onecatnohiggs.txt
+        combine -M Asymptotic hgg.mH125.0_8TeVonecatnohiggs.txt >> higgsCombineTest.Asymptotic.mH125.6.mR${radion[$j]}_onecatnohiggs.txt
         mv higgsCombineTest.Asymptotic.mH120.root higgsCombineTest.Asymptotic.mH125.mR${radion[$j]}_onecatnohiggs.root
 	echo did one categ no higgs
 	#
-        combine -M Asymptotic hgg.mH125.6_8TeV.txt -S 0 >> higgsCombineTest.Asymptotic.mH125.6.mR${radion[$j]}_nosyst_higgs.txt
+        combine -M Asymptotic hgg.mH125.0_8TeV.txt -S 0 >> higgsCombineTest.Asymptotic.mH125.6.mR${radion[$j]}_nosyst_higgs.txt
         mv higgsCombineTest.Asymptotic.mH120.root higgsCombineTest.Asymptotic.mH125.mR${radion[$j]}_nosyst_higgs.root
 	echo did with no syst with higgs
         rm roostats*
