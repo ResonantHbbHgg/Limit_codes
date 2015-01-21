@@ -19,9 +19,9 @@ for i in `echo ${runLimits[@]}`; do
     fi
 
     if [ ${do2DLimits[$i]} == "0" ]; then
-	fitterScript=R2GGBBFitter_mgg_addhiggs.exe
+	fitter="R2GGBBFitter_mgg_addhiggs.exe"
     else
-	fitterScript=R2GGBBFitter_2D_addhiggs.exe
+	fitter="R2GGBBFitter_2D_addhiggs.exe"
     fi
 
     for imass in `echo ${masses[@]}`; do
@@ -34,12 +34,6 @@ for i in `echo ${runLimits[@]}`; do
 	ncat=2
 	if [ "$imass" == "0" ]; then
 	    ncat=4
-	fi
-
-	if [ ${do2DLimits[$i]} == "0" ]; then
-	    fitter="R2GGBBFitter_mgg_addhiggs.exe"
-	else
-	    fitter="R2GGBBFitter_2D_addhiggs.exe"
 	fi
 
 	./$fitter -v $version -n $ncat --sigMass $imass --analysisType ${limitdirs[$i]} >& ${outputdir}/log_radlim${imass}.txt
@@ -68,8 +62,10 @@ for i in `echo ${runLimits[@]}`; do
 	    combine -M Asymptotic --run blind hgg.mH125.0_8TeV.txt -S 0 >> higgsCombineTest.Asymptotic.mH125.0.mR${imass}_nosyst_higgs.txt
 	    mv higgsCombineTest.Asymptotic.mH120.root higgsCombineTest.Asymptotic.mH125.mR${imass}_nosyst_higgs.root
 	    echo did with no syst with higgs
+
 	    rm roostats*
 	    cd ../..
+
 	else
 	    combine -M Asymptotic hgg.mH125.0_8TeV.txt >> higgsCombineTest.Asymptotic.mH125.0.mR${imass}_higgs.txt
 	    mv higgsCombineTest.Asymptotic.mH120.root higgsCombineTest.Asymptotic.mH125.mR${imass}_higgs.root
@@ -82,8 +78,10 @@ for i in `echo ${runLimits[@]}`; do
 	    combine -M Asymptotic hgg.mH125.0_8TeV.txt -S 0 >> higgsCombineTest.Asymptotic.mH125.0.mR${imass}_nosyst_higgs.txt
 	    mv higgsCombineTest.Asymptotic.mH120.root higgsCombineTest.Asymptotic.mH125.mR${imass}_nosyst_higgs.root
 	    echo did with no syst with higgs
+
 	    rm roostats*
 	    cd ../..
+
 	fi
     done # mass
 done #dirs

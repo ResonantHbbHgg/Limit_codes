@@ -21,4 +21,7 @@ mkdir workspaces/
 # for mgg and 2D fit, this runs a compiled program
 ./fits.sh
 
+# for fitting all nonresonant samples either with Mgg or 2D, run
+./fits_allnonres.sh
+# the output is in limit_{dir_text}.txt
 ......................................................................
