@@ -1981,8 +1981,8 @@ void MakeDataCard(RooWorkspace* w, const char* fileBaseName, const char* fileBkg
       outFile << " # from 9.96 + 1.35 - 1.42 fb " << endl << endl;
     }
     outFile << "############## Signal parametric shape uncertainties " << endl;
-    outFile << "### Note that the PES i 0.4% or 0.5% depending on whether the search is res, nonres low mggjj, or nonres high mggjj.\n"
-    outFile << "### For simplicity, and because it has no appriciable effect, 0.5% is used everywhere.\n"
+    outFile << "### Note that the PES i 0.4% or 0.5% depending on whether the search is res, nonres low mggjj, or nonres high mggjj.\n";
+    outFile << "### For simplicity, and because it has no appriciable effect, 0.5% is used everywhere.\n";
     outFile << "CMS_hgg_sig_m0_absShift param 1 0.0054 # displacement of the dipho mean error = sqrt(0.5^ 2 + 0.2^ 2) " << endl;
     outFile << "CMS_hgg_sig_sigmaScale param 1 0.05 # optimistic estimate of resolution uncertainty " << endl;
     //
