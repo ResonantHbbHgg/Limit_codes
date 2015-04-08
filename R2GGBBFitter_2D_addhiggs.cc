@@ -11,6 +11,7 @@
 #include <TTree.h>
 #include <TH2F.h>
 #include <TLatex.h>
+#include <TPaveText.h>
 #include <TGraphAsymmErrors.h>
 #include <TCanvas.h>
 #include <TStyle.h>
@@ -31,6 +32,7 @@
 #include <RooExtendPdf.h>
 #include <RooMinimizer.h>
 #include <RooStatsUtils.h>
+#include <RooProdPdf.h>
 // namespaces
 using namespace std;
 using namespace RooFit;
@@ -40,12 +42,13 @@ namespace po = boost::program_options;
 //Important options first
 Bool_t doblinding = true; //True if you want to blind
 
-// this one is for mgg fit
+// this one is for 2D fit
 Int_t NCAT =0;
 Int_t sigMass;
 bool addHiggs=true;
 
-void AddSigData(RooWorkspace*, Float_t, TString);
+
+void AddSigData(RooWorkspace*, float, TString);
 void AddHigData(RooWorkspace*, Float_t,TString,int);
 void AddBkgData(RooWorkspace*, TString);
 void SigModelFit(RooWorkspace*, Float_t);
@@ -58,17 +61,17 @@ void MakeBkgWS(RooWorkspace* w, const char* filename);//,
 // const char* filenameh0, const char* filenameh1, const char* filenameh2, const char* filenameh4);
 void MakeDataCard(RooWorkspace* w, const char* filename, const char* filename1,
                   const char*, const char*, const char*, const char*, const char*, Bool_t);
-void MakeDataCardonecatnohiggs(RooWorkspace* w, TString filename1, TString filename2, Bool_t);
+void MakeDataCardonecatnohiggs(RooWorkspace* w, const char* filename1, const char* filename2, Bool_t);
 void SetParamNames(RooWorkspace*);
 void SetConstantParams(const RooArgSet* params);
 void style();
-RooFitResult* BkgModelFitBernstein(RooWorkspace*, Bool_t);
+RooFitResult* BkgModelFit(RooWorkspace*, Bool_t);
 
 RooArgSet* defineVariables()
 {
   RooRealVar* mgg = new RooRealVar("mgg","M(#gamma#gamma)",100,180,"GeV");
   //RooRealVar* mtot = new RooRealVar("mtot","M(#gamma#gammajj)",200,1600,"GeV");
-  //RooRealVar* mjj = new RooRealVar("mjj","M(jj)",100,1600,"GeV");
+  RooRealVar* mjj = new RooRealVar("mjj","M(jj)",60,180,"GeV");
   RooRealVar* evWeight = new RooRealVar("evWeight","HqT x PUwei",0,100,"");
   RooCategory* cut_based_ct = new RooCategory("cut_based_ct","event category 4") ;
   //
@@ -77,10 +80,10 @@ RooArgSet* defineVariables()
   cut_based_ct->defineType("cat4_2",2);
   cut_based_ct->defineType("cat4_3",3);
   //
-  RooArgSet* ntplVars = new RooArgSet(*mgg, * cut_based_ct, *evWeight);
+  RooArgSet* ntplVars = new RooArgSet(*mgg, *mjj, *cut_based_ct, *evWeight);
   ntplVars->add(*mgg);
   //ntplVars->add(*mtot);
-  //ntplVars->add(*mjj);
+  ntplVars->add(*mjj);
   ntplVars->add(*cut_based_ct);
   return ntplVars;
 }
@@ -104,7 +107,7 @@ int main(int argc, const char* argv[])
 	("version,v", po::value<int>(&version)->default_value(42), "Version for limit trees.")
 	("ncat,n", po::value<int>(&NCAT)->default_value(2), "Number of categories to fit")
 	("sigMass", po::value<int>(&sigMass)->default_value(0), "Mass of signal. 0 is for nonresonant.")
-	("analysisType", po::value<string>(&analysisType)->default_value("fitToMgg_nonresSearch_withKinFit"), "Can choose among fitToMgg_{nonres,res}Search_with{RegKin,Kin}Fit")
+	("analysisType", po::value<string>(&analysisType)->default_value("fitTo2D_nonresSearch_withKinFit"), "Can choose among fitTo{2D,FTR14001}_{nonres,res}Search_with{RegKin,Kin}Fit")
 	("nonresFile", po::value<string>(&nonresFile)->default_value("Lam_1d0_Yt_1d0_c2_0d0"), "nonres signal to run in the case sigMass is 0. default is the SM value.")
 	("useSigTheoryUnc", po::value<bool>(&useSigTheoryUnc)->default_value(false), "option to add an uncertainty to the datacard for the SM diHiggs theory uncertainty. Default is off.")
         ;
@@ -131,7 +134,7 @@ int main(int argc, const char* argv[])
   TString fileHiggsNamevh = TString::Format("hgg.hig.mH%.1f_8TeV.vh", mass);
   TString fileHiggsNamebbh = TString::Format("hgg.hig.mH%.1f_8TeV.bbh", mass);
   TString fileBkgName = "hgg.inputbkg_8TeV";
-  TString card_name = "models_mgg.rs"; // put the model parameters here!
+  TString card_name = "models_2D.rs"; // put the model parameters here!
   HLFactory hlf("HLFactory", card_name, false);
   RooWorkspace* w = hlf.GetWs();
   RooFitResult* fitresults;
@@ -197,12 +200,9 @@ int main(int argc, const char* argv[])
   AddBkgData(w,ddata);
   w->Print("v");
   cout<<"BKG ADDED"<<endl;
-  cout<<"here 1.0\n\n";
-  fitresults = BkgModelFitBernstein(w, doBands); // this is berestein 3
-  cout<<"here 1.1\n\n";
+  bool dobands=true;
+  fitresults = BkgModelFit(w, dobands); // this is berestein 3
   MakeBkgWS(w, fileBkgName);
-  cout<<"here 1.2\n\n";
-
   // construct the models to fit
   //
   MakeDataCardonecatnohiggs(w, fileBaseName, fileBkgName, useSigTheoryUnc);
@@ -217,6 +217,7 @@ int main(int argc, const char* argv[])
 void AddSigData(RooWorkspace* w, Float_t mass, TString signalfile) {
   cout << "================= Add Signal==============================" << endl;
   const Int_t ncat = NCAT;
+  Float_t MASS(mass);
   // Luminosity:
   Float_t Lum = 19712.0; // pb-1
   RooRealVar lumi("lumi","lumi",Lum);
@@ -240,12 +241,14 @@ void AddSigData(RooWorkspace* w, Float_t mass, TString signalfile) {
   // we take only mtot to fit to the workspace, we include the cuts
   for ( int i=0; i<ncat; ++i){
     sigToFit[i] = (RooDataSet*) sigScaled.reduce(
-						 *w->var("mgg"),
+						 RooArgList(*w->var("mgg"),*w->var("mjj")),
 						 mainCut+TString::Format(" && cut_based_ct==%d ",i)+cut0);
     w->import(*sigToFit[i],Rename(TString::Format("Sig_cat%d",i)));
   }
   // Create full signal data set without categorization
-  RooDataSet* sigToFitAll = (RooDataSet*) sigScaled.reduce(*w->var("mgg"),mainCut);
+  RooDataSet* sigToFitAll = (RooDataSet*) sigScaled.reduce(
+							   RooArgList(*w->var("mgg"),*w->var("mjj")),
+							   mainCut);
   cout << "======================================================================" << endl;
   w->import(*sigToFitAll,Rename("Sig"));
   // here we print the number of entries on the different categories
@@ -279,32 +282,32 @@ void AddBkgData(RooWorkspace* w, TString datafile) {
   RooDataSet* dataToFit[ncat];
   RooDataSet* dataToPlot[ncat];
   TString cut0 = "&& 1>0";
+  TString cut1 = "&& 1>0";
   //
   cout<<" HERE TAKE DATASET"<<endl;
 
   for( int i=0; i<ncat; ++i){
     dataToFit[i] = (RooDataSet*) Data.reduce(
-					     *w->var("mgg"),
-					     mainCut+TString::Format(" && cut_based_ct==%d",i)+cut0);
-    if(doblinding){ dataToPlot[i] = (RooDataSet*) Data.reduce(
-							      *w->var("mgg"),
-							      mainCut+TString::Format(" && cut_based_ct==%d",i)
-							      +TString::Format(" && (mgg > 130 || mgg < 120)")// blind
-							      +cut0);
-    }else{
+					     RooArgList(*w->var("mgg"),*w->var("mjj")),
+					     mainCut+TString::Format(" && cut_based_ct==%d",i));
+    if(doblinding){
       dataToPlot[i] = (RooDataSet*) Data.reduce(
-						*w->var("mgg"),
+						RooArgList(*w->var("mgg"),*w->var("mjj")),
 						mainCut+TString::Format(" && cut_based_ct==%d",i)
 						+cut0);
     }
+    else{
+      dataToPlot[i] = (RooDataSet*) Data.reduce(
+						RooArgList(*w->var("mgg"),*w->var("mjj")),
+						mainCut+TString::Format(" && cut_based_ct==%d",i) );
+    }
   }
-
   for (int c = 0; c < ncat; ++c) {
     w->import(*dataToFit[c],Rename(TString::Format("Data_cat%d",c)));
     w->import(*dataToPlot[c],Rename(TString::Format("Dataplot_cat%d",c)));
   }
   // Create full data set without categorization
-  RooDataSet* data = (RooDataSet*) Data.reduce(*w->var("mgg"),mainCut);
+  RooDataSet* data = (RooDataSet*) Data.reduce(RooArgList(*w->var("mgg"),*w->var("mjj")),mainCut);
   w->import(*data, Rename("Data"));
   data->Print("v");
   return;
@@ -320,19 +323,29 @@ void SigModelFit(RooWorkspace* w, Float_t mass) {
   // four categories to fit
   RooDataSet* sigToFit[ncat];
   RooAbsPdf* mggSig[ncat];
+  RooAbsPdf* mjjSig[ncat];
+  RooProdPdf* SigPdf[ncat];
   // fit range
-  Float_t minSigFit(115),maxSigFit(135);
+  Float_t minSigFitMgg(115),maxSigFitMgg(135);
+  Float_t minSigFitMjj(60),maxSigFitMjj(180);
+  RooRealVar* mgg = w->var("mgg");
+  RooRealVar* mjj = w->var("mjj");
+  mgg->setRange("SigFitRange",minSigFitMgg,maxSigFitMgg);
+  mjj->setRange("SigFitRange",minSigFitMjj,maxSigFitMjj);
+
   for (int c = 0; c < ncat; ++c) {
     // import sig and data from workspace
     sigToFit[c] = (RooDataSet*) w->data(TString::Format("Sig_cat%d",c));
     mggSig[c] = (RooAbsPdf*) w->pdf(TString::Format("mggSig_cat%d",c));
+    mjjSig[c] = (RooAbsPdf*) w->pdf(TString::Format("mjjSig_cat%d",c));
+    SigPdf[c] = new RooProdPdf(TString::Format("SigPdf_cat%d",c),"",RooArgSet(*mggSig[c], *mjjSig[c]));
+
     ((RooRealVar*) w->var(TString::Format("mgg_sig_m0_cat%d",c)))->setVal(MASS);
     //RooRealVar* peak = w->var(TString::Format("mgg_sig_m0_cat%d",c));
     //peak->setVal(MASS);
     cout << "OK up to now..." <<MASS<< endl;
-    // Fit model as M(x|y) to D(x,y)
 
-    mggSig[c]->fitTo(*sigToFit[c],Range(minSigFit,maxSigFit),SumW2Error(kTRUE));
+    SigPdf[c]->fitTo(*sigToFit[c],Range("SigFitRange"),SumW2Error(kTRUE));
     cout << "old = " << ((RooRealVar*) w->var(TString::Format("mgg_sig_m0_cat%d",c)))->getVal() << endl;
 
     double mPeak = ((RooRealVar*) w->var(TString::Format("mgg_sig_m0_cat%d",c)))->getVal()+(MASS-125.0); // shift the peak
@@ -342,15 +355,25 @@ void SigModelFit(RooWorkspace* w, Float_t mass) {
     cout << "new mPeak position = " << ((RooRealVar*) w->var(TString::Format("mgg_sig_m0_cat%d",c)))->getVal() << endl;
 
     // IMPORTANT: fix all pdf parameters to constant, why?
-    w->defineSet(TString::Format("SigPdfParam_cat%d",c),
-		 RooArgSet(
-			   *w->var(TString::Format("mgg_sig_m0_cat%d",c)),
-			   *w->var(TString::Format("mgg_sig_sigma_cat%d",c)),
-			   *w->var(TString::Format("mgg_sig_alpha_cat%d",c)),
-			   *w->var(TString::Format("mgg_sig_n_cat%d",c)),
-			   *w->var(TString::Format("mgg_sig_gsigma_cat%d",c)),
-			   *w->var(TString::Format("mgg_sig_frac_cat%d",c))) );
+    RooArgSet sigParams( *w->var(TString::Format("mgg_sig_m0_cat%d",c)),
+			 *w->var(TString::Format("mgg_sig_sigma_cat%d",c)),
+			 *w->var(TString::Format("mgg_sig_alpha_cat%d",c)),
+			 *w->var(TString::Format("mgg_sig_n_cat%d",c)),
+			 *w->var(TString::Format("mgg_sig_gsigma_cat%d",c)),
+			 *w->var(TString::Format("mgg_sig_frac_cat%d",c)));
+    sigParams.add(RooArgSet(
+			   *w->var(TString::Format("mjj_sig_m0_cat%d",c)),
+		           *w->var(TString::Format("mjj_sig_sigma_cat%d",c)),
+		           *w->var(TString::Format("mjj_sig_alpha_cat%d",c)),
+		           *w->var(TString::Format("mjj_sig_n_cat%d",c)),
+		           *w->var(TString::Format("mjj_sig_gsigma_cat%d",c)),
+		           *w->var(TString::Format("mjj_sig_frac_cat%d",c))) );
+
+    w->defineSet(TString::Format("SigPdfParam_cat%d",c), sigParams);
     SetConstantParams(w->set(TString::Format("SigPdfParam_cat%d",c)));
+
+    w->import(*SigPdf[c]);
+
   } // close for ncat
 } // close signal model fit
 /////////////////////////////////////////
@@ -361,52 +384,72 @@ void HigModelFit(RooWorkspace* w, Float_t mass, int higgschannel) {
   // four categories to fit
   RooDataSet* higToFit[ncat];
   RooAbsPdf* mggHig[ncat];
+  RooAbsPdf* mjjHig[ncat];
+  RooProdPdf* HigPdf[ncat];
   // fit range
-  Float_t minHigFit(115),maxHigFit(135);
+  Float_t minHigMggFit(115),maxHigMggFit(135);
+  Float_t minHigMjjFit(60),maxHigMjjFit(180);
+  RooRealVar* mgg = w->var("mgg");
+  RooRealVar* mjj = w->var("mjj");
+  mgg->setRange("HigFitRange",minHigMggFit,maxHigMggFit);
+  mjj->setRange("HigFitRange",minHigMjjFit,maxHigMjjFit);
+
   for (int c = 0; c < ncat; ++c) {
     // import sig and data from workspace
     higToFit[c] = (RooDataSet*) w->data(TString::Format("Hig_%d_cat%d",higgschannel,c));
     mggHig[c] = (RooAbsPdf*) w->pdf(TString::Format("mggHig_%d_cat%d",higgschannel,c));
-    //RooRealVar* peak = w->var(TString::Format("mgg_hig_m0_cat%d",c));
-    //peak->setVal(MASS);
-    ((RooRealVar*) w->var(TString::Format("mgg_hig_m0_%d_cat%d",higgschannel,c)))->setVal(MASS);
+    mjjHig[c] = (RooAbsPdf*) w->pdf(TString::Format("mjjHig_%d_cat%d",higgschannel,c));
+    HigPdf[c] = new RooProdPdf(TString::Format("HigPdf_%d_cat%d",higgschannel,c),"",RooArgSet(*mggHig[c], *mjjHig[c]));
+
+    //((RooRealVar*) w->var(TString::Format("mgg_hig_m0_%d_cat%d",higgschannel,c)))->setVal(MASS);
     cout << "OK up to now..." <<MASS<< endl;
+    HigPdf[c]->fitTo(*higToFit[c],Range("HigFitRange"),SumW2Error(kTRUE));
+
     cout << "old = " << ((RooRealVar*) w->var(TString::Format("mgg_hig_m0_%d_cat%d",higgschannel,c)))->getVal() << endl;
 
+    //There are very few events in some fits, so adjust the max by a good amount so the MASS-125.0 shift doesn't touch it.
+    ((RooRealVar*) w->var(TString::Format("mgg_hig_m0_%d_cat%d",higgschannel,c)))->setMax( ((RooRealVar*) w->var(TString::Format("mgg_hig_m0_%d_cat%d",higgschannel,c)))->getMax()+(MASS-125.0) );
     double mPeak = ((RooRealVar*) w->var(TString::Format("mgg_hig_m0_%d_cat%d",higgschannel,c)))->getVal()+(MASS-125.0); // shift the peak
     ((RooRealVar*) w->var(TString::Format("mgg_hig_m0_%d_cat%d",higgschannel,c)))->setVal(mPeak); // shift the peak
 
     cout << "mPeak = " << mPeak << endl;
     cout << "new mPeak position = " << ((RooRealVar*) w->var(TString::Format("mgg_hig_m0_%d_cat%d",higgschannel,c)))->getVal() << endl;
 
-    // Fit model as M(x|y) to D(x,y)
-    mggHig[c]->fitTo(*higToFit[c],Range(minHigFit,maxHigFit),SumW2Error(kTRUE));
     // IMPORTANT: fix all pdf parameters to constant
-    w->defineSet(TString::Format("HigPdfParam_%d_cat%d",higgschannel,c),
-		 RooArgSet(
-			   *w->var(TString::Format("mgg_hig_m0_%d_cat%d",higgschannel,c)),
-			   *w->var(TString::Format("mgg_hig_sigma_%d_cat%d",higgschannel,c)),
-			   *w->var(TString::Format("mgg_hig_alpha_%d_cat%d",higgschannel,c)),
-			   *w->var(TString::Format("mgg_hig_n_%d_cat%d",higgschannel,c)),
-			   *w->var(TString::Format("mgg_hig_gsigma_%d_cat%d",higgschannel,c)),
-			   *w->var(TString::Format("mgg_hig_frac_%d_cat%d",higgschannel,c))) );
+    RooArgSet sigParams( *w->var(TString::Format("mgg_hig_m0_%d_cat%d",higgschannel,c)),
+			 *w->var(TString::Format("mgg_hig_sigma_%d_cat%d",higgschannel,c)),
+			 *w->var(TString::Format("mgg_hig_alpha_%d_cat%d",higgschannel,c)),
+			 *w->var(TString::Format("mgg_hig_n_%d_cat%d",higgschannel,c)),
+			 *w->var(TString::Format("mgg_hig_gsigma_%d_cat%d",higgschannel,c)),
+			 *w->var(TString::Format("mgg_hig_frac_%d_cat%d",higgschannel,c)) );
+    sigParams.add(RooArgSet(
+			   *w->var(TString::Format("mjj_hig_m0_%d_cat%d",higgschannel,c)),
+			   *w->var(TString::Format("mjj_hig_sigma_%d_cat%d",higgschannel,c)),
+			   *w->var(TString::Format("mjj_hig_alpha_%d_cat%d",higgschannel,c)),
+			   *w->var(TString::Format("mjj_hig_n_%d_cat%d",higgschannel,c)),
+			   *w->var(TString::Format("mjj_hig_gsigma_%d_cat%d",higgschannel,c)),
+			   *w->var(TString::Format("mjj_hig_frac_%d_cat%d",higgschannel,c)) ) );
+
+    w->defineSet(TString::Format("HigPdfParam_%d_cat%d",higgschannel,c), sigParams);
+
     SetConstantParams(w->set(TString::Format("HigPdfParam_%d_cat%d",higgschannel,c)));
+
+    w->import(*HigPdf[c]);
   } // close for ncat
 } // close higgs model fit
 ////////////////////////////////////////////////////////////
-// BKG model berestein 3
-RooFitResult* BkgModelFitBernstein(RooWorkspace* w, Bool_t doBands) {
+RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
   const Int_t ncat = NCAT;
   std::vector<TString> catdesc;
   if ( NCAT == 2 ){
-    catdesc.push_back("2 btag");
-    catdesc.push_back("1 btag");
+    catdesc.push_back(" High Purity");
+    catdesc.push_back(" Med. Purity");
   }
   else{
-    catdesc.push_back("2 btag, M_{#gamma#gammajj}^{kin} > 350 GeV");
-    catdesc.push_back("1 btag, M_{#gamma#gammajj}^{kin} > 360 GeV");
-    catdesc.push_back("2 btag, M_{#gamma#gammajj}^{kin} < 350 GeV");
-    catdesc.push_back("1 btag, M_{#gamma#gammajj}^{kin} < 360 GeV");
+    catdesc.push_back(" #splitline{High Purity}{High m_{#gamma#gammajj}^{kin}}");
+    catdesc.push_back(" #splitline{Med. Purity}{High m_{#gamma#gammajj}^{kin}}");
+    catdesc.push_back(" #splitline{High Purity}{Low m_{#gamma#gammajj}^{kin}}");
+    catdesc.push_back(" #splitline{Med. Purity}{Low m_{#gamma#gammajj}^{kin}}");
   }
   //******************************************//
   // Fit background with model pdfs
@@ -415,7 +458,9 @@ RooFitResult* BkgModelFitBernstein(RooWorkspace* w, Bool_t doBands) {
   RooDataSet* data[ncat];
   RooDataSet* dataplot[ncat]; // the data
   RooBernstein* mggBkg[ncat];// the polinomial of 4* order
+  RooBernstein* mjjBkg[ncat];// the polinomial of 4* order
   RooPlot* plotmggBkg[ncat];
+  RooPlot* plotmjjBkg[ncat];
   RooDataSet* sigToFit0[ncat];
   RooDataSet* sigToFit1[ncat];
   RooDataSet* sigToFit2[ncat];
@@ -427,10 +472,21 @@ RooFitResult* BkgModelFitBernstein(RooWorkspace* w, Bool_t doBands) {
   RooAbsPdf* mggSig2[ncat];
   RooAbsPdf* mggSig3[ncat];
   RooAbsPdf* mggSig4[ncat];
-  Float_t minMassFit(100),maxMassFit(180);
+  RooAbsPdf* mjjSig[ncat];
+  RooAbsPdf* mjjSig0[ncat];
+  RooAbsPdf* mjjSig1[ncat];
+  RooAbsPdf* mjjSig2[ncat];
+  RooAbsPdf* mjjSig3[ncat];
+  RooAbsPdf* mjjSig4[ncat];
+  Float_t minMggMassFit(100),maxMggMassFit(180);
+  Float_t minMjjMassFit(60),maxMjjMassFit(180);
   // Fit data with background pdf for data limit
   RooRealVar* mgg = w->var("mgg");
+  RooRealVar* mjj = w->var("mjj");
   mgg->setUnit("GeV");
+  mjj->setUnit("GeV");
+  mgg->setRange("BkgFitRange",minMggMassFit,maxMggMassFit);
+  mjj->setRange("BkgFitRange",minMjjMassFit,maxMjjMassFit);
   //
   TLatex *text = new TLatex();
   text->SetNDC();
@@ -443,59 +499,72 @@ RooFitResult* BkgModelFitBernstein(RooWorkspace* w, Bool_t doBands) {
     // these are the parameters for the bkg polinomial
     // one slope by category - float from -10 > 10
     // the parameters are squared
-    RooFormulaVar *p1mod = new RooFormulaVar(
-					     TString::Format("p1mod_cat%d",c),
-					     "","@0*@0",
+
+    RooFormulaVar *mgg_p1mod = new RooFormulaVar(
+					     TString::Format("mgg_p1mod_cat%d",c),
+					     "","@0",
 					     *w->var(TString::Format("mgg_bkg_8TeV_slope1_cat%d",c)));
+    RooFormulaVar *mjj_p1mod = new RooFormulaVar(
+					     TString::Format("mjj_p1mod_cat%d",c),
+					     "","@0",
+					     *w->var(TString::Format("mjj_bkg_8TeV_slope1_cat%d",c)));
+
     RooAbsPdf* mggBkgTmp0 = new RooGenericPdf(
 					      TString::Format("MggNonresBkg_%d",c),
-					      "1./pow(@0,@1)",
-					      RooArgList(*mgg, *p1mod));
-    // we first wrap the normalization of mggBkgTmp0
-    w->factory(TString::Format("mgg_bkg_8TeV_norm_cat%d[1.0,0.0,100000]",c));
-    RooExtendPdf mggBkgTmp( // we copy the pdf? normalized
-			   TString::Format("mggBkg_cat%d",c),
-			   "",*mggBkgTmp0,
-			   *w->var(TString::Format("mgg_bkg_8TeV_norm_cat%d",c)) // normalization only on full bkg
-			   );
-    mggBkgTmp.fitTo( // fit with normalized pdf,and return values
-				   *data[c], // bkg
-				   Strategy(1), // MINUIT strategy
-				   Minos(kFALSE), // interpretation on the errors, nonlinearities
-				   Range(minMassFit,maxMassFit),
-				   SumW2Error(kTRUE),
-				   Save(kTRUE));
-    w->import(mggBkgTmp);
+					      "1./pow(@0,@1)",//"1./exp(@0*@1)",//
+					      RooArgList(*mgg, *mgg_p1mod));
+    RooAbsPdf* mjjBkgTmp0 = new RooGenericPdf(
+					      TString::Format("MjjNonresBkg_%d",c),
+					      "1./pow(@0,@1)",//"1./exp(@0*@1)",//
+					      RooArgList(*mjj, *mjj_p1mod));
+
+    // we first wrap the normalization of mggBkgTmp0, mjjBkgTmp0
+    w->factory(TString::Format("bkg_8TeV_norm_cat%d[1.0,0.0,100000]",c));
+    RooProdPdf BkgPdf(TString::Format("BkgPdf_cat%d",c), "", RooArgList(*mggBkgTmp0, *mjjBkgTmp0));
+    RooExtendPdf BkgPdfExt(TString::Format("BkgPdfExt_cat%d",c),"", BkgPdf,*w->var(TString::Format("bkg_8TeV_norm_cat%d",c)));
+    BkgPdfExt.fitTo(*data[c], Strategy(1),Minos(kFALSE), Range("BkgFitRange"),SumW2Error(kTRUE), Save(kTRUE));
+    w->import(BkgPdfExt);
+    //BkgPdf.fitTo(*data[c], Strategy(1),Minos(kFALSE), Range("BkgFitRange"),SumW2Error(kTRUE), Save(kTRUE));
+    //w->import(BkgPdf);
+
     //************************************************//
     // Plot mgg background fit results per categories
     //************************************************//
-    TCanvas* ctmp = new TCanvas(TString::Format("ctmpBkg_cat%d",c),"mgg Background Categories",0,0,500,500);
+    TCanvas* ctmp = new TCanvas(TString::Format("ctmpBkgMgg_cat%d",c),"mgg Background Categories",0,0,500,500);
     Int_t nBinsMass(80);
     plotmggBkg[c] = mgg->frame(nBinsMass);
     cout<<" here 1"<<endl;
     dataplot[c] = (RooDataSet*) w->data(TString::Format("Dataplot_cat%d",c));
     cout<<" here 1"<<endl;
-    dataplot[c]->plotOn(plotmggBkg[c]); //
-    mggBkgTmp.plotOn(
+    if(doblinding) dataplot[c]->plotOn(plotmggBkg[c],Invisible());
+    else dataplot[c]->plotOn(plotmggBkg[c]);
+    mggBkgTmp0->plotOn(
 		     plotmggBkg[c],
 		     LineColor(kBlue),
-		     Range("fitrange"),NormRange("fitrange"));
-    dataplot[c]->plotOn(plotmggBkg[c]);
-
+		     Range("BkgFitRange"),NormRange("BkgFitRange"));
+    if(doblinding) dataplot[c]->plotOn(plotmggBkg[c], Invisible());
+    else dataplot[c]->plotOn(plotmggBkg[c]);
     cout << "!!!!!!!!!!!!!!!!!" << endl;
     cout << "!!!!!!!!!!!!!!!!!" << endl; // now we fit the gaussian on signal
     //plotmggBkg[c]->SetMinimum(0.01); // no error bar in bins with zero events
-    if(c==0||c==2)plotmggBkg[c]->SetMinimum(0.005); // no error bar in bins with zero events
+    if(c==0||c==2)plotmggBkg[c]->SetMinimum(0.001); // no error bar in bins with zero events
     if(c==1||c==3)plotmggBkg[c]->SetMinimum(0.001); // no error bar in bins with zero events
     plotmggBkg[c]->Draw();
-    plotmggBkg[c]->SetTitle("CMS preliminary 19.7/fb");
+    //plotmggBkg[c]->SetTitle("CMS preliminary 19.7/fb");
     //plotmggBkg[c]->SetMinimum(0.01); // no error bar in bins with zero events
     plotmggBkg[c]->SetMaximum(1.40*plotmggBkg[c]->GetMaximum());
-    plotmggBkg[c]->GetXaxis()->SetTitle("M_{#gamma#gamma} (GeV)");
+    plotmggBkg[c]->GetXaxis()->SetTitle("m_{#gamma#gamma} (GeV)");
     //double test = sigToFit[c]->sumEntries();
     //cout<<"number of events on dataset "<<test<<endl;
+    TPaveText *pt = new TPaveText(0.1,0.94,0.9,0.99, "brNDC");
+    // pt->SetName("title");
+    pt->SetBorderSize(0);
+    pt->SetFillColor(0);
+    pt->SetTextSize(0.035);
+    pt->AddText("            CMS Preliminary                     L = 19.7 fb^{-1}    #sqrt{s} = 8 TeV   ");
+    pt->Draw();
     TGraphAsymmErrors *onesigma, *twosigma;
-    if (doBands) {
+    if (dobands) {
       RooAbsPdf *cpdf; cpdf = mggBkgTmp0;
       onesigma = new TGraphAsymmErrors();
       twosigma = new TGraphAsymmErrors();
@@ -531,7 +600,7 @@ RooFitResult* BkgModelFitBernstein(RooWorkspace* w, Bool_t doBands) {
         delete nll;
         delete epdf;
       } // close for bin
-      mgg->setRange("errRange",minMassFit,maxMassFit);
+      mgg->setRange("errRange",minMggMassFit,maxMggMassFit);
       twosigma->SetLineColor(kYellow);
       twosigma->SetFillColor(kYellow);
       twosigma->SetMarkerColor(kYellow);
@@ -548,20 +617,16 @@ RooFitResult* BkgModelFitBernstein(RooWorkspace* w, Bool_t doBands) {
     sigToFit0[c] = (RooDataSet*) w->data(TString::Format("Hig_0_cat%d",c));
     double norm0; norm0 = 1.0*sigToFit0[c]->sumEntries(); //
     //norm0 = 0.0000001;
-    cout<<" here 0.0\n";
     mggSig0[c] = (RooAbsPdf*) w->pdf(TString::Format("mggHig_0_cat%d",c));
     // we are not constructing signal pdf, this is constructed on sig to fit function...
-    cout<<" here 0.1\n";
     mggSig0[c] ->plotOn(
 			plotmggBkg[c],
 			Normalization(norm0,RooAbsPdf::NumEvent),
 			DrawOption("F"),
 			LineColor(kRed),FillStyle(1001),FillColor(19));
-    cout<<" here 0.2\n";
     mggSig0[c]->plotOn(
 		       plotmggBkg[c],
 		       Normalization(norm0,RooAbsPdf::NumEvent),LineColor(kRed),LineStyle(1));
-    cout<<" here 0.3\n";
     //
     sigToFit1[c] = (RooDataSet*) w->data(TString::Format("Hig_1_cat%d",c));
     double norm1 = 1.0*sigToFit1[c]->sumEntries(); //
@@ -617,7 +682,6 @@ RooFitResult* BkgModelFitBernstein(RooWorkspace* w, Bool_t doBands) {
     mggSig4[c]->plotOn(
 		       plotmggBkg[c],
 		       Normalization(norm4,RooAbsPdf::NumEvent),LineColor(kBlue),LineStyle(1));
-    cout<<" here 0.4\n";
 
     //////////////////////////////////////////////////////////
     plotmggBkg[c]->Draw("SAME");
@@ -630,17 +694,20 @@ RooFitResult* BkgModelFitBernstein(RooWorkspace* w, Bool_t doBands) {
     cout << "!!!!!!!!!!!!!!!!!" << endl;
     TLegend *legmc = new TLegend(0.40,0.72,0.62,0.9);
     TLegend *legmcH = new TLegend(0.66,0.72,0.94,0.9);
-    legmc->AddEntry(plotmggBkg[c]->getObject(2),"Data","LPE"); // not...
+    if(doblinding) legmc->AddEntry(plotmggBkg[c]->getObject(2),"Data ","");
+    else  legmc->AddEntry(plotmggBkg[c]->getObject(2),"Data ","LPE");
     legmc->AddEntry(plotmggBkg[c]->getObject(1),"Bkg Fit","L");
-    if(doBands)legmc->AddEntry(onesigma,"#pm1 #sigma","F");
-    if(doBands)legmc->AddEntry(twosigma,"#pm2 #sigma","F"); // not...
+    if(dobands)legmc->AddEntry(onesigma,"Fit #pm1 #sigma","F");
+    if(dobands)legmc->AddEntry(twosigma,"Fit #pm2 #sigma ","F"); // not...
     legmcH->AddEntry(plotmggBkg[c]->getObject(3),"ggH ","LPE"); // not...
     legmcH->AddEntry(plotmggBkg[c]->getObject(5),"ttH ","LPE"); // not...
     legmcH->AddEntry(plotmggBkg[c]->getObject(7),"VBF ","LPE"); // not...
     legmcH->AddEntry(plotmggBkg[c]->getObject(9),"VH ","LPE"); // not...
     legmcH->AddEntry(plotmggBkg[c]->getObject(11),"bbH ","LPE"); // not...
-    if ( sigMass ==0 ) legmc->SetHeader(" Nonresonace");
-    else legmc->SetHeader(TString::Format(" %d GeV",sigMass));
+    if(sigMass==0)
+      legmc->SetHeader(" Nonresonant HH");
+    else
+      legmc->SetHeader(TString::Format(" m_{X} = %d GeV",sigMass));
     legmcH->SetHeader(" Higgs");
     legmc->SetBorderSize(0);
     legmc->SetFillStyle(0);
@@ -648,35 +715,232 @@ RooFitResult* BkgModelFitBernstein(RooWorkspace* w, Bool_t doBands) {
     legmcH->SetFillStyle(0);
     legmc->Draw();
     legmcH->Draw();
-    cout<<" here 0.5\n";
-    TLatex *lat2 = new TLatex(minMassFit+1.5,0.75*plotmggBkg[c]->GetMaximum(),catdesc.at(c));
+    TLatex *lat2 = new TLatex(minMggMassFit+1.5,0.85*plotmggBkg[c]->GetMaximum(),catdesc.at(c));
     lat2->Draw();
     //
-    ctmp->SaveAs(TString::Format("databkgoversig_cat%d.pdf",c));
-    ctmp->SaveAs(TString::Format("databkgoversig_cat%d.png",c));
+    ctmp->SaveAs(TString::Format("databkgoversigMgg_cat%d.pdf",c));
+    ctmp->SaveAs(TString::Format("databkgoversigMgg_cat%d.png",c));
 
     if(c==0||c==2)plotmggBkg[c]->SetMaximum(100); // no error bar in bins with zero events
     if(c==1||c==3)plotmggBkg[c]->SetMaximum(1000); // no error bar in bins with zero events
     ctmp->SetLogy(1);
-    ctmp->SaveAs(TString::Format("databkgoversig_cat%d_log.pdf",c));
-    ctmp->SaveAs(TString::Format("databkgoversig_cat%d_log.png",c));
-    // ctmp->SaveAs(TString::Format("databkgoversig_cat%d.C",c));
+    ctmp->SaveAs(TString::Format("databkgoversigMgg_cat%d_log.pdf",c));
+    ctmp->SaveAs(TString::Format("databkgoversigMgg_cat%d_log.png",c));
+    // ctmp->SaveAs(TString::Format("databkgoversigMgg_cat%d.C",c));
+
+    //************************************************//
+    // Plot mjj background fit results per categories
+    //************************************************//
+    ctmp = new TCanvas(TString::Format("ctmpBkgMjj_cat%d",c),"mjj Background Categories",0,0,500,500);
+    nBinsMass = 60;
+    plotmjjBkg[c] = mjj->frame(nBinsMass);
+    cout<<" here 1"<<endl;
+    dataplot[c] = (RooDataSet*) w->data(TString::Format("Dataplot_cat%d",c));
+    cout<<" here 1"<<endl;
+    if(doblinding) dataplot[c]->plotOn(plotmjjBkg[c],Invisible());
+    else dataplot[c]->plotOn(plotmjjBkg[c]);
+    mjjBkgTmp0->plotOn(
+		     plotmjjBkg[c],
+		     LineColor(kBlue),
+		     Range("BkgFitRange"),NormRange("BkgFitRange"));
+    if(doblinding) dataplot[c]->plotOn(plotmjjBkg[c],Invisible());
+    else dataplot[c]->plotOn(plotmjjBkg[c]);
+
+    cout << "!!!!!!!!!!!!!!!!!" << endl;
+    cout << "!!!!!!!!!!!!!!!!!" << endl; // now we fit the gaussian on signal
+    //plotmjjBkg[c]->SetMinimum(0.01); // no error bar in bins with zero events
+    if(c==0||c==2)plotmjjBkg[c]->SetMinimum(0.005); // no error bar in bins with zero events
+    if(c==1||c==3)plotmjjBkg[c]->SetMinimum(0.001); // no error bar in bins with zero events
+    plotmjjBkg[c]->Draw();
+    //plotmjjBkg[c]->SetTitle("CMS preliminary 19.7/fb");
+    //plotmjjBkg[c]->SetMinimum(0.01); // no error bar in bins with zero events
+    plotmjjBkg[c]->SetMaximum(1.40*plotmjjBkg[c]->GetMaximum());
+    plotmjjBkg[c]->GetXaxis()->SetTitle("m_{jj} (GeV)");
+    //double test = sigToFit[c]->sumEntries();
+    //cout<<"number of events on dataset "<<test<<endl;
+    pt = new TPaveText(0.1,0.94,0.9,0.99, "brNDC");
+    // pt->SetName("title");
+    pt->SetBorderSize(0);
+    pt->SetFillColor(0);
+    pt->SetTextSize(0.035);
+    pt->AddText("            CMS Preliminary                     L = 19.7 fb^{-1}    #sqrt{s} = 8 TeV   ");
+    pt->Draw();
+    if (dobands) {
+      RooAbsPdf *cpdf; cpdf = mjjBkgTmp0;
+      TGraphAsymmErrors *onesigma = new TGraphAsymmErrors();
+      TGraphAsymmErrors *twosigma = new TGraphAsymmErrors();
+      RooRealVar *nlim = new RooRealVar(TString::Format("nlim%d",c),"",0.0,0.0,10.0);
+      nlim->removeRange();
+      RooCurve *nomcurve = dynamic_cast<RooCurve*>(plotmjjBkg[c]->getObject(1));
+      for (int i=1; i<(plotmjjBkg[c]->GetXaxis()->GetNbins()+1); ++i) {
+        double lowedge = plotmjjBkg[c]->GetXaxis()->GetBinLowEdge(i);
+        double upedge = plotmjjBkg[c]->GetXaxis()->GetBinUpEdge(i);
+        double center = plotmjjBkg[c]->GetXaxis()->GetBinCenter(i);
+        double nombkg = nomcurve->interpolate(center);
+        nlim->setVal(nombkg);
+        mjj->setRange("errRange",lowedge,upedge);
+        RooAbsPdf *epdf = 0;
+        epdf = new RooExtendPdf("epdf","",*cpdf,*nlim,"errRange");
+        RooAbsReal *nll = epdf->createNLL(*(data[c]),Extended());
+        RooMinimizer minim(*nll);
+        minim.setStrategy(0);
+        double clone = 1.0 - 2.0*RooStats::SignificanceToPValue(1.0);
+        double cltwo = 1.0 - 2.0*RooStats::SignificanceToPValue(2.0);
+        minim.migrad();
+        minim.minos(*nlim);
+        // printf("errlo = %5f, errhi = %5f\n",nlim->getErrorLo(),nlim->getErrorHi());
+        onesigma->SetPoint(i-1,center,nombkg);
+        onesigma->SetPointError(i-1,0.,0.,-nlim->getErrorLo(),nlim->getErrorHi());
+        minim.setErrorLevel(0.5*pow(ROOT::Math::normal_quantile(1-0.5*(1-cltwo),1.0), 2));
+        // the 0.5 is because qmu is -2*NLL
+        // eventually if cl = 0.95 this is the usual 1.92!
+        minim.migrad();
+        minim.minos(*nlim);
+        twosigma->SetPoint(i-1,center,nombkg);
+        twosigma->SetPointError(i-1,0.,0.,-nlim->getErrorLo(),nlim->getErrorHi());
+        delete nll;
+        delete epdf;
+      } // close for bin
+      mjj->setRange("errRange",minMjjMassFit,maxMjjMassFit);
+      twosigma->SetLineColor(kYellow);
+      twosigma->SetFillColor(kYellow);
+      twosigma->SetMarkerColor(kYellow);
+      twosigma->Draw("L3 SAME");
+      onesigma->SetLineColor(kGreen);
+      onesigma->SetFillColor(kGreen);
+      onesigma->SetMarkerColor(kGreen);
+      onesigma->Draw("L3 SAME");
+      plotmjjBkg[c]->Draw("SAME");
+    } else plotmjjBkg[c]->Draw("SAME"); // close dobands
+    //plotmjjBkg[c]->getObject(1)->Draw("SAME");
+    //plotmjjBkg[c]->getObject(2)->Draw("P SAME");
+    ////////////////////////////////////////////////////////// plot higgs
+    sigToFit0[c] = (RooDataSet*) w->data(TString::Format("Hig_0_cat%d",c));
+    norm0 = 1.0*sigToFit0[c]->sumEntries(); //
+    //norm0 = 0.0000001;
+    mjjSig0[c] = (RooAbsPdf*) w->pdf(TString::Format("mjjHig_0_cat%d",c));
+    // we are not constructing signal pdf, this is constructed on sig to fit function...
+    mjjSig0[c] ->plotOn(
+			plotmjjBkg[c],
+			Normalization(norm0,RooAbsPdf::NumEvent),
+			DrawOption("F"),
+			LineColor(kRed),FillStyle(1001),FillColor(19));
+    mjjSig0[c]->plotOn(
+		       plotmjjBkg[c],
+		       Normalization(norm0,RooAbsPdf::NumEvent),LineColor(kRed),LineStyle(1));
+    //
+    sigToFit1[c] = (RooDataSet*) w->data(TString::Format("Hig_1_cat%d",c));
+    norm1 = 1.0*sigToFit1[c]->sumEntries(); //
+    mjjSig1[c] = (RooAbsPdf*) w->pdf(TString::Format("mjjHig_1_cat%d",c));
+    // we are not constructing signal pdf, this is constructed on sig to fit function...
+    mjjSig1[c] ->plotOn(
+			plotmjjBkg[c],
+			Normalization(norm1,RooAbsPdf::NumEvent),
+			DrawOption("F"),
+			LineColor(kGreen),FillStyle(1001),FillColor(19));
+    mjjSig1[c]->plotOn(
+		       plotmjjBkg[c],
+		       Normalization(norm1,RooAbsPdf::NumEvent),LineColor(kGreen),LineStyle(1));
+    //
+    sigToFit2[c] = (RooDataSet*) w->data(TString::Format("Hig_2_cat%d",c));
+    //if(sigToFit2[c]->sumEntries()>0)
+    norm2 = 1.0*sigToFit2[c]->sumEntries(); //else
+    //norm2 = 0.0000000000001; //
+    mjjSig2[c] = (RooAbsPdf*) w->pdf(TString::Format("mjjHig_2_cat%d",c));
+    // we are not constructing signal pdf, this is constructed on sig to fit function...
+    mjjSig2[c] ->plotOn(
+			plotmjjBkg[c],
+			Normalization(norm2,RooAbsPdf::NumEvent),
+			DrawOption("F"),
+			LineColor(kMagenta),FillStyle(1001),FillColor(19));
+    mjjSig2[c]->plotOn(
+		       plotmjjBkg[c],
+		       Normalization(norm2,RooAbsPdf::NumEvent),LineColor(kMagenta),LineStyle(1));
+    //
+    sigToFit3[c] = (RooDataSet*) w->data(TString::Format("Hig_3_cat%d",c));
+    norm3 = 1.0*sigToFit3[c]->sumEntries(); //
+    mjjSig3[c] = (RooAbsPdf*) w->pdf(TString::Format("mjjHig_3_cat%d",c));
+    // we are not constructing signal pdf, this is constructed on sig to fit function...
+    mjjSig3[c] ->plotOn(
+			plotmjjBkg[c],
+			Normalization(norm3,RooAbsPdf::NumEvent),
+			DrawOption("F"),
+			LineColor(kCyan),FillStyle(1001),FillColor(19));
+    mjjSig3[c]->plotOn(
+		       plotmjjBkg[c],
+		       Normalization(norm3,RooAbsPdf::NumEvent),LineColor(kCyan),LineStyle(1));
+
+    sigToFit4[c] = (RooDataSet*) w->data(TString::Format("Hig_4_cat%d",c));
+    norm4 = 1.0*sigToFit4[c]->sumEntries(); //
+    mjjSig4[c] = (RooAbsPdf*) w->pdf(TString::Format("mjjHig_4_cat%d",c));
+    // we are not constructing signal pdf, this is constructed on sig to fit function...
+    mjjSig4[c] ->plotOn(
+			plotmjjBkg[c],
+			Normalization(norm4,RooAbsPdf::NumEvent),
+			DrawOption("F"),
+			LineColor(kBlue),FillStyle(1001),FillColor(19));
+    mjjSig4[c]->plotOn(
+		       plotmjjBkg[c],
+		       Normalization(norm4,RooAbsPdf::NumEvent),LineColor(kBlue),LineStyle(1));
+
+    //////////////////////////////////////////////////////////
+    plotmjjBkg[c]->Draw("SAME");
+    if(c==0||c==2)plotmjjBkg[c]->SetMinimum(0.005); // no error bar in bins with zero events
+    if(c==1||c==3)plotmjjBkg[c]->SetMinimum(0.01); // no error bar in bins with zero events
+    if(c==0||c==2)plotmjjBkg[c]->SetMaximum(5.3); // no error bar in bins with zero events
+    if(c==1||c==3)plotmjjBkg[c]->SetMaximum(20); // no error bar in bins with zero events
+    // plotmjjBkg[c]->SetMinimum(0.005); // no error bar in bins with zero events
+    //plotmjjBkg[c]->SetLogy(0);
+    cout << "!!!!!!!!!!!!!!!!!" << endl;
+    legmc = new TLegend(0.40,0.72,0.62,0.9);
+    legmcH = new TLegend(0.66,0.72,0.94,0.9);
+    if(doblinding) legmc->AddEntry(plotmjjBkg[c]->getObject(2),"Data ","");
+    else legmc->AddEntry(plotmjjBkg[c]->getObject(2),"Data ","LPE");
+    legmc->AddEntry(plotmjjBkg[c]->getObject(1),"Fit","L");
+    if(dobands)legmc->AddEntry(twosigma,"two sigma ","F"); // not...
+    if(dobands)legmc->AddEntry(onesigma,"one sigma","F");
+    legmcH->AddEntry(plotmjjBkg[c]->getObject(3),"ggH ","LPE"); // not...
+    legmcH->AddEntry(plotmjjBkg[c]->getObject(5),"ttH ","LPE"); // not...
+    legmcH->AddEntry(plotmjjBkg[c]->getObject(7),"VBF ","LPE"); // not...
+    legmcH->AddEntry(plotmjjBkg[c]->getObject(9),"VH ","LPE"); // not...
+    legmcH->AddEntry(plotmjjBkg[c]->getObject(11),"bbH ","LPE"); // not...
+    if(sigMass==0)
+      legmc->SetHeader(" Nonresonant HH");
+    else
+      legmc->SetHeader(TString::Format(" m_{X} = %d GeV",sigMass));
+    legmcH->SetHeader(" Higgs");
+    legmc->SetBorderSize(0);
+    legmc->SetFillStyle(0);
+    legmcH->SetBorderSize(0);
+    legmcH->SetFillStyle(0);
+    legmc->Draw();
+    legmcH->Draw();
+    lat2 = new TLatex(minMjjMassFit+1.5,0.85*plotmjjBkg[c]->GetMaximum(),catdesc.at(c));
+    lat2->Draw();
+    //
+    ctmp->SaveAs(TString::Format("databkgoversigMjj_cat%d.pdf",c));
+    ctmp->SaveAs(TString::Format("databkgoversigMjj_cat%d.png",c));
+
+    if(c==0||c==2)plotmjjBkg[c]->SetMaximum(100); // no error bar in bins with zero events
+    if(c==1||c==3)plotmjjBkg[c]->SetMaximum(1000); // no error bar in bins with zero events
+    ctmp->SetLogy(1);
+    ctmp->SaveAs(TString::Format("databkgoversigMjj_cat%d_log.pdf",c));
+    ctmp->SaveAs(TString::Format("databkgoversigMjj_cat%d_log.png",c));
+    // ctmp->SaveAs(TString::Format("databkgoversigMjj_cat%d.C",c));
+
   } // close to each category
-  RooRealVar *constVar = new RooRealVar("constantVar","",1.0,1.0,1.0);
-  constVar->setConstant(true);
-  RooBernstein mggBkgAll("mggBkgAll", "", *mgg,
-			 RooArgList(*constVar,
-				    *w->var("mgg_bkg_8TeV_slope1")));
-  w->import(mggBkgAll);
-  RooFitResult* fitresults;
-  fitresults = w->pdf("mggBkgAll")->fitTo( // save results to workspace
-					  *w->data("Data"),
-					  Range(minMassFit,maxMassFit),
-					  SumW2Error(kTRUE), Save(kTRUE));
-    cout<<" here 0.9\n";
+
+  RooGenericPdf *mggBkgAll = new RooGenericPdf("mggBkgAll", "1./pow(@0,@1)", RooArgList(*mgg,*w->var("mgg_bkg_8TeV_slope1")));
+  RooGenericPdf *mjjBkgAll = new RooGenericPdf("mjjBkgAll", "1./pow(@0,@1)", RooArgList(*mjj,*w->var("mjj_bkg_8TeV_slope1")));
+
+  RooProdPdf BkgPdfAll("BkgPdfAll", "Background Pdf", *mggBkgAll, *mjjBkgAll);
+  RooFitResult* fitresults = BkgPdfAll.fitTo( // save results to workspace
+					     *w->data("Data"),
+					     Range("BkgFitRange"),
+					     SumW2Error(kTRUE), Save(kTRUE));
   fitresults->Print();
-    cout<<" here 0.99\n";
-    return fitresults;
+  w->import(BkgPdfAll);
+  return fitresults;
 } // close berestein 3
 ///////////////////////////////////////////////////////////////
 void MakeSigWS(RooWorkspace* w, const char* fileBaseName) {
@@ -686,11 +950,11 @@ void MakeSigWS(RooWorkspace* w, const char* fileBaseName) {
   // Write pdfs and datasets into the workspace before to save
   // for statistical tests.
   //**********************************************************************//
-  RooAbsPdf* mggSigPdf[ncat];
+  RooAbsPdf* SigPdf[ncat];
   RooWorkspace *wAll = new RooWorkspace("w_all","w_all");
   for (int c = 0; c < ncat; ++c) {
-    mggSigPdf[c] = (RooAbsPdf*) w->pdf(TString::Format("mggSig_cat%d",c));
-    wAll->import(*w->pdf(TString::Format("mggSig_cat%d",c)));
+    SigPdf[c] = (RooAbsPdf*) w->pdf(TString::Format("SigPdf_cat%d",c));
+    wAll->import(*w->pdf(TString::Format("SigPdf_cat%d",c)));
   }
   // (2) Systematics on energy scale and resolution
   // 1,1,1 statistical to be treated on the datacard
@@ -701,13 +965,20 @@ void MakeSigWS(RooWorkspace* w, const char* fileBaseName) {
     wAll->factory("prod::CMS_hgg_sig_m0_cat2(mgg_sig_m0_cat2, CMS_hgg_sig_m0_absShift)");
     wAll->factory("prod::CMS_hgg_sig_m0_cat3(mgg_sig_m0_cat3, CMS_hgg_sig_m0_absShift)");
   }
+  wAll->factory("CMS_hbb_sig_m0_absShift[1,1,1]");
+  wAll->factory("prod::CMS_hbb_sig_m0_cat0(mjj_sig_m0_cat0, CMS_hbb_sig_m0_absShift)");
+  wAll->factory("prod::CMS_hbb_sig_m0_cat1(mjj_sig_m0_cat1, CMS_hbb_sig_m0_absShift)");
+  if ( NCAT > 2 ){
+    wAll->factory("prod::CMS_hbb_sig_m0_cat2(mjj_sig_m0_cat2, CMS_hbb_sig_m0_absShift)");
+    wAll->factory("prod::CMS_hbb_sig_m0_cat3(mjj_sig_m0_cat3, CMS_hbb_sig_m0_absShift)");
+  }
   // (3) Systematics on resolution
   wAll->factory("CMS_hgg_sig_sigmaScale[1,1,1]");
   wAll->factory("prod::CMS_hgg_sig_sigma_cat0(mgg_sig_sigma_cat0, CMS_hgg_sig_sigmaScale)");
   wAll->factory("prod::CMS_hgg_sig_sigma_cat1(mgg_sig_sigma_cat1, CMS_hgg_sig_sigmaScale)");
   if ( NCAT > 2 ){
-  wAll->factory("prod::CMS_hgg_sig_sigma_cat2(mgg_sig_sigma_cat2, CMS_hgg_sig_sigmaScale)");
-  wAll->factory("prod::CMS_hgg_sig_sigma_cat3(mgg_sig_sigma_cat3, CMS_hgg_sig_sigmaScale)");
+    wAll->factory("prod::CMS_hgg_sig_sigma_cat2(mgg_sig_sigma_cat2, CMS_hgg_sig_sigmaScale)");
+    wAll->factory("prod::CMS_hgg_sig_sigma_cat3(mgg_sig_sigma_cat3, CMS_hgg_sig_sigmaScale)");
   }
   wAll->factory("prod::CMS_hgg_sig_gsigma_cat0(mgg_sig_gsigma_cat0, CMS_hgg_sig_sigmaScale)");
   wAll->factory("prod::CMS_hgg_sig_gsigma_cat1(mgg_sig_gsigma_cat1, CMS_hgg_sig_sigmaScale)");
@@ -715,15 +986,28 @@ void MakeSigWS(RooWorkspace* w, const char* fileBaseName) {
     wAll->factory("prod::CMS_hgg_sig_gsigma_cat2(mgg_sig_gsigma_cat2, CMS_hgg_sig_sigmaScale)");
     wAll->factory("prod::CMS_hgg_sig_gsigma_cat3(mgg_sig_gsigma_cat3, CMS_hgg_sig_sigmaScale)");
   }
+  wAll->factory("CMS_hbb_sig_sigmaScale[1,1,1]");
+  wAll->factory("prod::CMS_hbb_sig_sigma_cat0(mjj_sig_sigma_cat0, CMS_hbb_sig_sigmaScale)");
+  wAll->factory("prod::CMS_hbb_sig_sigma_cat1(mjj_sig_sigma_cat1, CMS_hbb_sig_sigmaScale)");
+  if ( NCAT > 2 ){
+    wAll->factory("prod::CMS_hbb_sig_sigma_cat2(mjj_sig_sigma_cat2, CMS_hbb_sig_sigmaScale)");
+    wAll->factory("prod::CMS_hbb_sig_sigma_cat3(mjj_sig_sigma_cat3, CMS_hbb_sig_sigmaScale)");
+  }
+  wAll->factory("prod::CMS_hbb_sig_gsigma_cat0(mjj_sig_gsigma_cat0, CMS_hbb_sig_sigmaScale)");
+  wAll->factory("prod::CMS_hbb_sig_gsigma_cat1(mjj_sig_gsigma_cat1, CMS_hbb_sig_sigmaScale)");
+  if ( NCAT > 2 ){
+    wAll->factory("prod::CMS_hbb_sig_gsigma_cat2(mjj_sig_gsigma_cat2, CMS_hbb_sig_sigmaScale)");
+    wAll->factory("prod::CMS_hbb_sig_gsigma_cat3(mjj_sig_gsigma_cat3, CMS_hbb_sig_sigmaScale)");
+  }
   // (4) do reparametrization of signal
   for (int c = 0; c < ncat; ++c) wAll->factory(
-					       TString::Format("EDIT::CMS_hgg_sig_cat%d(mggSig_cat%d,",c,c) +
-					       TString::Format(" mgg_sig_m0_cat%d=CMS_hgg_sig_m0_cat%d, ", c,c) +
-					       TString::Format(" mgg_sig_sigma_cat%d=CMS_hgg_sig_sigma_cat%d, ", c,c) +
-					       // TString::Format(" mgg_sig_alpha_cat%d=CMS_hgg_sig_alpha_cat%d, ", c,c) +
-					       // TString::Format(" mgg_sig_n_cat%d=CMS_hgg_sig_n_cat%d, ", c,c) +
-					       // TString::Format(" mgg_sig_frac_cat%d=CMS_hgg_sig_frac_cat%d, ", c,c) +
-					       TString::Format(" mgg_sig_gsigma_cat%d=CMS_hgg_sig_gsigma_cat%d)", c,c)
+					       TString::Format("EDIT::CMS_sig_cat%d(SigPdf_cat%d,",c,c) +
+					       TString::Format(" mgg_sig_m0_cat%d=CMS_hgg_sig_m0_cat%d,", c,c) +
+					       TString::Format(" mgg_sig_sigma_cat%d=CMS_hgg_sig_sigma_cat%d,", c,c) +
+					       TString::Format(" mgg_sig_gsigma_cat%d=CMS_hgg_sig_gsigma_cat%d,", c,c) +
+					       TString::Format(" mjj_sig_m0_cat%d=CMS_hbb_sig_m0_cat%d,", c,c) +
+					       TString::Format(" mjj_sig_sigma_cat%d=CMS_hbb_sig_sigma_cat%d,", c,c) +
+					       TString::Format(" mjj_sig_gsigma_cat%d=CMS_hbb_sig_gsigma_cat%d)", c,c)
 					       );
   TString filename(wsDir+TString(fileBaseName)+".inputsig.root");
   wAll->writeToFile(filename);
@@ -741,7 +1025,7 @@ void MakeBkgWS(RooWorkspace* w, const char* fileBaseName) {
   // for statistical tests.
   //**********************************************************************//
   RooDataSet* data[ncat];
-  RooAbsPdf* mggBkgPdf[ncat];
+  RooAbsPdf* BkgPdf[ncat];
   RooWorkspace *wAll = new RooWorkspace("w_all","w_all");
   for (int c = 0; c < ncat; ++c) {
     cout<<"here"<<endl;
@@ -749,32 +1033,32 @@ void MakeBkgWS(RooWorkspace* w, const char* fileBaseName) {
 
     //RooDataHist* dataBinned = data[c]->binnedClone(); // Uncomment if you want to use wights in the limits
 
-    mggBkgPdf[c] = (RooAbsPdf*) w->pdf(TString::Format("mggBkg_cat%d",c));
+    BkgPdf[c] = (RooAbsPdf*) w->pdf(TString::Format("BkgPdf_cat%d",c));
     wAll->import(*data[c], Rename(TString::Format("data_obs_cat%d",c)));// Comment if you want to use wights in the limits
 
     //wAll->import(*dataBinned, Rename(TString::Format("data_obs_cat%d",c))); // Uncomment if you want to use wights in the limits
 
     cout<<"here"<<endl;
-    wAll->import(*w->pdf(TString::Format("mggBkg_cat%d",c)));
+    wAll->import(*w->pdf(TString::Format("BkgPdf_cat%d",c)));
+    wAll->import(*w->var(TString::Format("bkg_8TeV_norm_cat%d",c)));
     cout<<"here"<<endl;
     wAll->factory(
-		  TString::Format("CMS_hgg_bkg_8TeV_cat%d_norm[%g,0.0,100000.0]",
-				  c, w->var(TString::Format("mgg_bkg_8TeV_norm_cat%d",c))->getVal()));
+		  TString::Format("CMS_bkg_8TeV_cat%d_norm[%g,0.0,100000.0]",
+				  c, w->var(TString::Format("bkg_8TeV_norm_cat%d",c))->getVal()));
     cout<<"here"<<endl;
-    wAll->factory(
-		  TString::Format("CMS_hgg_bkg_8TeV_slope1_cat%d[%g,-10,10]",
-				  c, w->var(TString::Format("mgg_bkg_8TeV_slope1_cat%d",c))->getVal()));
+    wAll->factory(TString::Format("CMS_hgg_bkg_8TeV_slope1_cat%d[%g,-10,10]",c, w->var(TString::Format("mgg_bkg_8TeV_slope1_cat%d",c))->getVal()));
+    wAll->factory(TString::Format("CMS_hbb_bkg_8TeV_slope1_cat%d[%g,-10,10]",c, w->var(TString::Format("mjj_bkg_8TeV_slope1_cat%d",c))->getVal()));
+
     cout<<"here"<<endl;
   } // close ncat
   // (2) do reparametrization of background
   for (int c = 0; c < ncat; ++c){
     wAll->factory(
-		  TString::Format("EDIT::CMS_hgg_bkg_8TeV_cat%d(mggBkg_cat%d,",c,c) +
-		  TString::Format(" mgg_bkg_8TeV_norm_cat%d=CMS_hgg_bkg_8TeV_cat%d_norm,", c,c)+
-		  TString::Format(" mgg_bkg_8TeV_slope1_cat%d=CMS_hgg_bkg_8TeV_slope1_cat%d)", c,c)
-		  //TString::Format(" mgg_bkg_8TeV_slope2_cat%d=CMS_hgg_bkg_8TeV_slope2_cat%d,", c,c)+
-		  //TString::Format(" mgg_bkg_8TeV_slope3_cat%d=CMS_hgg_bkg_8TeV_slope3_cat%d)", c,c)
-		  );
+		  TString::Format("EDIT::CMS_bkg_8TeV_cat%d(BkgPdf_cat%d,",c,c) +
+		  TString::Format(" bkg_8TeV_norm_cat%d=CMS_bkg_8TeV_cat%d_norm,", c,c)+
+		  TString::Format(" mgg_bkg_8TeV_slope1_cat%d=CMS_hgg_bkg_8TeV_slope1_cat%d,", c,c) +
+		  TString::Format(" mjj_bkg_8TeV_slope1_cat%d=CMS_hbb_bkg_8TeV_slope1_cat%d)", c,c)  );
+
   } // close for cat
 
   TString filename(wsDir+TString(fileBaseName)+".root");
@@ -801,14 +1085,14 @@ void MakePlots(RooWorkspace* w, Float_t Mass) {
   const Int_t ncat = NCAT;
   std::vector<TString> catdesc;
   if ( NCAT == 2 ){
-    catdesc.push_back(" 2 btag");
-    catdesc.push_back(" 1 btag");
+    catdesc.push_back(" High Purity");
+    catdesc.push_back(" Med. Purity");
   }
   else{
-    catdesc.push_back(" 2 btag, M_{#gamma#gammajj}^{kin} > 350 GeV");
-    catdesc.push_back(" 1 btag, M_{#gamma#gammajj}^{kin} > 360 GeV");
-    catdesc.push_back(" 2 btag, M_{#gamma#gammajj}^{kin} < 350 GeV");
-    catdesc.push_back(" 1 btag, M_{#gamma#gammajj}^{kin} < 360 GeV");
+    catdesc.push_back(" #splitline{High Purity}{High m_{#gamma#gammajj}^{kin}}");
+    catdesc.push_back(" #splitline{Med. Purity}{High m_{#gamma#gammajj}^{kin}}");
+    catdesc.push_back(" #splitline{High Purity}{Low m_{#gamma#gammajj}^{kin}}");
+    catdesc.push_back(" #splitline{Med. Purity}{Low m_{#gamma#gammajj}^{kin}}");
   }
   // retrieve data sets from the workspace
   // RooDataSet* dataAll = (RooDataSet*) w->data("Data");
@@ -820,8 +1104,12 @@ void MakePlots(RooWorkspace* w, Float_t Mass) {
   RooAbsPdf* mggGaussSig[ncat];
   RooAbsPdf* mggCBSig[ncat];
   RooAbsPdf* mggSig[ncat];
+  RooAbsPdf* mjjGaussSig[ncat];
+  RooAbsPdf* mjjCBSig[ncat];
+  RooAbsPdf* mjjSig[ncat];
   //
   RooAbsPdf* mggBkg[ncat];
+  RooAbsPdf* mjjBkg[ncat];
   for (int c = 0; c < ncat; ++c) {
     // data[c] = (RooDataSet*) w->data(TString::Format("Data_cat%d",c));
     sigToFit[c] = (RooDataSet*) w->data(TString::Format("Sig_cat%d",c));
@@ -829,12 +1117,21 @@ void MakePlots(RooWorkspace* w, Float_t Mass) {
     mggCBSig[c] = (RooAbsPdf*) w->pdf(TString::Format("mggCBSig_cat%d",c));
     mggSig[c] = (RooAbsPdf*) w->pdf(TString::Format("mggSig_cat%d",c));
     mggBkg[c] = (RooAbsPdf*) w->pdf(TString::Format("mggBkg_cat%d",c));
+    mjjGaussSig[c] = (RooAbsPdf*) w->pdf(TString::Format("mjjGaussSig_cat%d",c));
+    mjjCBSig[c] = (RooAbsPdf*) w->pdf(TString::Format("mjjCBSig_cat%d",c));
+    mjjSig[c] = (RooAbsPdf*) w->pdf(TString::Format("mjjSig_cat%d",c));
+    mjjBkg[c] = (RooAbsPdf*) w->pdf(TString::Format("mjjBkg_cat%d",c));
   } // close categories
   RooRealVar* mgg = w->var("mgg");
   mgg->setUnit("GeV");
   RooAbsPdf* mggGaussSigAll = w->pdf("mggGaussSig");
   RooAbsPdf* mggCBSigAll = w->pdf("mggCBSig");
   RooAbsPdf* mggSigAll = w->pdf("mggSig");
+  RooRealVar* mjj = w->var("mjj");
+  mjj->setUnit("GeV");
+  RooAbsPdf* mjjGaussSigAll = w->pdf("mjjGaussSig");
+  RooAbsPdf* mjjCBSigAll = w->pdf("mjjCBSig");
+  RooAbsPdf* mjjSigAll = w->pdf("mjjSig");
   //RooAbsPdf* mggBkgAll = w->pdf("mggBkg_cat1");
   //
   //****************************//
@@ -843,13 +1140,16 @@ void MakePlots(RooWorkspace* w, Float_t Mass) {
   // Set P.D.F. parameter names
   // WARNING: Do not use it if Workspaces are created
   // SetParamNames(w);
-  Float_t minSigFit(120),maxSigFit(130);
+  Float_t minSigPlotMgg(115),maxSigPlotMgg(135);
+  Float_t minSigPlotMjj(60),maxSigPlotMjj(180);
+  mgg->setRange("SigPlotRange",minSigPlotMgg,maxSigPlotMgg);
+  mjj->setRange("SigPlotRange",minSigPlotMjj,maxSigPlotMjj);
   Float_t MASS(Mass);
   Int_t nBinsMass(20); // just need to plot
-  RooPlot* plotmggAll = mgg->frame(Range(minSigFit,maxSigFit),Bins(nBinsMass));
+  RooPlot* plotmggAll = mgg->frame(Range("SigPlotRange"),Bins(nBinsMass));
   signalAll->plotOn(plotmggAll);
   gStyle->SetOptTitle(0);
-  TCanvas* c1 = new TCanvas("cSig","mgg",0,0,500,500);
+  TCanvas* c1 = new TCanvas("cMgg","mgg",0,0,500,500);
   c1->cd(1);
   //********************************************//
   // Plot Signal Categories
@@ -859,28 +1159,28 @@ void MakePlots(RooWorkspace* w, Float_t Mass) {
   text->SetTextSize(0.04);
   RooPlot* plotmgg[ncat];
   for (int c = 0; c < ncat; ++c) {
-    plotmgg[c] = mgg->frame(Range(minSigFit,maxSigFit),Bins(nBinsMass));
+    plotmgg[c] = mgg->frame(Range("SigPlotRange"),Bins(nBinsMass));
     sigToFit[c]->plotOn(plotmgg[c]);
     mggSig[c] ->plotOn(plotmgg[c]);
     double chi2n = plotmgg[c]->chiSquare(0) ;
-    cout << "------------------------- Experimentakl chi2 = " << chi2n << endl;
+    cout << "------------------------- Experimental chi2 = " << chi2n << endl;
     mggSig[c] ->plotOn(
 		       plotmgg[c],
-		       Components(TString::Format("GaussSig_cat%d",c)),
+		       Components(TString::Format("mggGaussSig_cat%d",c)),
 		       LineStyle(kDashed),LineColor(kGreen));
     mggSig[c] ->plotOn(
 		       plotmgg[c],
-		       Components(TString::Format("CBSig_cat%d",c)),
+		       Components(TString::Format("mggCBSig_cat%d",c)),
 		       LineStyle(kDashed),LineColor(kRed));
     mggSig[c] ->paramOn(plotmgg[c]);
     sigToFit[c] ->plotOn(plotmgg[c]);
     // TCanvas* dummy = new TCanvas("dummy", "dummy",0, 0, 400, 400);
-    TH1F *hist = new TH1F(TString::Format("hist_cat%d",c), "hist", 400, minSigFit, maxSigFit);
-    plotmgg[c]->SetTitle("CMS preliminary 19.7/fb ");
+    TH1F *hist = new TH1F(TString::Format("histMgg_cat%d",c), "hist", 400, minSigPlotMgg, maxSigPlotMgg);
+    //plotmgg[c]->SetTitle("CMS preliminary 19.7/fb ");
     plotmgg[c]->SetMinimum(0.0);
     plotmgg[c]->SetMaximum(1.40*plotmgg[c]->GetMaximum());
-    plotmgg[c]->GetXaxis()->SetTitle("M_{#gamma#gamma} (GeV)");
-    TCanvas* ctmp = new TCanvas(TString::Format("ctmpSig_cat%d",c),"Background Categories",0,0,500,500);
+    plotmgg[c]->GetXaxis()->SetTitle("m_{#gamma#gamma} (GeV)");
+    TCanvas* ctmp = new TCanvas(TString::Format("ctmpSigMgg_cat%d",c),"Background Categories",0,0,500,500);
     plotmgg[c]->Draw();
     plotmgg[c]->Draw("SAME");
     TLegend *legmc = new TLegend(0.62,0.75,0.99,0.99);
@@ -892,14 +1192,24 @@ void MakePlots(RooWorkspace* w, Float_t Mass) {
     legmc->SetBorderSize(0);
     legmc->SetFillStyle(0);
     legmc->Draw();
+    TPaveText *pt = new TPaveText(0.1,0.94,0.7,0.99, "brNDC");
+    //pt->SetName("title");
+    pt->SetBorderSize(0);
+    pt->SetFillColor(0);
+    pt->SetTextSize(0.035);
+    pt->AddText("CMS Preliminary Simulation ");
+    pt->Draw();
     // float effS = effSigma(hist);
-    TString latLabel = " Nonresonance - SM";
-    if ( sigMass != 0) latLabel = TString::Format(" Resonance - %d GeV",sigMass);
+    TString str_desc;
+    if(sigMass==0)
+      str_desc=" Nonresonant HH";
+    else
+      str_desc=TString::Format(" m_{X} = %d GeV",sigMass);
     TLatex *lat = new TLatex(
-			     minSigFit+0.5,0.85*plotmgg[c]->GetMaximum(),latLabel.Data());
+			     minSigPlotMgg+0.5,0.85*plotmgg[c]->GetMaximum(),str_desc);
     lat->Draw();
     TLatex *lat2 = new TLatex(
-			      minSigFit+1.5,0.75*plotmgg[c]->GetMaximum(),catdesc.at(c));
+			      minSigPlotMgg+0.5,0.70*plotmgg[c]->GetMaximum(),catdesc.at(c));
     lat2->Draw();
     ///////
     char myChi2buffer[50];
@@ -909,10 +1219,86 @@ void MakePlots(RooWorkspace* w, Float_t Mass) {
     latex -> SetTextFont(42);
     latex -> SetTextSize(0.04);
     //latex -> Draw("same");
-    ctmp->SaveAs(TString::Format("sigmodel_cat%d.pdf",c));
-    ctmp->SaveAs(TString::Format("sigmodel_cat%d.png",c));
-    //ctmp->SaveAs(TString::Format("sigmodel_cat%d.C",c));
+    ctmp->SaveAs(TString::Format("sigmodelMgg_cat%d.pdf",c));
+    ctmp->SaveAs(TString::Format("sigmodelMgg_cat%d.png",c));
+    //ctmp->SaveAs(TString::Format("sigmodelMgg_cat%d.C",c));
   } // close categories
+
+  c1 = new TCanvas("cMjj","mgg",0,0,500,500);
+  c1->cd(1);
+  //********************************************//
+  // Plot Signal Categories
+  //****************************//
+  text = new TLatex();
+  text->SetNDC();
+  text->SetTextSize(0.04);
+  RooPlot* plotmjj[ncat];
+  for (int c = 0; c < ncat; ++c) {
+    plotmjj[c] = mjj->frame(Range("SigPlotRange"),Bins(nBinsMass));
+    sigToFit[c]->plotOn(plotmjj[c]);
+    mjjSig[c] ->plotOn(plotmjj[c]);
+    double chi2n = plotmjj[c]->chiSquare(0) ;
+    cout << "------------------------- Experimental chi2 = " << chi2n << endl;
+    mjjSig[c] ->plotOn(
+		       plotmjj[c],
+		       Components(TString::Format("mjjGaussSig_cat%d",c)),
+		       LineStyle(kDashed),LineColor(kGreen));
+    mjjSig[c] ->plotOn(
+		       plotmjj[c],
+		       Components(TString::Format("mjjCBSig_cat%d",c)),
+		       LineStyle(kDashed),LineColor(kRed));
+    mjjSig[c] ->paramOn(plotmjj[c]);
+    sigToFit[c] ->plotOn(plotmjj[c]);
+    // TCanvas* dummy = new TCanvas("dummy", "dummy",0, 0, 400, 400);
+    TH1F *hist = new TH1F(TString::Format("histMjj_cat%d",c), "hist", 400, minSigPlotMjj, maxSigPlotMjj);
+    //plotmjj[c]->SetTitle("CMS preliminary 19.7/fb ");
+    plotmjj[c]->SetMinimum(0.0);
+    plotmjj[c]->SetMaximum(1.40*plotmjj[c]->GetMaximum());
+    plotmjj[c]->GetXaxis()->SetTitle("m_{jj} (GeV)");
+    TCanvas* ctmp = new TCanvas(TString::Format("ctmpSigMjj_cat%d",c),"Background Categories",0,0,500,500);
+    plotmjj[c]->Draw();
+    plotmjj[c]->Draw("SAME");
+    TLegend *legmc = new TLegend(0.62,0.75,0.99,0.99);
+    legmc->AddEntry(plotmjj[c]->getObject(5),"Simulation","LPE");
+    legmc->AddEntry(plotmjj[c]->getObject(1),"Parametric Model","L");
+    legmc->AddEntry(plotmjj[c]->getObject(2),"Gaussian Outliers","L");
+    legmc->AddEntry(plotmjj[c]->getObject(3),"Crystal Ball component","L");
+    legmc->SetHeader(" ");
+    legmc->SetBorderSize(0);
+    legmc->SetFillStyle(0);
+    legmc->Draw();
+    TPaveText *pt = new TPaveText(0.1,0.94,0.7,0.99, "brNDC");
+    //pt->SetName("title");
+    pt->SetBorderSize(0);
+    pt->SetFillColor(0);
+    pt->SetTextSize(0.035);
+    pt->AddText("CMS Preliminary Simulation ");
+    pt->Draw();
+    // float effS = effSigma(hist);
+    TString str_desc;
+    if(sigMass==0)
+      str_desc=" Nonresonant HH";
+    else
+      str_desc=TString::Format(" m_{X} = %d GeV",sigMass);
+    TLatex *lat = new TLatex(
+			     minSigPlotMjj+0.5,0.85*plotmjj[c]->GetMaximum(),str_desc);
+    lat->Draw();
+    TLatex *lat2 = new TLatex(
+			      minSigPlotMjj+0.5,0.70*plotmjj[c]->GetMaximum(),catdesc.at(c));
+    lat2->Draw();
+    ///////
+    char myChi2buffer[50];
+    sprintf(myChi2buffer,"#chi^{2}/ndof = %f",chi2n);
+    TLatex* latex = new TLatex(0.52, 0.7, myChi2buffer);
+    latex -> SetNDC();
+    latex -> SetTextFont(42);
+    latex -> SetTextSize(0.04);
+    //latex -> Draw("same");
+    ctmp->SaveAs(TString::Format("sigmodelMjj_cat%d.pdf",c));
+    ctmp->SaveAs(TString::Format("sigmodelMjj_cat%d.png",c));
+    //ctmp->SaveAs(TString::Format("sigmodelMjj_cat%d.C",c));
+  } // close categories
+
   return;
 } // close makeplots signal
 ////////////////////////////////////////////////////////////////////////
@@ -920,14 +1306,14 @@ void MakePlotsHiggs(RooWorkspace* w, Float_t Mass) {
   const Int_t ncat = NCAT;
   std::vector<TString> catdesc;
   if ( NCAT == 2 ){
-    catdesc.push_back(" 2 btag");
-    catdesc.push_back(" 1 btag");
+    catdesc.push_back(" High Purity");
+    catdesc.push_back(" Med. Purity");
   }
   else{
-    catdesc.push_back(" 2 btag, M_{#gamma#gammajj}^{kin} > 350 GeV");
-    catdesc.push_back(" 1 btag, M_{#gamma#gammajj}^{kin} > 360 GeV");
-    catdesc.push_back(" 2 btag, M_{#gamma#gammajj}^{kin} < 350 GeV");
-    catdesc.push_back(" 1 btag, M_{#gamma#gammajj}^{kin} < 360 GeV");
+    catdesc.push_back(" #splitline{High Purity}{High m_{#gamma#gammajj}^{kin}}");
+    catdesc.push_back(" #splitline{Med. Purity}{High m_{#gamma#gammajj}^{kin}}");
+    catdesc.push_back(" #splitline{High Purity}{Low m_{#gamma#gammajj}^{kin}}");
+    catdesc.push_back(" #splitline{Med. Purity}{Low m_{#gamma#gammajj}^{kin}}");
   }
   // retrieve data sets from the workspace
   // RooDataSet* dataAll = (RooDataSet*) w->data("Data");
@@ -941,24 +1327,34 @@ void MakePlotsHiggs(RooWorkspace* w, Float_t Mass) {
 
   for (int d = 0; d < 5; ++d){
 
-    RooDataSet* sigToFit[ncat];
+    RooDataSet* higToFit[ncat];
     RooAbsPdf* mggGaussSig[ncat];
     RooAbsPdf* mggCBSig[ncat];
     RooAbsPdf* mggSig[ncat];
+    RooAbsPdf* mjjGaussSig[ncat];
+    RooAbsPdf* mjjCBSig[ncat];
+    RooAbsPdf* mjjSig[ncat];
     //
     RooAbsPdf* mggBkg[ncat];
+    RooAbsPdf* mjjBkg[ncat];
     for (int c = 0; c < ncat; ++c) {
       // data[c] = (RooDataSet*) w->data(TString::Format("Data_cat%d",c));
-      sigToFit[c] = (RooDataSet*) w->data(TString::Format("Hig_%d_cat%d",d,c));
+      higToFit[c] = (RooDataSet*) w->data(TString::Format("Hig_%d_cat%d",d,c));
       mggGaussSig[c] = (RooAbsPdf*) w->pdf(TString::Format("mggGaussHig_%d_cat%d",d,c));
       mggCBSig[c] = (RooAbsPdf*) w->pdf(TString::Format("mggCBHig_%d_cat%d",d,c));
       mggSig[c] = (RooAbsPdf*) w->pdf(TString::Format("mggHig_%d_cat%d",d,c));
       mggBkg[c] = (RooAbsPdf*) w->pdf(TString::Format("mggBkg_%d_cat%d",d,c));
+      mjjGaussSig[c] = (RooAbsPdf*) w->pdf(TString::Format("mjjGaussHig_%d_cat%d",d,c));
+      mjjCBSig[c] = (RooAbsPdf*) w->pdf(TString::Format("mjjCBHig_%d_cat%d",d,c));
+      mjjSig[c] = (RooAbsPdf*) w->pdf(TString::Format("mjjHig_%d_cat%d",d,c));
+      mjjBkg[c] = (RooAbsPdf*) w->pdf(TString::Format("mjjBkg_%d_cat%d",d,c));
     } // close categories
     
 
     RooRealVar* mgg = w->var("mgg");
     mgg->setUnit("GeV");
+    RooRealVar* mjj = w->var("mjj");
+    mjj->setUnit("GeV");
     //RooAbsPdf* mggBkgAll = w->pdf("mggBkg_cat1");
     //
     //****************************//
@@ -967,13 +1363,14 @@ void MakePlotsHiggs(RooWorkspace* w, Float_t Mass) {
     // Set P.D.F. parameter names
     // WARNING: Do not use it if Workspaces are created
     // SetParamNames(w);
-    Float_t minSigFit(120),maxSigFit(130);
+    Float_t minHigPlotMgg(115),maxHigPlotMgg(135);
+    Float_t minHigPlotMjj(60),maxHigPlotMjj(180);
     Float_t MASS(Mass);
     Int_t nBinsMass(20); // just need to plot
     //RooPlot* plotmggAll = mgg->frame(Range(minSigFit,maxSigFit),Bins(nBinsMass));
     //higgsAll->plotOn(plotmggAll);
     gStyle->SetOptTitle(0);
-    TCanvas* c1 = new TCanvas(TString::Format("cHig_%d",d),"mgg",0,0,500,500);
+    TCanvas* c1 = new TCanvas(TString::Format("cMgg_%d",d),"mgg",0,0,500,500);
     c1->cd(1);
     //********************************************//
     // Plot Signal Categories
@@ -984,32 +1381,31 @@ void MakePlotsHiggs(RooWorkspace* w, Float_t Mass) {
     RooPlot* plotmgg[ncat];
 
     for (int c = 0; c < ncat; ++c) {
-      plotmgg[c] = mgg->frame(Range(minSigFit,maxSigFit),Bins(nBinsMass));
-      sigToFit[c]->plotOn(plotmgg[c]);
+      plotmgg[c] = mgg->frame(Range("HigFitRange"),Bins(nBinsMass));
+      higToFit[c]->plotOn(plotmgg[c]);
       mggSig[c] ->plotOn(plotmgg[c]);
       double chi2n = plotmgg[c]->chiSquare(0) ;
-      cout << "------------------------- Experimentakl chi2 = " << chi2n << endl;
+      cout << "------------------------- Experimental chi2 = " << chi2n << endl;
       mggSig[c] ->plotOn(
 			 plotmgg[c],
-			 Components(TString::Format("GaussHig_%d_cat%d",d,c)),
+			 Components(TString::Format("mggGaussHig_%d_cat%d",d,c)),
 			 LineStyle(kDashed),LineColor(kGreen));
       mggSig[c] ->plotOn(
 			 plotmgg[c],
-			 Components(TString::Format("CBHig_%d_cat%d",d,c)),
+			 Components(TString::Format("mggCBHig_%d_cat%d",d,c)),
 			 LineStyle(kDashed),LineColor(kRed));
       mggSig[c] ->paramOn(plotmgg[c]);
-      sigToFit[c] ->plotOn(plotmgg[c]);
+      higToFit[c] ->plotOn(plotmgg[c]);
       // TCanvas* dummy = new TCanvas("dummy", "dummy",0, 0, 400, 400);
-      TH1F *hist = new TH1F(TString::Format("hist_%d_cat%d",d,c), "hist", 400, minSigFit, maxSigFit);
-      plotmgg[c]->SetTitle("CMS preliminary 19.7/fb ");
+      TH1F *hist = new TH1F(TString::Format("histMgg_%d_cat%d",d,c), "hist", 400, minHigPlotMgg, maxHigPlotMgg);
+      //plotmgg[c]->SetTitle("CMS Preliminary 19.7/fb ");
       plotmgg[c]->SetMinimum(0.0);
       plotmgg[c]->SetMaximum(1.40*plotmgg[c]->GetMaximum());
-      plotmgg[c]->GetXaxis()->SetTitle("M_{#gamma#gamma} (GeV)");
-      TCanvas* ctmp = new TCanvas(TString::Format("ctmpHig_%d_cat%d",d,c),"Background Categories",0,0,500,500);
+      plotmgg[c]->GetXaxis()->SetTitle("m_{#gamma#gamma} (GeV)");
+      TCanvas* ctmp = new TCanvas(TString::Format("ctmpHigMgg_%d_cat%d",d,c),"Background Categories",0,0,500,500);
       plotmgg[c]->Draw();
       plotmgg[c]->Draw("SAME");
       TLegend *legmc = new TLegend(0.62,0.75,0.99,0.99);
-
       legmc->AddEntry(plotmgg[c]->getObject(5),component[d],"LPE");
       legmc->AddEntry(plotmgg[c]->getObject(1),"Parametric Model","L");
       legmc->AddEntry(plotmgg[c]->getObject(2),"Gaussian Outliers","L");
@@ -1018,13 +1414,24 @@ void MakePlotsHiggs(RooWorkspace* w, Float_t Mass) {
       legmc->SetBorderSize(0);
       legmc->SetFillStyle(0);
       legmc->Draw();
+      TPaveText *pt = new TPaveText(0.1,0.94,0.7,0.99, "brNDC");
+      //pt->SetName("title");
+      pt->SetBorderSize(0);
+      pt->SetFillColor(0);
+      pt->SetTextSize(0.035);
+      pt->AddText("CMS Preliminary Simulation ");
+      pt->Draw();
       // float effS = effSigma(hist);
+      TString str_desc;
+      if(sigMass==0)
+	str_desc=" Nonresonant HH";
+      else
+	str_desc=TString::Format(" m_{X} = %d GeV",sigMass);
       TLatex *lat = new TLatex(
-			       minSigFit+0.5,0.85*plotmgg[c]->GetMaximum(),
-                             " Nonresonance - SM");//grep on sig label
+			       minHigPlotMgg+0.5,0.85*plotmgg[c]->GetMaximum(),str_desc);
       lat->Draw();
       TLatex *lat2 = new TLatex(
-				minSigFit+1.5,0.75*plotmgg[c]->GetMaximum(),catdesc.at(c));
+				minHigPlotMgg+0.5,0.70*plotmgg[c]->GetMaximum(),catdesc.at(c));
       lat2->Draw();
       ///////
       char myChi2buffer[50];
@@ -1034,10 +1441,88 @@ void MakePlotsHiggs(RooWorkspace* w, Float_t Mass) {
       latex -> SetTextFont(42);
       latex -> SetTextSize(0.04);
       //latex -> Draw("same");
-      ctmp->SaveAs(TString::Format("higmodel_%d_cat%d.pdf",d,c));
-      ctmp->SaveAs(TString::Format("higmodel_%d_cat%d.png",d,c));
-      //ctmp->SaveAs(TString::Format("sigmodel_cat%d.C",c));
+      ctmp->SaveAs(TString::Format("higmodelMgg_%d_cat%d.pdf",d,c));
+      ctmp->SaveAs(TString::Format("higmodelMgg_%d_cat%d.png",d,c));
+      //ctmp->SaveAs(TString::Format("sigmodelMgg_cat%d.C",c));
     } // close categories
+
+    c1 = new TCanvas(TString::Format("cMjj_%d",d),"mjj",0,0,500,500);
+    c1->cd(1);
+    //********************************************//
+    // Plot Signal Categories
+    //****************************//
+    text = new TLatex();
+    text->SetNDC();
+    text->SetTextSize(0.04);
+    RooPlot* plotmjj[ncat];
+
+    for (int c = 0; c < ncat; ++c) {
+      plotmjj[c] = mjj->frame(Range("HigFitRange"),Bins(nBinsMass));
+      higToFit[c]->plotOn(plotmjj[c]);
+      mjjSig[c] ->plotOn(plotmjj[c]);
+      double chi2n = plotmjj[c]->chiSquare(0) ;
+      cout << "------------------------- Experimental chi2 = " << chi2n << endl;
+      mjjSig[c] ->plotOn(
+			 plotmjj[c],
+			 Components(TString::Format("mjjGaussHig_%d_cat%d",d,c)),
+			 LineStyle(kDashed),LineColor(kGreen));
+      mjjSig[c] ->plotOn(
+			 plotmjj[c],
+			 Components(TString::Format("mjjCBHig_%d_cat%d",d,c)),
+			 LineStyle(kDashed),LineColor(kRed));
+      mjjSig[c] ->paramOn(plotmjj[c]);
+      higToFit[c] ->plotOn(plotmjj[c]);
+      // TCanvas* dummy = new TCanvas("dummy", "dummy",0, 0, 400, 400);
+      TH1F *hist = new TH1F(TString::Format("histMjj_%d_cat%d",d,c), "hist", 400, minHigPlotMjj, maxHigPlotMjj);
+      //plotmjj[c]->SetTitle("CMS preliminary 19.7/fb ");
+      plotmjj[c]->SetMinimum(0.0);
+      plotmjj[c]->SetMaximum(1.40*plotmjj[c]->GetMaximum());
+      plotmjj[c]->GetXaxis()->SetTitle("m_{jj} (GeV)");
+      TCanvas* ctmp = new TCanvas(TString::Format("ctmpHigMjj_%d_cat_%d",d,c),"Background Categories",0,0,500,500);
+      plotmjj[c]->Draw();
+      plotmjj[c]->Draw("SAME");
+      TLegend *legmc = new TLegend(0.62,0.75,0.99,0.99);
+
+      legmc->AddEntry(plotmjj[c]->getObject(5),component[d],"LPE");
+      legmc->AddEntry(plotmjj[c]->getObject(1),"Parametric Model","L");
+      legmc->AddEntry(plotmjj[c]->getObject(2),"Gaussian Outliers","L");
+      legmc->AddEntry(plotmjj[c]->getObject(3),"Crystal Ball component","L");
+      legmc->SetHeader(" ");
+      legmc->SetBorderSize(0);
+      legmc->SetFillStyle(0);
+      legmc->Draw();
+      TPaveText *pt = new TPaveText(0.1,0.94,0.7,0.99, "brNDC");
+      //pt->SetName("title");
+      pt->SetBorderSize(0);
+      pt->SetFillColor(0);
+      pt->SetTextSize(0.035);
+      pt->AddText("CMS Preliminary Simulation ");
+      pt->Draw();
+      // float effS = effSigma(hist);
+      TString str_desc;
+      if(sigMass==0)
+	str_desc=" Nonresonant HH";
+      else
+	str_desc=TString::Format(" m_{X} = %d GeV",sigMass);
+      TLatex *lat = new TLatex(
+			       minHigPlotMjj+0.5,0.85*plotmjj[c]->GetMaximum(),str_desc);
+      lat->Draw();
+      TLatex *lat2 = new TLatex(
+				minHigPlotMjj+0.5,0.70*plotmjj[c]->GetMaximum(),catdesc.at(c));
+      lat2->Draw();
+      ///////
+      char myChi2buffer[50];
+      sprintf(myChi2buffer,"#chi^{2}/ndof = %f",chi2n);
+      TLatex* latex = new TLatex(0.52, 0.7, myChi2buffer);
+      latex -> SetNDC();
+      latex -> SetTextFont(42);
+      latex -> SetTextSize(0.04);
+      //latex -> Draw("same");
+      ctmp->SaveAs(TString::Format("higmodelMjj_%d_cat%d.pdf",d,c));
+      ctmp->SaveAs(TString::Format("higmodelMjj_%d_cat%d.png",d,c));
+      //ctmp->SaveAs(TString::Format("sigmodelMjj_cat%d.C",c));
+    } // close categories
+
   } // close to higgs component
   return;
 } // close makeplots signal
@@ -1076,11 +1561,14 @@ void AddHigData(RooWorkspace* w, Float_t mass, TString signalfile, int higgschan
   // we take only mtot to fit to the workspace, we include the cuts
   for ( int i=0; i<ncat; ++i){
     higToFit[i] = (RooDataSet*) higScaled.reduce(
-						 *w->var("mgg"),
+						 RooArgList(*w->var("mgg"),*w->var("mjj")),
 						 mainCut+TString::Format(" && cut_based_ct==%d ",i)+cut0);
     w->import(*higToFit[i],Rename(TString::Format("Hig_%d_cat%d",higgschannel,i)));
   }
-  RooDataSet* higToFitAll = (RooDataSet*) higScaled.reduce(*w->var("mgg"),mainCut);
+  // Create full signal data set without categorization
+  RooDataSet* higToFitAll = (RooDataSet*) higScaled.reduce(
+							    RooArgList(*w->var("mgg"),*w->var("mjj")),
+							    mainCut);
   w->import(*higToFitAll,Rename("Hig"));
   // here we print the number of entries on the different categories
   cout << "========= the number of entries on the different categories ==========" << endl;
@@ -1104,11 +1592,11 @@ void MakeHigWS(RooWorkspace* w, const char* fileHiggsName,int higgschannel) {
   // Write pdfs and datasets into the workspace before to save to a file
   // for statistical tests.
   //**********************************************************************//
-  RooAbsPdf* mggHigPdf[ncat];
+  RooAbsPdf* HigPdf[ncat];
   RooWorkspace *wAll = new RooWorkspace("w_all","w_all");
   for (int c = 0; c < ncat; ++c) {
-    mggHigPdf[c] = (RooAbsPdf*) w->pdf(TString::Format("mggHig_%d_cat%d",higgschannel,c));
-    wAll->import(*w->pdf(TString::Format("mggHig_%d_cat%d",higgschannel,c)));
+    HigPdf[c] = (RooAbsPdf*) w->pdf(TString::Format("HigPdf_%d_cat%d",higgschannel,c));
+    wAll->import(*w->pdf(TString::Format("HigPdf_%d_cat%d",higgschannel,c)));
   }
   // (2) Systematics on energy scale and resolution
   // 1,1,1 statistical to be treated on the datacard
@@ -1118,6 +1606,13 @@ void MakeHigWS(RooWorkspace* w, const char* fileHiggsName,int higgschannel) {
   if ( NCAT > 2 ){
     wAll->factory(TString::Format("prod::CMS_hgg_hig_m0_%d_cat2(mgg_hig_m0_%d_cat2, CMS_hgg_hig_%d_m0_absShift)",higgschannel,higgschannel,higgschannel));
     wAll->factory(TString::Format("prod::CMS_hgg_hig_m0_%d_cat3(mgg_hig_m0_%d_cat3, CMS_hgg_hig_%d_m0_absShift)",higgschannel,higgschannel,higgschannel));
+  }
+  wAll->factory(TString::Format("CMS_hbb_hig_%d_m0_absShift[1,1,1]",higgschannel));
+  wAll->factory(TString::Format("prod::CMS_hbb_hig_m0_%d_cat0(mjj_hig_m0_%d_cat0, CMS_hbb_hig_%d_m0_absShift)",higgschannel,higgschannel,higgschannel));
+  wAll->factory(TString::Format("prod::CMS_hbb_hig_m0_%d_cat1(mjj_hig_m0_%d_cat1, CMS_hbb_hig_%d_m0_absShift)",higgschannel,higgschannel,higgschannel));
+  if ( NCAT > 2 ){
+    wAll->factory(TString::Format("prod::CMS_hbb_hig_m0_%d_cat2(mjj_hig_m0_%d_cat2, CMS_hbb_hig_%d_m0_absShift)",higgschannel,higgschannel,higgschannel));
+    wAll->factory(TString::Format("prod::CMS_hbb_hig_m0_%d_cat3(mjj_hig_m0_%d_cat3, CMS_hbb_hig_%d_m0_absShift)",higgschannel,higgschannel,higgschannel));
   }
   // (3) Systematics on resolution
   wAll->factory(TString::Format("CMS_hgg_hig_%d_sigmaScale[1,1,1]",higgschannel));
@@ -1132,6 +1627,19 @@ void MakeHigWS(RooWorkspace* w, const char* fileHiggsName,int higgschannel) {
   if ( NCAT > 2 ){
     wAll->factory(TString::Format("prod::CMS_hgg_hig_gsigma_%d_cat2(mgg_hig_gsigma_%d_cat2, CMS_hgg_hig_%d_sigmaScale)",higgschannel,higgschannel,higgschannel));
     wAll->factory(TString::Format("prod::CMS_hgg_hig_gsigma_%d_cat3(mgg_hig_gsigma_%d_cat3, CMS_hgg_hig_%d_sigmaScale)",higgschannel,higgschannel,higgschannel));
+  }
+  wAll->factory(TString::Format("CMS_hbb_hig_%d_sigmaScale[1,1,1]",higgschannel));
+  wAll->factory(TString::Format("prod::CMS_hbb_hig_sigma_%d_cat0(mjj_hig_sigma_%d_cat0, CMS_hbb_hig_%d_sigmaScale)",higgschannel,higgschannel,higgschannel));
+  wAll->factory(TString::Format("prod::CMS_hbb_hig_sigma_%d_cat1(mjj_hig_sigma_%d_cat1, CMS_hbb_hig_%d_sigmaScale)",higgschannel,higgschannel,higgschannel));
+  if ( NCAT > 2 ){
+    wAll->factory(TString::Format("prod::CMS_hbb_hig_sigma_%d_cat2(mjj_hig_sigma_%d_cat2, CMS_hbb_hig_%d_sigmaScale)",higgschannel,higgschannel,higgschannel));
+    wAll->factory(TString::Format("prod::CMS_hbb_hig_sigma_%d_cat3(mjj_hig_sigma_%d_cat3, CMS_hbb_hig_%d_sigmaScale)",higgschannel,higgschannel,higgschannel));
+  }
+  wAll->factory(TString::Format("prod::CMS_hbb_hig_gsigma_%d_cat0(mjj_hig_gsigma_%d_cat0, CMS_hbb_hig_%d_sigmaScale)",higgschannel,higgschannel,higgschannel));
+  wAll->factory(TString::Format("prod::CMS_hbb_hig_gsigma_%d_cat1(mjj_hig_gsigma_%d_cat1, CMS_hbb_hig_%d_sigmaScale)",higgschannel,higgschannel,higgschannel));
+  if ( NCAT > 2 ){
+    wAll->factory(TString::Format("prod::CMS_hbb_hig_gsigma_%d_cat2(mjj_hig_gsigma_%d_cat2, CMS_hbb_hig_%d_sigmaScale)",higgschannel,higgschannel,higgschannel));
+    wAll->factory(TString::Format("prod::CMS_hbb_hig_gsigma_%d_cat3(mjj_hig_gsigma_%d_cat3, CMS_hbb_hig_%d_sigmaScale)",higgschannel,higgschannel,higgschannel));
   }
   // save the other parameters
   /* for (int c = 0; c < ncat; ++c) {
@@ -1148,10 +1656,13 @@ void MakeHigWS(RooWorkspace* w, const char* fileHiggsName,int higgschannel) {
   */
   // (4) do reparametrization of signal
   for (int c = 0; c < ncat; ++c) wAll->factory(
-					       TString::Format("EDIT::CMS_hgg_hig_%d_cat%d(mggHig_%d_cat%d,",higgschannel,c,higgschannel,c) +
-					       TString::Format(" mgg_hig_m0_%d_cat%d=CMS_hgg_hig_m0_%d_cat%d, ",higgschannel, c,higgschannel,c) +
-					       TString::Format(" mgg_hig_sigma_%d_cat%d=CMS_hgg_hig_sigma_%d_cat%d, ",higgschannel, c,higgschannel,c) +
-					       TString::Format(" mgg_hig_gsigma_%d_cat%d=CMS_hgg_hig_gsigma_%d_cat%d)",higgschannel, c,higgschannel,c)
+					       TString::Format("EDIT::CMS_hig_%d_cat%d(HigPdf_%d_cat%d,",higgschannel,c,higgschannel,c) +
+					       TString::Format(" mgg_hig_m0_%d_cat%d=CMS_hgg_hig_m0_%d_cat%d,",higgschannel, c,higgschannel,c) +
+					       TString::Format(" mgg_hig_sigma_%d_cat%d=CMS_hgg_hig_sigma_%d_cat%d,",higgschannel, c,higgschannel,c) +
+					       TString::Format(" mgg_hig_gsigma_%d_cat%d=CMS_hgg_hig_gsigma_%d_cat%d,",higgschannel, c,higgschannel,c) +
+					       TString::Format(" mjj_hig_m0_%d_cat%d=CMS_hbb_hig_m0_%d_cat%d,",higgschannel, c,higgschannel,c) +
+					       TString::Format(" mjj_hig_sigma_%d_cat%d=CMS_hbb_hig_sigma_%d_cat%d,",higgschannel, c,higgschannel,c) +
+					       TString::Format(" mjj_hig_gsigma_%d_cat%d=CMS_hbb_hig_gsigma_%d_cat%d)",higgschannel, c,higgschannel,c)
 					       );
   TString filename(wsDir+TString(fileHiggsName)+".inputhig.root");
   wAll->writeToFile(filename);
@@ -1255,7 +1766,8 @@ void MakeDataCard(RooWorkspace* w, const char* fileBaseName, const char* fileBkg
      }
   }
   cout << ".........Expected Signal for L = " << "19712" << " pb-1 ............................" << endl;
-  cout << "#Events Signal: " << w->data("Data")->sumEntries() << endl;
+  if(!doblinding){ cout << "#Events Signal: " << w->data("Data")->sumEntries() << endl; }
+  else cout << "#Events Signal: -1 " << endl;
   Float_t siglikeErr[ncat];
   for (int c = 0; c < ncat; ++c) {
     cout << TString::Format("#Events Signal cat%d: ",c) << sigToFit[c]->sumEntries() << endl;
@@ -1273,151 +1785,190 @@ void MakeDataCard(RooWorkspace* w, const char* fileBaseName, const char* fileBkg
   outFile << "kmax *" << endl;
   outFile << "---------------" << endl;
   outFile << "shapes data_obs cat0 " << TString(fileBkgName)+".root" << " w_all:data_obs_cat0" << endl;
-  outFile << "shapes data_obs cat1 " << TString(fileBkgName)+".root" << " w_all:data_obs_cat1" << endl;
+  outFile << "shapes data_obs cat1 "<< TString(fileBkgName)+".root" << " w_all:data_obs_cat1" << endl;
   if ( NCAT > 2 ){
   outFile << "shapes data_obs cat2 " << TString(fileBkgName)+".root" << " w_all:data_obs_cat2" << endl;
-  outFile << "shapes data_obs cat3 " << TString(fileBkgName)+".root" << " w_all:data_obs_cat3" << endl;
+  outFile << "shapes data_obs cat3 "<< TString(fileBkgName)+".root" << " w_all:data_obs_cat3" << endl;
   }
   outFile << "############## shape with reparametrization" << endl;
-  outFile << "shapes mggBkg cat0 " << TString(fileBkgName)+".root" << " w_all:CMS_hgg_bkg_8TeV_cat0" << endl;
-  outFile << "shapes mggBkg cat1 " << TString(fileBkgName)+".root" << " w_all:CMS_hgg_bkg_8TeV_cat1" << endl;
+  outFile << "shapes Bkg cat0 " << TString(fileBkgName)+".root" << " w_all:CMS_bkg_8TeV_cat0" << endl;
+  outFile << "shapes Bkg cat1 "<< TString(fileBkgName)+".root" << " w_all:CMS_bkg_8TeV_cat1" << endl;
   if ( NCAT > 2 ){
-  outFile << "shapes mggBkg cat2 " << TString(fileBkgName)+".root" << " w_all:CMS_hgg_bkg_8TeV_cat2" << endl;
-  outFile << "shapes mggBkg cat3 " << TString(fileBkgName)+".root" << " w_all:CMS_hgg_bkg_8TeV_cat3" << endl;
+  outFile << "shapes Bkg cat2 " << TString(fileBkgName)+".root" << " w_all:CMS_bkg_8TeV_cat2" << endl;
+  outFile << "shapes Bkg cat3 "<< TString(fileBkgName)+".root" << " w_all:CMS_bkg_8TeV_cat3" << endl;
   }
   outFile << "# signal" << endl;
-  outFile << "shapes mggSig cat0 " << TString(fileBaseName)+".inputsig.root" << " w_all:CMS_hgg_sig_cat0" << endl;
-  outFile << "shapes mggSig cat1 " << TString(fileBaseName)+".inputsig.root" << " w_all:CMS_hgg_sig_cat1" << endl;
+  outFile << "shapes Sig cat0 " << TString(fileBaseName)+".inputsig.root" << " w_all:CMS_sig_cat0" << endl;
+  outFile << "shapes Sig cat1 " << TString(fileBaseName)+".inputsig.root" << " w_all:CMS_sig_cat1" << endl;
   if ( NCAT > 2 ){
-  outFile << "shapes mggSig cat2 " << TString(fileBaseName)+".inputsig.root" << " w_all:CMS_hgg_sig_cat2" << endl;
-  outFile << "shapes mggSig cat3 " << TString(fileBaseName)+".inputsig.root" << " w_all:CMS_hgg_sig_cat3" << endl;
+  outFile << "shapes Sig cat2 " << TString(fileBaseName)+".inputsig.root" << " w_all:CMS_sig_cat2" << endl;
+  outFile << "shapes Sig cat3 " << TString(fileBaseName)+".inputsig.root" << " w_all:CMS_sig_cat3" << endl;
   }
   outFile << "# ggh" << endl;
-  outFile << "shapes mggHigggh cat0 " << TString(fileHiggsNameggh)+".inputhig.root" << " w_all:CMS_hgg_hig_0_cat0" << endl;
-  outFile << "shapes mggHigggh cat1 " << TString(fileHiggsNameggh)+".inputhig.root" << " w_all:CMS_hgg_hig_0_cat1" << endl;
+  outFile << "shapes Higggh cat0 " << TString(fileHiggsNameggh)+".inputhig.root" << " w_all:CMS_hig_0_cat0" << endl;
+  outFile << "shapes Higggh cat1 " << TString(fileHiggsNameggh)+".inputhig.root" << " w_all:CMS_hig_0_cat1" << endl;
   if ( NCAT > 2 ){
-  outFile << "shapes mggHigggh cat2 " << TString(fileHiggsNameggh)+".inputhig.root" << " w_all:CMS_hgg_hig_0_cat2" << endl;
-  outFile << "shapes mggHigggh cat3 " << TString(fileHiggsNameggh)+".inputhig.root" << " w_all:CMS_hgg_hig_0_cat3" << endl;
+  outFile << "shapes Higggh cat2 " << TString(fileHiggsNameggh)+".inputhig.root" << " w_all:CMS_hig_0_cat2" << endl;
+  outFile << "shapes Higggh cat3 " << TString(fileHiggsNameggh)+".inputhig.root" << " w_all:CMS_hig_0_cat3" << endl;
   }
   outFile << "# tth" << endl;
-  outFile << "shapes mggHigtth cat0 " << TString(fileHiggsNametth)+".inputhig.root" << " w_all:CMS_hgg_hig_1_cat0" << endl;
-  outFile << "shapes mggHigtth cat1 " << TString(fileHiggsNametth)+".inputhig.root" << " w_all:CMS_hgg_hig_1_cat1" << endl;
-  if ( NCAT > 2 ){
-  outFile << "shapes mggHigtth cat2 " << TString(fileHiggsNametth)+".inputhig.root" << " w_all:CMS_hgg_hig_1_cat2" << endl;
-  outFile << "shapes mggHigtth cat3 " << TString(fileHiggsNametth)+".inputhig.root" << " w_all:CMS_hgg_hig_1_cat3" << endl;
+  outFile << "shapes Higtth cat0 " << TString(fileHiggsNametth)+".inputhig.root" << " w_all:CMS_hig_1_cat0" << endl;
+  outFile << "shapes Higtth cat1 " << TString(fileHiggsNametth)+".inputhig.root" << " w_all:CMS_hig_1_cat1" << endl;
+  if (NCAT > 2 ){
+  outFile << "shapes Higtth cat2 " << TString(fileHiggsNametth)+".inputhig.root" << " w_all:CMS_hig_1_cat2" << endl;
+  outFile << "shapes Higtth cat3 " << TString(fileHiggsNametth)+".inputhig.root" << " w_all:CMS_hig_1_cat3" << endl;
   }
   outFile << "# vbf" << endl;
-  outFile << "shapes mggHigvbf cat0 " << TString(fileHiggsNamevbf)+".inputhig.root" << " w_all:CMS_hgg_hig_2_cat0" << endl;
-  outFile << "shapes mggHigvbf cat1 " << TString(fileHiggsNamevbf)+".inputhig.root" << " w_all:CMS_hgg_hig_2_cat1" << endl;
+  outFile << "shapes Higvbf cat0 " << TString(fileHiggsNamevbf)+".inputhig.root" << " w_all:CMS_hig_2_cat0" << endl;
+  outFile << "shapes Higvbf cat1 " << TString(fileHiggsNamevbf)+".inputhig.root" << " w_all:CMS_hig_2_cat1" << endl;
   if ( NCAT > 2 ){
-  outFile << "shapes mggHigvbf cat2 " << TString(fileHiggsNamevbf)+".inputhig.root" << " w_all:CMS_hgg_hig_2_cat2" << endl;
-  outFile << "shapes mggHigvbf cat3 " << TString(fileHiggsNamevbf)+".inputhig.root" << " w_all:CMS_hgg_hig_2_cat3" << endl;
+  outFile << "shapes Higvbf cat2 " << TString(fileHiggsNamevbf)+".inputhig.root" << " w_all:CMS_hig_2_cat2" << endl;
+  outFile << "shapes Higvbf cat3 " << TString(fileHiggsNamevbf)+".inputhig.root" << " w_all:CMS_hig_2_cat3" << endl;
   }
   outFile << "# vh" << endl;
-  outFile << "shapes mggHigvh cat0 " << TString(fileHiggsNamevh)+".inputhig.root" << " w_all:CMS_hgg_hig_3_cat0" << endl;
-  outFile << "shapes mggHigvh cat1 " << TString(fileHiggsNamevh)+".inputhig.root" << " w_all:CMS_hgg_hig_3_cat1" << endl;
+  outFile << "shapes Higvh cat0 " << TString(fileHiggsNamevh)+".inputhig.root" << " w_all:CMS_hig_3_cat0" << endl;
+  outFile << "shapes Higvh cat1 " << TString(fileHiggsNamevh)+".inputhig.root" << " w_all:CMS_hig_3_cat1" << endl;
   if ( NCAT > 2 ){
-  outFile << "shapes mggHigvh cat2 " << TString(fileHiggsNamevh)+".inputhig.root" << " w_all:CMS_hgg_hig_3_cat2" << endl;
-  outFile << "shapes mggHigvh cat3 " << TString(fileHiggsNamevh)+".inputhig.root" << " w_all:CMS_hgg_hig_3_cat3" << endl;
+  outFile << "shapes Higvh cat2 " << TString(fileHiggsNamevh)+".inputhig.root" << " w_all:CMS_hig_3_cat2" << endl;
+  outFile << "shapes Higvh cat3 " << TString(fileHiggsNamevh)+".inputhig.root" << " w_all:CMS_hig_3_cat3" << endl;
   }
   outFile << "# bbh" << endl;
-  outFile << "shapes mggHigbbh cat0 " << TString(fileHiggsNamebbh)+".inputhig.root" << " w_all:CMS_hgg_hig_4_cat0" << endl;
-  outFile << "shapes mggHigbbh cat1 " << TString(fileHiggsNamebbh)+".inputhig.root" << " w_all:CMS_hgg_hig_4_cat1" << endl;
+  outFile << "shapes Higbbh cat0 " << TString(fileHiggsNamebbh)+".inputhig.root" << " w_all:CMS_hig_4_cat0" << endl;
+  outFile << "shapes Higbbh cat1 " << TString(fileHiggsNamebbh)+".inputhig.root" << " w_all:CMS_hig_4_cat1" << endl;
   if ( NCAT > 2 ){
-  outFile << "shapes mggHigbbh cat2 " << TString(fileHiggsNamebbh)+".inputhig.root" << " w_all:CMS_hgg_hig_4_cat2" << endl;
-  outFile << "shapes mggHigbbh cat3 " << TString(fileHiggsNamebbh)+".inputhig.root" << " w_all:CMS_hgg_hig_4_cat3" << endl;
+  outFile << "shapes Higbbh cat2 " << TString(fileHiggsNamebbh)+".inputhig.root" << " w_all:CMS_hig_4_cat2" << endl;
+  outFile << "shapes Higbbh cat3 " << TString(fileHiggsNamebbh)+".inputhig.root" << " w_all:CMS_hig_4_cat3" << endl;
   }
   outFile << "---------------" << endl;
-
+  /////////////////////////////////////
   if(addHiggs) { //
     outFile << "bin cat0 cat1 ";
-    if ( NCAT > 2 ){
-      outFile << "cat2 cat3 ";
-    }
-    outFile<<endl;
+    if ( NCAT > 2 ) outFile << "cat2 cat3 ";
     cout<<"here"<<endl;
-    if(!doblinding){
-      outFile << "observation "<< data[0]->sumEntries() <<" " << data[1]->sumEntries() <<" ";
-      if ( NCAT > 2 ) outFile<< data[2]->sumEntries() <<" " << data[3]->sumEntries() <<" ";
-      outFile<<endl;
+    if(!doblinding){ 
+      outFile << "\nobservation "<< data[0]->sumEntries() <<" " << data[1]->sumEntries() <<" "; 
+      if ( NCAT > 2 ) outFile << data[2]->sumEntries() <<" " << data[3]->sumEntries() <<" "; 
     }
     else{
-      outFile << "observation -1 -1 ";
+      outFile << "\nobservation -1 -1 ";
       if ( NCAT > 2 ) outFile << "-1 -1 ";
-      outFile<<endl;
     }
-    outFile << "------------------------------" << endl;
+    outFile << "\n------------------------------" << endl;
     outFile << "bin cat0 cat0 cat0 cat0 cat0 cat0 cat0"
 	    <<" cat1 cat1 cat1 cat1 cat1 cat1 cat1";
-    if ( NCAT > 2 ) outFile << " cat2 cat2 cat2 cat2 cat2 cat2 cat2" << " cat3 cat3 cat3 cat3 cat3 cat3 cat3";
-    outFile << "\nprocess mggSig mggBkg mggHigggh mggHigtth mggHigvbf mggHigvh mggHigbbh"
-	    <<" mggSig mggBkg mggHigggh mggHigtth mggHigvbf mggHigvh mggHigbbh";
-    if ( NCAT > 2 ) outFile << " mggSig mggBkg mggHigggh mggHigtth mggHigvbf mggHigvh mggHigbbh" << " mggSig mggBkg mggHigggh mggHigtth mggHigvbf mggHigvh mggHigbbh";
+    if ( NCAT > 2 ){
+    outFile << " cat2 cat2 cat2 cat2 cat2 cat2 cat2"
+	    <<" cat3 cat3 cat3 cat3 cat3 cat3 cat3";
+    }
+    outFile << "\nprocess Sig Bkg Higggh Higtth Higvbf Higvh Higbbh"
+	    <<" Sig Bkg Higggh Higtth Higvbf Higvh Higbbh";
+    if ( NCAT > 2 ){
+    outFile << " Sig Bkg Higggh Higtth Higvbf Higvh Higbbh"
+	    << " Sig Bkg Higggh Higtth Higvbf Higvh Higbbh";
+    }
     outFile << "\nprocess 0 1 2 3 4 5 6"
 	    <<" 0 1 2 3 4 5 6 ";
-    if ( NCAT > 2 ) outFile << " 0 1 2 3 4 5 6" << " 0 1 2 3 4 5 6";
+    if ( NCAT > 2 ){
+    outFile << "0 1 2 3 4 5 6 0 1 2 3 4 5 6";
+    }
     outFile << "\nrate "
 	    <<" "<<sigToFit[0]->sumEntries()<<" "<<1<<" "<<higToFitggh[0]->sumEntries()<<" "<<higToFittth[0]->sumEntries()<<" "<<higToFitvbf[0]->sumEntries()<<" "<<higToFitvh[0]->sumEntries()<< " "<<higToFitbbh[0]->sumEntries()
-	    <<" "<<sigToFit[1]->sumEntries()<<" "<<1<<" "<<higToFitggh[1]->sumEntries()<<" "<<higToFittth[1]->sumEntries()<<" "<<higToFitvbf[1]->sumEntries()<<" "<<higToFitvh[1]->sumEntries()<<" "<<higToFitbbh[1]->sumEntries();
-    if ( NCAT > 2 ) outFile << " "<<sigToFit[2]->sumEntries()<<" "<<1<<" "<<higToFitggh[2]->sumEntries()<<" "<<higToFittth[2]->sumEntries()<<" "<<higToFitvbf[2]->sumEntries()<<" "<<higToFitvh[2]->sumEntries()<<" "<<higToFitbbh[2]->sumEntries()
-			    << " "<<sigToFit[3]->sumEntries()<<" "<<1<<" "<<higToFitggh[3]->sumEntries()<<" "<<higToFittth[3]->sumEntries()<<" "<<higToFitvbf[3]->sumEntries()<<" "<<higToFitvh[3]->sumEntries()<<" "<<higToFitbbh[3]->sumEntries();
-    outFile << " " << endl<<endl;
-    outFile << "############## Total normalization" << endl;
+	    <<" "<<sigToFit[1]->sumEntries()<<" "<<1<<" "<<higToFitggh[1]->sumEntries()<<" "<<higToFittth[1]->sumEntries()<<" "<<higToFitvbf[1]->sumEntries()<<" "<<higToFitvh[1]->sumEntries()<<" "<<higToFitbbh[1]->sumEntries()
+	    <<" ";
+    if ( NCAT > 2 ){
+    outFile <<" "<<sigToFit[2]->sumEntries()<<" "<<1<<" "<<higToFitggh[2]->sumEntries()<<" "<<higToFittth[2]->sumEntries()<<" "<<higToFitvbf[2]->sumEntries()<<" "<<higToFitvh[2]->sumEntries()<< " "<<higToFitbbh[2]->sumEntries()
+	    <<" "<<sigToFit[3]->sumEntries()<<" "<<1<<" "<<higToFitggh[3]->sumEntries()<<" "<<higToFittth[3]->sumEntries()<<" "<<higToFitvbf[3]->sumEntries()<<" "<<higToFitvh[3]->sumEntries()<< " "<<higToFitbbh[3]->sumEntries();
+    }
+    outFile << " " << endl;
+    outFile << "############## Total normalisation" << endl;
     outFile << "lumi_8TeV lnN "
 	    << "1.026 - 1.026 1.026 1.026 1.026 1.026 "
 	    << "1.026 - 1.026 1.026 1.026 1.026 1.026 ";
-    if ( NCAT > 2 ) outFile << "1.026 - 1.026 1.026 1.026 1.026 1.026 " << "1.026 - 1.026 1.026 1.026 1.026 1.026 ";
+    if ( NCAT > 2 ){
+    outFile << "1.026 - 1.026 1.026 1.026 1.026 1.026 "
+	    << "1.026 - 1.026 1.026 1.026 1.026 1.026 ";
+    }
     outFile << " " << endl << endl;
-    outFile << "############## Photon selection normalization uncertainties " << endl;
+    outFile << "############## Photon selection normalisation uncertainties " << endl;
     outFile << "DiphoTrigger lnN "
 	    << "1.01 - 1.010 1.010 1.010 1.010 1.010 "
 	    << "1.01 - 1.010 1.010 1.010 1.010 1.010 ";
-    if ( NCAT > 2 ) outFile << "1.01 - 1.010 1.010 1.010 1.010 1.010 " << "1.01 - 1.010 1.010 1.010 1.010 1.010 ";
+    if ( NCAT > 2 ){
+    outFile << "1.01 - 1.010 1.010 1.010 1.010 1.010 "
+	    << "1.01 - 1.010 1.010 1.010 1.010 1.010 ";
+    }
     outFile << "# Trigger efficiency" << endl;
     outFile << "CMS_hgg_eff_g lnN "
 	    << "1.010 - 1.010 1.010 1.010 1.010 1.010 "
 	    << "1.010 - 1.010 1.010 1.010 1.010 1.010 ";
-    if ( NCAT > 2 ) outFile << "1.010 - 1.010 1.010 1.010 1.010 1.010 " << "1.010 - 1.010 1.010 1.010 1.010 1.010 ";
+    if ( NCAT > 2 ){
+      outFile << "1.010 - 1.010 1.010 1.010 1.010 1.010 "
+	      << "1.010 - 1.010 1.010 1.010 1.010 1.010 ";
+    }
     outFile << "# photon selection accep." << endl;
     outFile << " " << endl;
-    outFile << "############## Jet selection and phase space cuts normalization uncertainties " << endl;
-    outFile << "Mjj_PTj_cut_acceptance lnN "
-	    << "1.015 - 1.015 1.015 1.015 1.015 1.015 "
-	    << "1.015 - 1.015 1.015 1.015 1.015 1.015 ";
-    if ( NCAT > 2 ) outFile << "1.015 - 1.015 1.015 1.015 1.015 1.015 " << "1.015 - 1.015 1.015 1.015 1.015 1.015 ";
+    outFile << "############## Jet selection and phase space cuts normalisation uncertainties " << endl;
+    outFile << "pTj_cut_acceptance lnN "
+	    << "1.010 - 1.010 1.010 1.010 1.010 1.010 "
+	    << "1.010 - 1.010 1.010 1.010 1.010 1.010 ";
+    if ( NCAT > 2 ){
+    outFile << "1.010 - 1.010 1.010 1.010 1.010 1.010 "
+	    << "1.010 - 1.010 1.010 1.010 1.010 1.010 ";
+    }
     outFile <<"# JER and JES " << endl;
     outFile << "btag_eff lnN "
 	    << "1.046 - 1.046 1.046 1.046 1.046 1.046 "
 	    << "0.988 - 0.988 0.988 0.988 0.988 0.988 ";
-    if ( NCAT > 2 ) outFile << "1.046 - 1.046 1.046 1.046 1.046 1.046 " << "0.988 - 0.988 0.988 0.988 0.988 0.988 ";
+    if ( NCAT > 2 ){
+    outFile << "1.046 - 1.046 1.046 1.046 1.046 1.046 "
+	    << "0.988 - 0.988 0.988 0.988 0.988 0.988 ";
+    }
     outFile <<"# b tag efficiency uncertainty" << endl;
+    if (NCAT == 2){
     outFile << "maajj_cut_acceptance lnN "
-	    << "1.02 - 1.02 1.02 1.02 1.02 1.02 "
-	    << "1.02 - 1.02 1.02 1.02 1.02 1.02 ";
-    if ( NCAT > 2 ) outFile << "1.02 - 1.02 1.02 1.02 1.02 1.02 " << "1.02 - 1.02 1.02 1.02 1.02 1.02 ";
+	    << "1.015 - 1.015 1.015 1.015 1.015 1.015 "
+	    << "1.015 - 1.015 1.015 1.015 1.015 1.015 ";
+    }
+    else if (NCAT > 2){
+    outFile << "maajj_cut_acceptance lnN "
+	    << "0.995 - 0.995 0.995 0.995 0.995 0.995 "
+	    << "0.995 - 0.995 0.995 0.995 0.995 0.995 "
+	    << "1.015 - 1.015 1.015 1.015 1.015 1.015 "
+	    << "1.015 - 1.015 1.015 1.015 1.015 1.015 ";
+    }
+    outFile << "# uncertainty on mggjj cut acceptance" << endl;
     outFile << " " << endl << endl;
     outFile << "############## Theory uncertainties on SM Higgs production " << endl;
     outFile << "PDF lnN "
 	    << " - - 0.931/1.075 0.919/1.081 0.972/1.026 0.976/1.024 0.976/1.024 "
 	    << " - - 0.931/1.075 0.919/1.081 0.972/1.026 0.976/1.024 0.976/1.024 ";
-    if ( NCAT > 2 ) outFile << " - - 0.931/1.075 0.919/1.081 0.972/1.026 0.976/1.024 0.976/1.024 " << " - - 0.931/1.075 0.919/1.081 0.972/1.026 0.976/1.024 0.976/1.024 ";
-    outFile << endl;
-    outFile << "QCD_scale lnN "
+    if ( NCAT > 2 ){
+    outFile << " - - 0.931/1.075 0.919/1.081 0.972/1.026 0.976/1.024 0.976/1.024 "
+	    << " - - 0.931/1.075 0.919/1.081 0.972/1.026 0.976/1.024 0.976/1.024 ";
+    }
+    outFile << "\nQCD_scale lnN "
 	    << " - - 0.922/1.072 0.907/1.038 0.998/1.002 0.980/1.020 0.980/1.020 "
 	    << " - - 0.922/1.072 0.907/1.038 0.998/1.002 0.980/1.020 0.980/1.020 ";
-    if ( NCAT > 2 ) outFile << " - - 0.922/1.072 0.907/1.038 0.998/1.002 0.980/1.020 0.980/1.020 " << " - - 0.922/1.072 0.907/1.038 0.998/1.002 0.980/1.020 0.980/1.020 ";
-    outFile << endl;
-    outFile << "gg_migration lnN "
+    if ( NCAT > 2 ){
+    outFile << " - - 0.922/1.072 0.907/1.038 0.998/1.002 0.980/1.020 0.980/1.020 "
+	    << " - - 0.922/1.072 0.907/1.038 0.998/1.002 0.980/1.020 0.980/1.020 ";
+    }
+    outFile << "\ngg_migration lnN "
 	    << " - - 1.25 1.25 1.08 1.08 1.08 "
 	    << " - - 1.25 1.25 1.08 1.08 1.08 ";
-    if ( NCAT > 2 ) outFile << " - - 1.25 1.25 1.08 1.08 1.08 " << " - - 1.25 1.25 1.08 1.08 1.08 ";
+    if ( NCAT > 2 ){
+    outFile << " - - 1.25 1.25 1.08 1.08 1.08 "
+	    << " - - 1.25 1.25 1.08 1.08 1.08 ";
+    }
     outFile << "# UEPS" << endl;
     outFile << "gluonSplitting lnN "
 	    << " - - 1.40 1.40 1.40 1.40 1.40 "
 	    << " - - 1.40 1.40 1.40 1.40 1.40 ";
-    if ( NCAT > 2 ) outFile << " - - 1.40 1.40 1.40 1.40 1.40 " << " - - 1.40 1.40 1.40 1.40 1.40 ";
-    outFile << endl;
-    outFile << " " << endl;
+    if ( NCAT > 2 ){
+    outFile << " - - 1.40 1.40 1.40 1.40 1.40 "
+	    << " - - 1.40 1.40 1.40 1.40 1.40 ";
+    }
+    outFile << " " << endl<<endl;
     if(useSigTheoryUnc){
       outFile << "############## Theory uncertainty on SM diHiggs production " << endl;
       outFile << "SM_diHiggs_Theory lnN "
@@ -1430,41 +1981,68 @@ void MakeDataCard(RooWorkspace* w, const char* fileBaseName, const char* fileBkg
       outFile << " # from 9.96 + 1.35 - 1.42 fb " << endl << endl;
     }
     outFile << "############## Signal parametric shape uncertainties " << endl;
-    outFile << "CMS_hgg_sig_m0_absShift param 1 0.0051 # displacement of the dipho mean error = sqrt(0.45^ 2 + 0.25^ 2) " << endl;
-    outFile << "CMS_hgg_sig_sigmaScale param 1 0.22 # optimistic estimative of resolution uncertainty " << endl;
+    outFile << "### Note that the PES i 0.4% or 0.5% depending on whether the search is res, nonres low mggjj, or nonres high mggjj.\n";
+    outFile << "### For simplicity, and because it has no appriciable effect, 0.5% is used everywhere.\n";
+    outFile << "CMS_hgg_sig_m0_absShift param 1 0.0054 # displacement of the dipho mean error = sqrt(0.5^ 2 + 0.2^ 2) " << endl;
+    outFile << "CMS_hgg_sig_sigmaScale param 1 0.05 # optimistic estimate of resolution uncertainty " << endl;
+    //
+    outFile << "CMS_hbb_sig_m0_absShift param 1 0.026 # displacement of the dijet mean error " << endl;
+    outFile << "CMS_hbb_sig_sigmaScale param 1 0.10 # optimistic estimate of resolution uncertainty " << endl;
     //
     outFile << "# Parametric shape uncertainties, entered by hand. they act on higgs" << endl;
-    outFile << "CMS_hgg_hig_m0_0_absShift param 1 0.0051 # displacement of the dipho mean error = sqrt(0.45^ 2 + 0.25^ 2)" << endl;
-    outFile << "CMS_hgg_hig_0_sigmaScale param 1 0.22 # optimistic estimative of resolution uncertainty " << endl;
+    outFile << "CMS_hgg_hig_m0_0_absShift param 1 0.0054 # displacement of the dipho mean error = sqrt(0.5^ 2 + 0.2^ 2)" << endl;
+    outFile << "CMS_hgg_hig_0_sigmaScale param 1 0.05 # optimistic estimate of resolution uncertainty " << endl;
     //
-    outFile << "CMS_hgg_hig_m0_1_absShift param 1 0.0051 # displacement of the dipho mean error = sqrt(0.45^ 2 + 0.25^ 2)" << endl;
-    outFile << "CMS_hgg_hig_1_sigmaScale param 1 0.22 # optimistic estimative of resolution uncertainty " << endl;
+    outFile << "CMS_hgg_hig_m0_1_absShift param 1 0.0054 # displacement of the dipho mean error = sqrt(0.5^ 2 + 0.2^ 2)" << endl;
+    outFile << "CMS_hgg_hig_1_sigmaScale param 1 0.05 # optimistic estimate of resolution uncertainty " << endl;
     //
-    outFile << "CMS_hgg_hig_m0_2_absShift param 1 0.0051 # displacement of the dipho mean error = sqrt(0.45^ 2 + 0.25^ 2)" << endl;
-    outFile << "CMS_hgg_hig_2_sigmaScale param 1 0.22 # optimistic estimative of resolution uncertainty " << endl;
+    outFile << "CMS_hgg_hig_m0_2_absShift param 1 0.0054 # displacement of the dipho mean error = sqrt(0.5^ 2 + 0.2^ 2)" << endl;
+    outFile << "CMS_hgg_hig_2_sigmaScale param 1 0.05 # optimistic estimate of resolution uncertainty " << endl;
     //
-    outFile << "CMS_hgg_hig_m0_3_absShift param 1 0.0051 # displacement of the dipho mean error = sqrt(0.45^ 2 + 0.25^ 2)" << endl;
-    outFile << "CMS_hgg_hig_3_sigmaScale param 1 0.22 # optimistic estimative of resolution uncertainty " << endl;
+    outFile << "CMS_hgg_hig_m0_3_absShift param 1 0.0054 # displacement of the dipho mean error = sqrt(0.5^ 2 + 0.2^ 2)" << endl;
+    outFile << "CMS_hgg_hig_3_sigmaScale param 1 0.05 # optimistic estimate of resolution uncertainty " << endl;
      //
-    outFile << "CMS_hgg_hig_m0_4_absShift param 1 0.0051 # displacement of the dipho mean error = sqrt(0.45^ 2 + 0.25^ 2)" << endl;
-    outFile << "CMS_hgg_hig_4_sigmaScale param 1 0.22 # optimistic estimative of resolution uncertainty " << endl;
+    outFile << "CMS_hgg_hig_m0_4_absShift param 1 0.0054 # displacement of the dipho mean error = sqrt(0.5^ 2 + 0.2^ 2)" << endl;
+    outFile << "CMS_hgg_hig_4_sigmaScale param 1 0.05 # optimistic estimate of resolution uncertainty " << endl;
     //
-    outFile << "############## for mgg fit - slopes" << endl;
-    outFile << "CMS_hgg_bkg_8TeV_cat0_norm flatParam # Normalization uncertainty on background slope" << endl;
-    outFile << "CMS_hgg_bkg_8TeV_cat1_norm flatParam # Normalization uncertainty on background slope" << endl;
+    outFile << "CMS_hbb_hig_m0_0_absShift param 1 0.026 # displacement of the dijet mean error " << endl;
+    outFile << "CMS_hbb_hig_0_sigmaScale param 1 0.10 # optimistic estimate of resolution uncertainty " << endl;
+    //
+    outFile << "CMS_hbb_hig_m0_1_absShift param 1 0.026 # displacement of the dijet mean error " << endl;
+    outFile << "CMS_hbb_hig_1_sigmaScale param 1 0.10 # optimistic estimate of resolution uncertainty " << endl;
+    //
+    outFile << "CMS_hbb_hig_m0_2_absShift param 1 0.026 # displacement of the dijet mean error " << endl;
+    outFile << "CMS_hbb_hig_2_sigmaScale param 1 0.10 # optimistic estimate of resolution uncertainty " << endl;
+    //
+    outFile << "CMS_hbb_hig_m0_3_absShift param 1 0.026 # displacement of the dijet mean error " << endl;
+    outFile << "CMS_hbb_hig_3_sigmaScale param 1 0.10 # optimistic estimate of resolution uncertainty " << endl;
+     //
+    outFile << "CMS_hbb_hig_m0_4_absShift param 1 0.026 # displacement of the dijet mean error " << endl;
+    outFile << "CMS_hbb_hig_4_sigmaScale param 1 0.10 # optimistic estimate of resolution uncertainty " << endl;
+    //
+    outFile << "############## for mggxmjj fit - slopes" << endl;
+    outFile << "CMS_bkg_8TeV_cat0_norm flatParam # Normalization uncertainty on background slope" << endl;
+    outFile << "CMS_bkg_8TeV_cat1_norm flatParam # Normalization uncertainty on background slope" << endl;
     if ( NCAT > 2 ){
-      outFile << "CMS_hgg_bkg_8TeV_cat2_norm flatParam # Normalization uncertainty on background slope" << endl;
-      outFile << "CMS_hgg_bkg_8TeV_cat3_norm flatParam # Normalization uncertainty on background slope" << endl;
+    outFile << "CMS_bkg_8TeV_cat2_norm flatParam # Normalization uncertainty on background slope" << endl;
+    outFile << "CMS_bkg_8TeV_cat3_norm flatParam # Normalization uncertainty on background slope" << endl;
     }
 
     outFile << "CMS_hgg_bkg_8TeV_slope1_cat0 flatParam # Mean and absolute uncertainty on background slope" << endl;
     outFile << "CMS_hgg_bkg_8TeV_slope1_cat1 flatParam # Mean and absolute uncertainty on background slope" << endl;
     if ( NCAT > 2 ){
-      outFile << "CMS_hgg_bkg_8TeV_slope1_cat2 flatParam # Mean and absolute uncertainty on background slope" << endl;
-      outFile << "CMS_hgg_bkg_8TeV_slope1_cat3 flatParam # Mean and absolute uncertainty on background slope" << endl;
+    outFile << "CMS_hgg_bkg_8TeV_slope1_cat2 flatParam # Mean and absolute uncertainty on background slope" << endl;
+    outFile << "CMS_hgg_bkg_8TeV_slope1_cat3 flatParam # Mean and absolute uncertainty on background slope" << endl;
     }
 
-  } // if ncat ==2 or 4
+    outFile << "CMS_hbb_bkg_8TeV_slope1_cat0 flatParam # Mean and absolute uncertainty on background slope" << endl;
+    outFile << "CMS_hbb_bkg_8TeV_slope1_cat1 flatParam # Mean and absolute uncertainty on background slope" << endl;
+    if ( NCAT > 2 ){
+    outFile << "CMS_hbb_bkg_8TeV_slope1_cat2 flatParam # Mean and absolute uncertainty on background slope" << endl;
+    outFile << "CMS_hbb_bkg_8TeV_slope1_cat3 flatParam # Mean and absolute uncertainty on background slope" << endl;
+    }
+
+  } // if ncat == 2 or 4
   /////////////////////////////////////
   outFile.close();
   cout << "Write data card in: " << filename << " file" << endl;
@@ -1474,7 +2052,7 @@ void MakeDataCard(RooWorkspace* w, const char* fileBaseName, const char* fileBkg
 
 
 
-void MakeDataCardonecatnohiggs(RooWorkspace* w, TString fileBaseName, TString fileBkgName, Bool_t useSigTheoryUnc) {
+void MakeDataCardonecatnohiggs(RooWorkspace* w, const char* fileBaseName, const char* fileBkgName, Bool_t useSigTheoryUnc) {
   TString cardDir = "datacards/";
   const Int_t ncat = NCAT;
   RooDataSet* data[ncat];
@@ -1498,7 +2076,8 @@ void MakeDataCardonecatnohiggs(RooWorkspace* w, TString fileBaseName, TString fi
   }
   // cout << ".........Expected Signal for L = " << lumi->getVal() << " pb-1 ............................" << endl;
   cout << ".........Expected Signal for L = " << "19712" << " pb-1 ............................" << endl;
-  cout << "#Events Signal: " << w->data("Data")->sumEntries() << endl;
+  if(!doblinding){ cout << "#Events Signal: " << w->data("Data")->sumEntries() << endl; }
+  else cout << "#Events Signal: -1 " << endl;
   Float_t siglikeErr[ncat];
   for (int c = 0; c < ncat; ++c) {
     cout << TString::Format("#Events Signal cat%d: ",c) << sigToFit[c]->sumEntries() << endl;
@@ -1520,9 +2099,9 @@ void MakeDataCardonecatnohiggs(RooWorkspace* w, TString fileBaseName, TString fi
   cout<<"here"<<endl;
   outFile << "shapes data_obs cat0 " << TString(fileBkgName)+".root" << " w_all:data_obs_cat0" << endl;
   outFile << "############## shape with reparametrization" << endl;
-  outFile << "shapes mggBkg cat0 " << TString(fileBkgName)+".root" << " w_all:CMS_hgg_bkg_8TeV_cat0" << endl;
+  outFile << "shapes Bkg cat0 " << TString(fileBkgName)+".root" << " w_all:CMS_bkg_8TeV_cat0" << endl;
   outFile << "# signal" << endl;
-  outFile << "shapes mggSig cat0 " << TString(fileBaseName)+".inputsig.root" << " w_all:CMS_hgg_sig_cat0" << endl;
+  outFile << "shapes Sig cat0 " << TString(fileBaseName)+".inputsig.root" << " w_all:CMS_sig_cat0" << endl;
 
 
   outFile << "---------------" << endl;
@@ -1537,7 +2116,7 @@ void MakeDataCardonecatnohiggs(RooWorkspace* w, TString fileBaseName, TString fi
     }
     outFile << "------------------------------" << endl;
     outFile << "bin cat0 cat0 " << endl;
-    outFile << "process mggSig mggBkg " << endl;
+    outFile << "process Sig Bkg " << endl;
     outFile << "process 0 1 " << endl;
     outFile << "rate "
 	    << " " << sigToFit[0]->sumEntries() << " " << 1
@@ -1546,14 +2125,17 @@ void MakeDataCardonecatnohiggs(RooWorkspace* w, TString fileBaseName, TString fi
     outFile << "lumi_8TeV lnN "
 	    << "1.026 - " << endl;
     outFile << "############## jet" << endl;
-    outFile << "Mjj_acceptance lnN "
-	    << "1.015 - "
+    outFile << "pTj_acceptance lnN "
+	    << "1.010 - "
 	    <<"# JER and JES " << endl;
     outFile << "btag_eff lnN "
 	    << "1.046 - "
 	    <<"# b tag efficiency uncertainty" << endl;
-    outFile << "maajj_acceptance lnN "
-	    << "1.02 - " << endl;
+    outFile << "mggjj_acceptance lnN ";
+    if (sigMass==0)
+      outFile << "0.995 - " << endl;
+    else
+      outFile << "1.015 - " << endl;
     outFile << "############## photon " << endl;
     outFile << "CMS_hgg_eff_g lnN "
 	    << "1.010 - "
@@ -1565,11 +2147,14 @@ void MakeDataCardonecatnohiggs(RooWorkspace* w, TString fileBaseName, TString fi
       outFile << "SM_diHiggs_Theory lnN 0.857/1.136 - " << endl;
     }
     outFile << "# Parametric shape uncertainties, entered by hand. they act on signal " << endl;
-    outFile << "CMS_hgg_sig_m0_absShift param 1 0.0045 # displacement of the dipho mean" << endl;
-    outFile << "CMS_hgg_sig_sigmaScale param 1 0.22 # optimistic estimative of resolution uncertainty " << endl;
-    outFile << "############## for mgg fit - slopes" << endl;
-    outFile << "CMS_hgg_bkg_8TeV_cat0_norm flatParam # Normalization uncertainty on background slope" << endl;
+    outFile << "CMS_hgg_sig_m0_absShift param 1 0.0054 # displacement of the dipho mean" << endl;
+    outFile << "CMS_hgg_sig_sigmaScale param 1 0.05 # optimistic estimate of resolution uncertainty " << endl;
+    outFile << "CMS_hbb_sig_m0_absShift param 1 0.026 # displacement of the dijet mean" << endl;
+    outFile << "CMS_hbb_sig_sigmaScale param 1 0.10 # optimistic estimate of resolution uncertainty " << endl;
+    outFile << "############## for mggxmjj fit - slopes" << endl;
+    outFile << "CMS_bkg_8TeV_cat0_norm flatParam # Normalization uncertainty on background slope" << endl;
     outFile << "CMS_hgg_bkg_8TeV_slope1_cat0 flatParam # Mean and absolute uncertainty on background slope" << endl;
+    outFile << "CMS_hbb_bkg_8TeV_slope1_cat0 flatParam # Mean and absolute uncertainty on background slope" << endl;
 
   } // if ncat ==2
   /////////////////////////////////////
@@ -1670,9 +2255,6 @@ void SetParamNames(RooWorkspace* w) { // not used it if Workspaces are created =
   RooRealVar* mgg_bkg_8TeV_slope1 = w->var("mgg_bkg_8TeV_slope1");
   mgg_bkg_8TeV_slope1 ->SetName("a_{B}");
   mgg_bkg_8TeV_slope1 ->setUnit("1/GeV");
-  RooRealVar* mgg_bkg_8TeV_slope2 = w->var("mgg_bkg_8TeV_slope2");
-  mgg_bkg_8TeV_slope2 ->SetName("a_{B}");
-  mgg_bkg_8TeV_slope2 ->setUnit("1/GeV");
   //****************************//
   // mgg per category
   //****************************//
@@ -1695,11 +2277,59 @@ void SetParamNames(RooWorkspace* w) { // not used it if Workspaces are created =
     mgg_bkg_8TeV_slope1 = w->var(TString::Format("mgg_bkg_8TeV_slope1_cat%d",c));
     mgg_bkg_8TeV_slope1 ->SetName("p_{B}^{1}");
     mgg_bkg_8TeV_slope1 ->setUnit("1/GeV");
-    mgg_bkg_8TeV_slope2 = w->var(TString::Format("mgg_bkg_8TeV_slope2_cat%d",c));
-    mgg_bkg_8TeV_slope2 ->SetName("p_{B}^{2}");
-    mgg_bkg_8TeV_slope2 ->setUnit("1/GeV^{2}");
     // RooRealVar* mgg_bkg_8TeV_frac = w->var(TString::Format("mgg_bkg_8TeV_frac_cat%d",c));
     // mgg_bkg_8TeV_frac ->SetName("f");
   }
+
+  //****************************//
+  // mjj signal all categories
+  //****************************//
+  RooRealVar* mjj_sig_m0 = w->var("mjj_sig_m0");
+  RooRealVar* mjj_sig_sigma = w->var("mjj_sig_sigma");
+  RooRealVar* mjj_sig_alpha = w->var("mjj_sig_alpha");
+  RooRealVar* mjj_sig_n = w->var("mjj_sig_n");
+  RooRealVar* mjj_sig_gsigma = w->var("mjj_sig_gsigma");
+  RooRealVar* mjj_sig_frac = w->var("mjj_sig_frac");
+  mjj_sig_m0 ->SetName("m_{0}");
+  mjj_sig_sigma ->SetName("#sigma_{CB}");
+  mjj_sig_alpha ->SetName("#alpha");
+  mjj_sig_n ->SetName("n");
+  mjj_sig_gsigma->SetName("#sigma_G");
+  mjj_sig_frac ->SetName("f_G");
+  mjj_sig_m0 ->setUnit("GeV");
+  mjj_sig_sigma ->setUnit("GeV");
+  mjj_sig_gsigma->setUnit("GeV");
+  //****************************//
+  // mjj background
+  //****************************//
+  RooRealVar* mjj_bkg_8TeV_slope1 = w->var("mjj_bkg_8TeV_slope1");
+  mjj_bkg_8TeV_slope1 ->SetName("a_{B}");
+  mjj_bkg_8TeV_slope1 ->setUnit("1/GeV");
+  //****************************//
+  // mjj per category
+  //****************************//
+  for (int c = 0; c < ncat; ++c) {
+    mjj_sig_m0 = (RooRealVar*) w->var(TString::Format("mjj_sig_m0_cat%d",c));
+    mjj_sig_sigma = (RooRealVar*) w->var(TString::Format("mjj_sig_sigma_cat%d",c));
+    mjj_sig_alpha = (RooRealVar*) w->var(TString::Format("mjj_sig_alpha_cat%d",c));
+    mjj_sig_n = (RooRealVar*) w->var(TString::Format("mjj_sig_n_cat%d",c));
+    mjj_sig_gsigma = (RooRealVar*) w->var(TString::Format("mjj_sig_gsigma_cat%d",c));
+    mjj_sig_frac = (RooRealVar*) w->var(TString::Format("mjj_sig_frac_cat%d",c));
+    mjj_sig_m0 ->SetName("m_{0}");
+    mjj_sig_sigma ->SetName("#sigma_{CB}");
+    mjj_sig_alpha ->SetName("#alpha");
+    mjj_sig_n ->SetName("n");
+    mjj_sig_gsigma ->SetName("#sigma_{G}");
+    mjj_sig_frac ->SetName("f_{G}");
+    mjj_sig_m0 ->setUnit("GeV");
+    mjj_sig_sigma ->setUnit("GeV");
+    mjj_sig_gsigma ->setUnit("GeV");
+    mjj_bkg_8TeV_slope1 = w->var(TString::Format("mjj_bkg_8TeV_slope1_cat%d",c));
+    mjj_bkg_8TeV_slope1 ->SetName("p_{B}^{1}");
+    mjj_bkg_8TeV_slope1 ->setUnit("1/GeV");
+    // RooRealVar* mjj_bkg_8TeV_frac = w->var(TString::Format("mjj_bkg_8TeV_frac_cat%d",c));
+    // mjj_bkg_8TeV_frac ->SetName("f");
+  }
+
 } // close setparameters
 

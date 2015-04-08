@@ -67,10 +67,11 @@
     defaultStyle->SetPadTickY(1);
     defaultStyle->cd();
 
- bool HH=true;
+ bool HH=false;
  bool base = true;
  bool low=false;
- bool obs=false;//radlim${radion[$j]}_CSV
+ bool obs=false;
+ bool oldExp= true;
 
 //  TLegend *leg = new TLegend(0.65,0.5,0.99,0.94);
   TLegend *leg = new TLegend(0.55,0.5,0.99,0.94);
@@ -78,7 +79,7 @@
   leg->SetFillStyle(0);
   leg->SetBorderSize(0);
   double radCX[16]={1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
-  double radMASS[16]={270,270,300,350,400,450,500,500,550,600,650,700,900,1000,1100,1200};
+  double radMASS[16]={260,270,300,350,400,450,500,550,600,650,700,800,900,1000,1100,1200};
   if(!HH) double br=1;//1./(0.577*0.00228); 
   if(HH) double br=1./(2*0.577*0.00228); // HH
 //////////////////////////////////////////
@@ -121,22 +122,22 @@
 //                                   ntuple->GetV2(), ntuple->GetV1());
 ///////////////////////////////////////
 // draw the BR flag -- Main results
-TFile* f1 = new TFile("/home/xanda/Dropbox/aabb_CMS/studies/figures/globeFW/Limits_mgg/OlivierJan14/baseFitMgg/radlim270_CSV/higgsCombineTest.Asymptotic.mH125.mR270.root");
-TFile* f2 = new TFile("/home/xanda/Dropbox/aabb_CMS/studies/figures/globeFW/Limits_mgg/OlivierJan14/baseFitMgg/radlim270_CSV/higgsCombineTest.Asymptotic.mH125.mR270.root");
-TFile* f3 = new TFile("/home/xanda/Dropbox/aabb_CMS/studies/figures/globeFW/Limits_mgg/OlivierJan14/baseFitMgg/radlim300_CSV/higgsCombineTest.Asymptotic.mH125.mR300.root");
-TFile* f4 = new TFile("/home/xanda/Dropbox/aabb_CMS/studies/figures/globeFW/Limits_mgg/OlivierJan14/baseFitMgg/radlim350_CSV/higgsCombineTest.Asymptotic.mH125.mR350.root");
-TFile* f5 = new TFile("/home/xanda/Dropbox/aabb_CMS/studies/figures/globeFW/Limits_4body_hgg/OlivierJan14/conKinFitMgg/radlim400_CSV/higgsCombineTest.Asymptotic.mH125.mR400.root");
-TFile* f6 = new TFile("/home/xanda/Dropbox/aabb_CMS/studies/figures/globeFW/Limits_4body_hgg/OlivierJan14/conKinFitMgg/radlim450_CSV/higgsCombineTest.Asymptotic.mH125.mR450.root");
-TFile* f7 = new TFile("/home/xanda/Dropbox/aabb_CMS/studies/figures/globeFW/Limits_4body_hgg/OlivierJan14/conKinFitMgg/radlim500_CSV/higgsCombineTest.Asymptotic.mH125.mR500.root");
- TFile* f8 = new TFile("/home/xanda/Dropbox/aabb_CMS/studies/figures/globeFW/Limits_4body_hgg/OlivierJan14/conKinFitMgg/radlim500_CSV/higgsCombineTest.Asymptotic.mH125.mR500.root");
- TFile* f9 = new TFile("/home/xanda/Dropbox/aabb_CMS/studies/figures/globeFW/Limits_4body_hgg/OlivierJan14/conKinFitMgg/radlim550_CSV/higgsCombineTest.Asymptotic.mH125.mR550.root");
- TFile* f10 = new TFile("/home/xanda/Dropbox/aabb_CMS/studies/figures/globeFW/Limits_4body_hgg/OlivierJan14/conKinFitMgg/radlim600_CSV/higgsCombineTest.Asymptotic.mH125.mR600.root");
- TFile* f11 = new TFile("/home/xanda/Dropbox/aabb_CMS/studies/figures/globeFW/Limits_4body_hgg/OlivierJan14/conKinFitMgg/radlim650_CSV/higgsCombineTest.Asymptotic.mH125.mR650.root");
- TFile* f12 = new TFile("/home/xanda/Dropbox/aabb_CMS/studies/figures/globeFW/Limits_4body_hgg/OlivierJan14/conKinFitMgg/radlim700_CSV/higgsCombineTest.Asymptotic.mH125.mR700.root");
- TFile* f13 = new TFile("/home/xanda/Dropbox/aabb_CMS/studies/figures/globeFW/Limits_4body_hgg/OlivierJan14/conKinFitMgg/radlim900_CSV/higgsCombineTest.Asymptotic.mH125.mR900.root");
- TFile* f14 = new TFile("/home/xanda/Dropbox/aabb_CMS/studies/figures/globeFW/Limits_4body_hgg/OlivierJan14/conKinFitMgg/radlim1000_CSV/higgsCombineTest.Asymptotic.mH125.mR1000.root");
- TFile* f15 = new TFile("/home/xanda/Dropbox/aabb_CMS/studies/figures/globeFW/Limits_4body_hgg/OlivierJan14/conKinFitMgg/radlim1100_CSV/higgsCombineTest.Asymptotic.mH125.mR1100.root");
- TFile* f16 = new TFile("/home/xanda/Dropbox/aabb_CMS/studies/figures/globeFW/Limits_4body_hgg/OlivierJan14/conKinFitMgg/radlim1100_CSV/higgsCombineTest.Asymptotic.mH125.mR1100.root");
+TFile* f1 = new TFile("/afs/cern.ch/work/b/bmarzocc/LimitTrees/CMSSW_6_1_1/src/Limit_codes/radlim_CSV_WP4/radlim260_CSV/higgsCombineTest.Asymptotic.mH125.mR260_higgs.root");
+TFile* f2 = new TFile("/afs/cern.ch/work/b/bmarzocc/LimitTrees/CMSSW_6_1_1/src/Limit_codes/radlim_CSV_WP4/radlim270_CSV/higgsCombineTest.Asymptotic.mH125.mR270_higgs.root");
+TFile* f3 = new TFile("/afs/cern.ch/work/b/bmarzocc/LimitTrees/CMSSW_6_1_1/src/Limit_codes/radlim_CSV_WP4/radlim300_CSV/higgsCombineTest.Asymptotic.mH125.mR300_higgs.root");
+TFile* f4 = new TFile("/afs/cern.ch/work/b/bmarzocc/LimitTrees/CMSSW_6_1_1/src/Limit_codes/radlim_CSV_WP4/radlim350_CSV/higgsCombineTest.Asymptotic.mH125.mR350_higgs.root");
+TFile* f5 = new TFile("/afs/cern.ch/work/b/bmarzocc/LimitTrees/CMSSW_6_1_1/src/Limit_codes/radlim_CSV_WP4/radlim400_CSV/higgsCombineTest.Asymptotic.mH125.mR400.root");
+TFile* f6 = new TFile("/afs/cern.ch/work/b/bmarzocc/LimitTrees/CMSSW_6_1_1/src/Limit_codes/radlim_CSV_WP4/radlim450_CSV/higgsCombineTest.Asymptotic.mH125.mR450.root");
+TFile* f7 = new TFile("/afs/cern.ch/work/b/bmarzocc/LimitTrees/CMSSW_6_1_1/src/Limit_codes/radlim_CSV_WP4/radlim500_CSV/higgsCombineTest.Asymptotic.mH125.mR500.root");
+ TFile* f8 = new TFile("/afs/cern.ch/work/b/bmarzocc/LimitTrees/CMSSW_6_1_1/src/Limit_codes/radlim_CSV_WP4/radlim550_CSV/higgsCombineTest.Asymptotic.mH125.mR550.root");
+ TFile* f9 = new TFile("/afs/cern.ch/work/b/bmarzocc/LimitTrees/CMSSW_6_1_1/src/Limit_codes/radlim_CSV_WP4/radlim600_CSV/higgsCombineTest.Asymptotic.mH125.mR600.root");
+ TFile* f10 = new TFile("/afs/cern.ch/work/b/bmarzocc/LimitTrees/CMSSW_6_1_1/src/Limit_codes/radlim_CSV_WP4/radlim650_CSV/higgsCombineTest.Asymptotic.mH125.mR650.root");
+ TFile* f11 = new TFile("/afs/cern.ch/work/b/bmarzocc/LimitTrees/CMSSW_6_1_1/src/Limit_codes/radlim_CSV_WP4/radlim700_CSV/higgsCombineTest.Asymptotic.mH125.mR700.root");
+ TFile* f12 = new TFile("/afs/cern.ch/work/b/bmarzocc/LimitTrees/CMSSW_6_1_1/src/Limit_codes/radlim_CSV_WP4/radlim800_CSV/higgsCombineTest.Asymptotic.mH125.mR800.root");
+ TFile* f13 = new TFile("/afs/cern.ch/work/b/bmarzocc/LimitTrees/CMSSW_6_1_1/src/Limit_codes/radlim_CSV_WP4/radlim900_CSV/higgsCombineTest.Asymptotic.mH125.mR900.root");
+ TFile* f14 = new TFile("/afs/cern.ch/work/b/bmarzocc/LimitTrees/CMSSW_6_1_1/src/Limit_codes/radlim_CSV_WP4/radlim1000_CSV/higgsCombineTest.Asymptotic.mH125.mR1000.root");
+ TFile* f15 = new TFile("/afs/cern.ch/work/b/bmarzocc/LimitTrees/CMSSW_6_1_1/src/Limit_codes/radlim_CSV_WP4/radlim1100_CSV/higgsCombineTest.Asymptotic.mH125.mR1100.root");
+ TFile* f16 = new TFile("/afs/cern.ch/work/b/bmarzocc/LimitTrees/CMSSW_6_1_1/src/Limit_codes/radlim_CSV_WP4/radlim1100_CSV/higgsCombineTest.Asymptotic.mH125.mR1100.root");
 // TFile* f5 = new TFile("radlim1500_CSV/higgsCombineTest.Asymptotic.mR1500_CSV.root");
 
  TTree          *fChain1 = (TTree*) f1->Get("limit;1");
@@ -198,6 +199,7 @@ TFile* f7 = new TFile("/home/xanda/Dropbox/aabb_CMS/studies/figures/globeFW/Limi
 // fChain5->SetBranchAddress("limit", &limit, &b_limit);
  int nmass=15;
  float rad[6][nmass];
+ float radOld[6][20];
 
 // cout << "Radion270 " <<endl;
   int j=0; 
@@ -290,7 +292,26 @@ TFile* f7 = new TFile("/home/xanda/Dropbox/aabb_CMS/studies/figures/globeFW/Limi
     rad[i][j]=limit*radCX[j]*br;
     cout <<"MX = "<< radMASS[j]<<" centrality "<< i<<" limit = " << limit << endl; 
     }
+  
+  //PAS expected results
+  radOld[2][0] = 2.12;
+  radOld[2][1] = 2.40;
+  radOld[2][2] = 2.73;
+  radOld[2][3] = 2.23;
+  radOld[2][4] = 1.87;
+  radOld[2][5] = 1.42;
+  radOld[2][6] = 0.97;
+  radOld[2][7] = 0.80;
+  radOld[2][8] = 0.69;
+  radOld[2][9] = 0.60;
+  radOld[2][10] = 0.54;
+  radOld[2][11] = 0.46;
+  radOld[2][12] = 0.43;
+  radOld[2][13] = 0.43;
+  radOld[2][14] = 0.48;
 
+  
+  
   // we do a plot r*MR
   TMultiGraph *mg = new TMultiGraph();
   if(!HH) mg->SetMinimum(0.01);
@@ -305,7 +326,7 @@ TFile* f7 = new TFile("/home/xanda/Dropbox/aabb_CMS/studies/figures/globeFW/Limi
 //  float radMASS[nmass]={300,500,700,1000};
 
    TCanvas *c1 = new TCanvas("c1","A Simple Graph Example",200,10,700,500);
-   Double_t x[nmass], yobs[nmass], y2up[nmass], y1up[nmass], y1down[nmass], y2down[nmass], ymean[nmass];
+   Double_t x[nmass], yobs[nmass], y2up[nmass], y1up[nmass], y1down[nmass], y2down[nmass], ymean[nmass],ymeanOld[nmass];
    //
    int nmax;
    if(low) nmax= 4;//nmass;//nmass
@@ -365,14 +386,15 @@ TFile* f7 = new TFile("/home/xanda/Dropbox/aabb_CMS/studies/figures/globeFW/Limi
      y2up[i] = rad[0][i];             
      y1up[i] = rad[1][i];  
      ymean[i] = rad[2][i]; 
+     ymeanOld[i] = radOld[2][i]; 
      y1down[i] = rad[3][i];  
      y2down[i] =  rad[4][i];  
    }
 
   TGraphErrors *grobs = new TGraphErrors(1);
   grobs->SetMarkerStyle(kFullDotLarge); 
-//  grobs->SetMarkerCollor(kRed); 
-  grobs->SetLineColor(kRed);
+  grobs->SetMarkerColor(kBlue); 
+  grobs->SetLineColor(kBlue);
   grobs->SetLineWidth(3);
 //  grobs->SetLineStyle(3);
   TGraphErrors *gr2up = new TGraphErrors(1);
@@ -385,6 +407,12 @@ TFile* f7 = new TFile("/home/xanda/Dropbox/aabb_CMS/studies/figures/globeFW/Limi
   grmean->SetLineColor(1);
   grmean->SetLineWidth(3);
   grmean->SetLineStyle(3);
+
+  TGraphErrors *grmeanOld = new TGraphErrors(1);
+  grmeanOld->SetLineColor(2);
+  grmeanOld->SetLineWidth(3);
+  grmeanOld->SetLineStyle(3);
+
   TGraphErrors *gr1down = new TGraphErrors(1);
 //  gr1down->SetLineColor(kYellow);
 //  gr1down->SetLineWidth(1);
@@ -398,6 +426,7 @@ TFile* f7 = new TFile("/home/xanda/Dropbox/aabb_CMS/studies/figures/globeFW/Limi
     gr2up->SetPoint(j, radMASS[j], y2up[j]);
     gr1up->SetPoint(j, radMASS[j], y1up[j]);
     grmean->SetPoint(j, radMASS[j], ymean[j]);
+    grmeanOld->SetPoint(j, radMASS[j], ymeanOld[j]);
     gr1down->SetPoint(j, radMASS[j], y1down[j]);    
     gr2down->SetPoint(j, radMASS[j], y2down[j]);
   }
@@ -406,6 +435,7 @@ TFile* f7 = new TFile("/home/xanda/Dropbox/aabb_CMS/studies/figures/globeFW/Limi
    mg->Add(gr2up);//->Draw("same");
    mg->Add(gr1up);//->Draw("same");
    mg->Add(grmean,"L*");//->Draw("same,AC*");
+   mg->Add(grmeanOld,"L*");//->Draw("same,AC*");
    mg->Add(gr1down);//->Draw("same,AC*");
    mg->Add(gr2down);//->Draw("same,AC*");
    if(obs) mg->Add(grobs,"L,P");//->Draw("AC*");
@@ -448,6 +478,7 @@ TFile* f7 = new TFile("/home/xanda/Dropbox/aabb_CMS/studies/figures/globeFW/Limi
    gryellow->SetFillColor(kGreen);
    gryellow->Draw("f"); 
   grmean->Draw("L,same");
+  if(oldExp) grmeanOld->Draw("L,same");
   if(obs) grobs->Draw("L,P,E,same");
   
   /////////////////////////////////////////////////////////////
@@ -533,25 +564,27 @@ TFile* f7 = new TFile("/home/xanda/Dropbox/aabb_CMS/studies/figures/globeFW/Limi
   for(int j=0;j<3;j++) gcheck6->SetPoint(j, check6mass[j], check6limit[j]*br);
 //  if(low) if(!base) gcheck6->Draw("L,P");
   ///////////////////////////////////////////
-  radion->Draw("L,same");
-if(!low)  radion10->Draw("L,same");
-if(base)  graviton3->Draw("L,same");
-if(base)  bulk3->Draw("L,same");
+if(!oldExp) radion->Draw("L,same");
+if(!low && !oldExp)  radion10->Draw("L,same");
+if(base && !oldExp)  graviton3->Draw("L,same");
+if(base && !oldExp)  bulk3->Draw("L,same");
 //   mg->Add(radion,"L,P");//->Draw("AC*");
 //   mg->Add(radion10,"L,P");//->Draw("AC*");
 if(base)  leg->SetHeader("WED: kl = 35, k/Mpl = 0.2, elementary top");
   
   if(!base && low) {leg->AddEntry(grmean, "Expected (m#gamma #gamma fit wo/ Higgs)", "L"); }
-  else leg->AddEntry(grmean, "Expected v25", "L");
+  else leg->AddEntry(grmean, "Expected v35", "L");
+  
+  if(oldExp) leg->AddEntry(grmeanOld, "Expected PAS", "L");
 
   if(obs) leg->AddEntry(grobs, "Observed", "L,P");
   leg->AddEntry(grgreen, "2 sigma", "f");
   leg->AddEntry(gryellow, "1 sigma", "f");
 //  leg->AddEntry((TObject*)0, "WED: kl = 35, k/Mpl = 0.2, elementary top", "");
-  leg->AddEntry(radion, "RS radion (#LambdaR = 3 TeV)", "L");
-if(!low)  leg->AddEntry(radion10, "RS radion (#LambdaR = 1 TeV)", "L");
-if(base)  leg->AddEntry(graviton3, "\"RS1\" Graviton (DY + gluon fusion) ", "L");
-if(base)  leg->AddEntry(bulk3, " Bulk Graviton *", "L");
+if(!oldExp) leg->AddEntry(radion, "RS radion (#LambdaR = 3 TeV)", "L");
+if(!low && !oldExp)  leg->AddEntry(radion10, "RS radion (#LambdaR = 1 TeV)", "L");
+if(base && !oldExp)  leg->AddEntry(graviton3, "\"RS1\" Graviton (DY + gluon fusion) ", "L");
+if(base && !oldExp)  leg->AddEntry(bulk3, " Bulk Graviton *", "L");
 //  leg->AddEntry((TObject*)0, "* k/Mpl = 0.2, elementary top", "");
 
   if(!base){
@@ -585,8 +618,10 @@ if(base)  leg->AddEntry(bulk3, " Bulk Graviton *", "L");
   //
   if(!HH && low && base) c1->SaveAs("WP4_cutbased_low_base.png"); // HH
   if(!HH && low && base) c1->SaveAs("WP4_cutbased_low_base.pdf"); // HH
-  if(!HH && !low && base) c1->SaveAs("WP4_cutbased_base.png");
-  if(!HH && !low && base) c1->SaveAs("WP4_cutbased_base.pdf");
+  if(!HH && !low && base && !oldExp) c1->SaveAs("WP4_cutbased_base.png");
+  if(!HH && !low && base && !oldExp) c1->SaveAs("WP4_cutbased_base.pdf");
+  if(!HH && !low && base && oldExp) c1->SaveAs("WP4_cutbased_base_oldExp.png");
+  if(!HH && !low && base && oldExp) c1->SaveAs("WP4_cutbased_base_oldExp.pdf");
    //c1->SaveAs("radionlim/Mcut_cutbased.png");
    return c1;
 

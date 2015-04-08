@@ -1,6 +1,6 @@
 {
   gROOT->LoadMacro("R2GGBBFitter_mtot_range.cc");
-  runfits(400,1);
+  runfits(1100,1);
 }
 
 /*  TString incpath = gSystem->GetIncludePath();

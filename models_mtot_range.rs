@@ -1,6 +1,6 @@
 mtot[300,1200];
 
-mtot_sig_m0_cat0[500, 450, 550];
+mtot_sig_m0_cat0[1100, 1000, 1200];
 mtot_sig_sigma_cat0[30, 5, 120.0];
 mtot_sig_alpha_cat0[1.0, 0.5, 3];
 mtot_sig_n_cat0[4.0, 0.5, 10];
@@ -8,7 +8,7 @@ mtot_sig_g_cat0[1.0, 0.5, 3];
 mtot_sig_gsigma_cat0[20, 10., 120.0];
 mtot_sig_frac_cat0[0.4, 0.0, 0.8];
 
-mtot_sig_m0_cat1[500, 450, 550];
+mtot_sig_m0_cat1[1100, 1000, 1200];
 mtot_sig_sigma_cat1[20, 5, 120.0];
 mtot_sig_alpha_cat1[1.0, 0.5, 3];
 mtot_sig_n_cat1[4.0, 0.5, 10];
