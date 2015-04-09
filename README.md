@@ -1,13 +1,21 @@
 Limit_codes
 ===========
 
-On CMSSW_6_1_1 you install the higgs combination tools
+On CMSSW_6_1_1 you install the higgs combination tools according to slc5
 
 https://twiki.cern.ch/twiki/bin/view/CMS/SWGuideHiggsAnalysisCombinedLimit
 
-Use the slight modification:
-git checkout de9986485209bb27dc29e986820e64c10628f770
-This ensures use of the correct version of HiggsAnalysis/CombinedLimit
+As of 8 April 2015, it is necessary to make the following modification to the combination code.
+
+edit HiggsAnalysis/CombinedLimit/src/ToyMCSamplerOpt.cc with:
+1. comment out line 156
+2. create a new line above 156 that reads: nPA=nPA;
+	(scram treats warnings as errors, so this avoids the problem of nPA being unused.)
+
+This modification forces the pseudo-asimov to be binned everywhere.
+Likelihood evaluation will be correct, albeit slower.
+
+This modification might be introduced as an option later in the slc6 version.
 
 ......................................................................
 
