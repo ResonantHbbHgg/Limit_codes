@@ -708,8 +708,8 @@ cout<<"here"<<endl;
         << "1.015 - "
         <<"# JER and JES " << endl;
   outFile << "btag_eff lnN "
-        << "1.0527 - "
-        << "0.9818 - "
+        << "1.053 - "
+        << "0.973 - "
         <<"# b tag efficiency uncertainty" << endl;
   outFile << "############## photon " << endl;
   outFile << "CMS_hgg_eff_g lnN "
@@ -814,7 +814,7 @@ cout<<"here"<<endl;
         << "1.015 - "
         <<"# JER and JES " << endl;
   outFile << "btag_eff lnN "
-        << "1.0527 - "
+        << "1.053 - "
         <<"# b tag efficiency uncertainty" << endl;
   outFile << "############## photon " << endl;
   outFile << "CMS_hgg_eff_g lnN "
