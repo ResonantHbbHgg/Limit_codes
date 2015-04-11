@@ -1916,12 +1916,17 @@ void MakeDataCard(RooWorkspace* w, const char* fileBaseName, const char* fileBkg
 	    << "1.010 - 1.010 1.010 1.010 1.010 1.010 ";
     }
     outFile <<"# JER and JES " << endl;
+    if ( NCAT == 2){
     outFile << "btag_eff lnN "
-	    << "1.046 - 1.046 1.046 1.046 1.046 1.046 "
-	    << "0.988 - 0.988 0.988 0.988 0.988 0.988 ";
+	    << "1.048 - 1.048 1.048 1.048 1.048 1.048 "
+	    << "0.979 - 0.979 0.979 0.979 0.979 0.979 ";
+    }
     if ( NCAT > 2 ){
-    outFile << "1.046 - 1.046 1.046 1.046 1.046 1.046 "
-	    << "0.988 - 0.988 0.988 0.988 0.988 0.988 ";
+    outFile << "btag_eff lnN "
+	    << "1.045 - 1.045 1.045 1.045 1.045 1.045 "
+	    << "0.973 - 0.973 0.973 0.973 0.973 0.973 "
+	    << "1.050 - 1.050 1.050 1.050 1.050 1.050 "
+	    << "0.978 - 0.978 0.978 0.978 0.978 0.978 ";
     }
     outFile <<"# b tag efficiency uncertainty" << endl;
     if (NCAT == 2){
@@ -2128,9 +2133,12 @@ void MakeDataCardonecatnohiggs(RooWorkspace* w, const char* fileBaseName, const 
     outFile << "pTj_acceptance lnN "
 	    << "1.010 - "
 	    <<"# JER and JES " << endl;
-    outFile << "btag_eff lnN "
-	    << "1.046 - "
-	    <<"# b tag efficiency uncertainty" << endl;
+    outFile << "btag_eff lnN ";
+    if (sigMass==0)
+      outFile << "1.045 - ";
+    else
+      outFile << "1.048 - ";
+    outFile <<"# b tag efficiency uncertainty" << endl;
     outFile << "mggjj_acceptance lnN ";
     if (sigMass==0)
       outFile << "0.995 - " << endl;
