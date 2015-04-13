@@ -245,21 +245,21 @@ w->factory(TString::Format("mtot_bkg_8TeV_norm_cat%d[1.0,0.0,100000]",c)); // is
   if(c==1) RooFormulaVar *p2mod = new RooFormulaVar(
         TString::Format("p2mod_cat%d",c),"","@0",*w->var(TString::Format("mtot_bkg_8TeV_slope2_cat%d",c)));
 
-  if(c==0) RooAbsPdf* mtotBkgTmp0 = new RooGenericPdf( // if exp function
-                TString::Format("DijetBackground_%d",c),
+  if(c==0) RooAbsPdf* mtotBkg = new RooGenericPdf( // if exp function
+                TString::Format("mtotBkg_cat%d",c),
                 "1./pow(@0,@1*@1)",
                 RooArgList(*mtot, *p1mod));
-  if(c==1) RooAbsPdf* mtotBkgTmp0 = new RooGenericPdf( // if exp function
-                TString::Format("DijetBackground_%d",c),
+  if(c==1) RooAbsPdf* mtotBkg = new RooGenericPdf( // if exp function
+                TString::Format("mtotBkg_cat%d",c),
                 "1./pow(@0+@2,@1*@1)",
                 RooArgList(*mtot, *p1mod, *p2mod));
   w->factory(TString::Format("mtot_bkg_8TeV_cat%d_norm[1.0,0.0,100000]",c));
 
-  RooExtendPdf mtotBkgTmp( // we copy the pdf? normalized
-        TString::Format("mtotBkg_cat%d",c),
-        "",*mtotBkgTmp0,
+  RooExtendPdf mtotBkgExt( // we copy the pdf? normalized
+        TString::Format("mtotBkgExt_cat%d",c),
+        "",*mtotBkg,
         *w->var(TString::Format("mtot_bkg_8TeV_cat%d_norm",c)));
-  fitresult[c] = mtotBkgTmp.fitTo( // fit with normalized pdf,and return values
+  fitresult[c] = mtotBkgExt.fitTo( // fit with normalized pdf,and return values
         *data[c], // bkg
         Strategy(1), // MINUIT strategy
         Minos(kFALSE), // interpretation on the errors, nonlinearities
@@ -267,7 +267,7 @@ w->factory(TString::Format("mtot_bkg_8TeV_norm_cat%d[1.0,0.0,100000]",c)); // is
         SumW2Error(kTRUE),
         Save(kTRUE));
 
-  w->import(mtotBkgTmp); //store the normalized pdf on wp
+  w->import(mtotBkgExt); //store the normalized pdf on wp
    //************************************************//
    // Plot mtot background fit results per categories
    //************************************************//
