@@ -281,7 +281,7 @@ w->factory(TString::Format("mtot_bkg_8TeV_norm_cat%d[1.0,0.0,100000]",c)); // is
    if(doblinding) dataplot[c]->plotOn(plotmtotBkg[c], Invisible());
    else dataplot[c]->plotOn(plotmtotBkg[c]);
  
-   mtotBkgTmp.plotOn(
+   mtotBkgExt.plotOn(
         plotmtotBkg[c],
         LineColor(kBlue),
         Range("fitrange"),NormRange("fitrange"));
@@ -296,7 +296,7 @@ w->factory(TString::Format("mtot_bkg_8TeV_norm_cat%d[1.0,0.0,100000]",c)); // is
 
 
     if (dobands) {
-      RooAbsPdf *cpdf; cpdf = mtotBkgTmp0;
+      RooAbsPdf *cpdf; cpdf = mtotBkg;
       TGraphAsymmErrors *onesigma = new TGraphAsymmErrors();
       TGraphAsymmErrors *twosigma = new TGraphAsymmErrors();
       RooRealVar *nlim = new RooRealVar(TString::Format("nlim%d",c),"",0.0,0.0,10.0);
@@ -460,6 +460,8 @@ void MakeBkgWS(RooWorkspace* w, const char* fileBaseName) {
     //wAll->import(*dataBinned, Rename(TString::Format("data_obs_cat%d",c))); // Uncomment if you want to use wights in the limits
 
     wAll->import(*w->pdf(TString::Format("mtotBkg_cat%d",c)));
+    wAll->import(*w->var(TString::Format("mtot_bkg_8TeV_cat%d_norm",c)));
+
     wAll->factory(
         TString::Format("CMS_hgg_bkg_8TeV_cat%d_norm[%g,0.0,100000.0]",
         c, wAll->var(TString::Format("mtot_bkg_8TeV_cat%d_norm",c))->getVal()));
