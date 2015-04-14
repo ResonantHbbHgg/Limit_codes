@@ -1916,12 +1916,17 @@ void MakeDataCard(RooWorkspace* w, const char* fileBaseName, const char* fileBkg
 	    << "1.010 - 1.010 1.010 1.010 1.010 1.010 ";
     }
     outFile <<"# JER and JES " << endl;
+    if ( NCAT == 2){
     outFile << "btag_eff lnN "
-	    << "1.046 - 1.046 1.046 1.046 1.046 1.046 "
-	    << "0.988 - 0.988 0.988 0.988 0.988 0.988 ";
+	    << "1.050 - 1.0508 1.050 1.050 1.050 1.050 "
+	    << "0.979 - 0.979 0.979 0.979 0.979 0.979 ";
+    }
     if ( NCAT > 2 ){
-    outFile << "1.046 - 1.046 1.046 1.046 1.046 1.046 "
-	    << "0.988 - 0.988 0.988 0.988 0.988 0.988 ";
+    outFile << "btag_eff lnN "
+	    << "1.050 - 1.050 1.050 1.050 1.050 1.050 "
+	    << "0.979 - 0.979 0.979 0.979 0.979 0.979 "
+	    << "1.050 - 1.050 1.050 1.050 1.050 1.050 "
+	    << "0.979 - 0.979 0.979 0.979 0.979 0.979 ";
     }
     outFile <<"# b tag efficiency uncertainty" << endl;
     if (NCAT == 2){
@@ -1981,28 +1986,44 @@ void MakeDataCard(RooWorkspace* w, const char* fileBaseName, const char* fileBkg
       outFile << " # from 9.96 + 1.35 - 1.42 fb " << endl << endl;
     }
     outFile << "############## Signal parametric shape uncertainties " << endl;
-    outFile << "### Note that the PES i 0.4% or 0.5% depending on whether the search is res, nonres low mggjj, or nonres high mggjj.\n";
-    outFile << "### For simplicity, and because it has no appriciable effect, 0.5% is used everywhere.\n";
-    outFile << "CMS_hgg_sig_m0_absShift param 1 0.0054 # displacement of the dipho mean error = sqrt(0.5^ 2 + 0.2^ 2) " << endl;
+    if ( sigMass > 0)
+      outFile << "CMS_hgg_sig_m0_absShift param 1 0.0045 # displacement of the dipho mean error = sqrt(0.4^ 2 + 0.2^ 2) " << endl;
+    else
+      outFile << "CMS_hgg_sig_m0_absShift param 1 0.0054 # displacement of the dipho mean error = sqrt(0.5^ 2 + 0.2^ 2) " << endl;
     outFile << "CMS_hgg_sig_sigmaScale param 1 0.05 # optimistic estimate of resolution uncertainty " << endl;
     //
     outFile << "CMS_hbb_sig_m0_absShift param 1 0.026 # displacement of the dijet mean error " << endl;
     outFile << "CMS_hbb_sig_sigmaScale param 1 0.10 # optimistic estimate of resolution uncertainty " << endl;
     //
     outFile << "# Parametric shape uncertainties, entered by hand. they act on higgs" << endl;
-    outFile << "CMS_hgg_hig_m0_0_absShift param 1 0.0054 # displacement of the dipho mean error = sqrt(0.5^ 2 + 0.2^ 2)" << endl;
+    if ( sigMass > 0)
+      outFile << "CMS_hgg_hig_m0_0_absShift param 1 0.0045 # displacement of the dipho mean error = sqrt(0.4^ 2 + 0.2^ 2)" << endl;
+    else
+      outFile << "CMS_hgg_hig_m0_0_absShift param 1 0.0054 # displacement of the dipho mean error = sqrt(0.5^ 2 + 0.2^ 2)" << endl;
     outFile << "CMS_hgg_hig_0_sigmaScale param 1 0.05 # optimistic estimate of resolution uncertainty " << endl;
     //
-    outFile << "CMS_hgg_hig_m0_1_absShift param 1 0.0054 # displacement of the dipho mean error = sqrt(0.5^ 2 + 0.2^ 2)" << endl;
+    if ( sigMass > 0)
+      outFile << "CMS_hgg_hig_m0_1_absShift param 1 0.0045 # displacement of the dipho mean error = sqrt(0.4^ 2 + 0.2^ 2)" << endl;
+    else
+      outFile << "CMS_hgg_hig_m0_1_absShift param 1 0.0054 # displacement of the dipho mean error = sqrt(0.5^ 2 + 0.2^ 2)" << endl;
     outFile << "CMS_hgg_hig_1_sigmaScale param 1 0.05 # optimistic estimate of resolution uncertainty " << endl;
     //
-    outFile << "CMS_hgg_hig_m0_2_absShift param 1 0.0054 # displacement of the dipho mean error = sqrt(0.5^ 2 + 0.2^ 2)" << endl;
+    if ( sigMass > 0)
+      outFile << "CMS_hgg_hig_m0_2_absShift param 1 0.0045 # displacement of the dipho mean error = sqrt(0.4^ 2 + 0.2^ 2)" << endl;
+    else
+      outFile << "CMS_hgg_hig_m0_2_absShift param 1 0.0054 # displacement of the dipho mean error = sqrt(0.5^ 2 + 0.2^ 2)" << endl;
     outFile << "CMS_hgg_hig_2_sigmaScale param 1 0.05 # optimistic estimate of resolution uncertainty " << endl;
     //
-    outFile << "CMS_hgg_hig_m0_3_absShift param 1 0.0054 # displacement of the dipho mean error = sqrt(0.5^ 2 + 0.2^ 2)" << endl;
+    if ( sigMass > 0)
+      outFile << "CMS_hgg_hig_m0_3_absShift param 1 0.0045 # displacement of the dipho mean error = sqrt(0.4^ 2 + 0.2^ 2)" << endl;
+    else
+      outFile << "CMS_hgg_hig_m0_3_absShift param 1 0.0054 # displacement of the dipho mean error = sqrt(0.5^ 2 + 0.2^ 2)" << endl;
     outFile << "CMS_hgg_hig_3_sigmaScale param 1 0.05 # optimistic estimate of resolution uncertainty " << endl;
      //
-    outFile << "CMS_hgg_hig_m0_4_absShift param 1 0.0054 # displacement of the dipho mean error = sqrt(0.5^ 2 + 0.2^ 2)" << endl;
+    if ( sigMass > 0)
+      outFile << "CMS_hgg_hig_m0_4_absShift param 1 0.0045 # displacement of the dipho mean error = sqrt(0.4^ 2 + 0.2^ 2)" << endl;
+    else
+      outFile << "CMS_hgg_hig_m0_4_absShift param 1 0.0054 # displacement of the dipho mean error = sqrt(0.5^ 2 + 0.2^ 2)" << endl;
     outFile << "CMS_hgg_hig_4_sigmaScale param 1 0.05 # optimistic estimate of resolution uncertainty " << endl;
     //
     outFile << "CMS_hbb_hig_m0_0_absShift param 1 0.026 # displacement of the dijet mean error " << endl;
@@ -2128,9 +2149,12 @@ void MakeDataCardonecatnohiggs(RooWorkspace* w, const char* fileBaseName, const 
     outFile << "pTj_acceptance lnN "
 	    << "1.010 - "
 	    <<"# JER and JES " << endl;
-    outFile << "btag_eff lnN "
-	    << "1.046 - "
-	    <<"# b tag efficiency uncertainty" << endl;
+    outFile << "btag_eff lnN ";
+    if (sigMass==0)
+      outFile << "1.050 - ";
+    else
+      outFile << "1.050 - ";
+    outFile <<"# b tag efficiency uncertainty" << endl;
     outFile << "mggjj_acceptance lnN ";
     if (sigMass==0)
       outFile << "0.995 - " << endl;

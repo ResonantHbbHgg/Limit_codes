@@ -245,21 +245,21 @@ w->factory(TString::Format("mtot_bkg_8TeV_norm_cat%d[1.0,0.0,100000]",c)); // is
   if(c==1) RooFormulaVar *p2mod = new RooFormulaVar(
         TString::Format("p2mod_cat%d",c),"","@0",*w->var(TString::Format("mtot_bkg_8TeV_slope2_cat%d",c)));
 
-  if(c==0) RooAbsPdf* mtotBkgTmp0 = new RooGenericPdf( // if exp function
-                TString::Format("DijetBackground_%d",c),
+  if(c==0) RooAbsPdf* mtotBkg = new RooGenericPdf( // if exp function
+                TString::Format("mtotBkg_cat%d",c),
                 "1./pow(@0,@1*@1)",
                 RooArgList(*mtot, *p1mod));
-  if(c==1) RooAbsPdf* mtotBkgTmp0 = new RooGenericPdf( // if exp function
-                TString::Format("DijetBackground_%d",c),
+  if(c==1) RooAbsPdf* mtotBkg = new RooGenericPdf( // if exp function
+                TString::Format("mtotBkg_cat%d",c),
                 "1./pow(@0+@2,@1*@1)",
                 RooArgList(*mtot, *p1mod, *p2mod));
   w->factory(TString::Format("mtot_bkg_8TeV_cat%d_norm[1.0,0.0,100000]",c));
 
-  RooExtendPdf mtotBkgTmp( // we copy the pdf? normalized
-        TString::Format("mtotBkg_cat%d",c),
-        "",*mtotBkgTmp0,
+  RooExtendPdf mtotBkgExt( // we copy the pdf? normalized
+        TString::Format("mtotBkgExt_cat%d",c),
+        "",*mtotBkg,
         *w->var(TString::Format("mtot_bkg_8TeV_cat%d_norm",c)));
-  fitresult[c] = mtotBkgTmp.fitTo( // fit with normalized pdf,and return values
+  fitresult[c] = mtotBkgExt.fitTo( // fit with normalized pdf,and return values
         *data[c], // bkg
         Strategy(1), // MINUIT strategy
         Minos(kFALSE), // interpretation on the errors, nonlinearities
@@ -267,7 +267,7 @@ w->factory(TString::Format("mtot_bkg_8TeV_norm_cat%d[1.0,0.0,100000]",c)); // is
         SumW2Error(kTRUE),
         Save(kTRUE));
 
-  w->import(mtotBkgTmp); //store the normalized pdf on wp
+  w->import(mtotBkgExt); //store the normalized pdf on wp
    //************************************************//
    // Plot mtot background fit results per categories
    //************************************************//
@@ -281,7 +281,7 @@ w->factory(TString::Format("mtot_bkg_8TeV_norm_cat%d[1.0,0.0,100000]",c)); // is
    if(doblinding) dataplot[c]->plotOn(plotmtotBkg[c], Invisible());
    else dataplot[c]->plotOn(plotmtotBkg[c]);
  
-   mtotBkgTmp.plotOn(
+   mtotBkgExt.plotOn(
         plotmtotBkg[c],
         LineColor(kBlue),
         Range("fitrange"),NormRange("fitrange"));
@@ -296,7 +296,7 @@ w->factory(TString::Format("mtot_bkg_8TeV_norm_cat%d[1.0,0.0,100000]",c)); // is
 
 
     if (dobands) {
-      RooAbsPdf *cpdf; cpdf = mtotBkgTmp0;
+      RooAbsPdf *cpdf; cpdf = mtotBkg;
       TGraphAsymmErrors *onesigma = new TGraphAsymmErrors();
       TGraphAsymmErrors *twosigma = new TGraphAsymmErrors();
       RooRealVar *nlim = new RooRealVar(TString::Format("nlim%d",c),"",0.0,0.0,10.0);
@@ -460,6 +460,8 @@ void MakeBkgWS(RooWorkspace* w, const char* fileBaseName) {
     //wAll->import(*dataBinned, Rename(TString::Format("data_obs_cat%d",c))); // Uncomment if you want to use wights in the limits
 
     wAll->import(*w->pdf(TString::Format("mtotBkg_cat%d",c)));
+    wAll->import(*w->var(TString::Format("mtot_bkg_8TeV_cat%d_norm",c)));
+
     wAll->factory(
         TString::Format("CMS_hgg_bkg_8TeV_cat%d_norm[%g,0.0,100000.0]",
         c, wAll->var(TString::Format("mtot_bkg_8TeV_cat%d_norm",c))->getVal()));
@@ -708,8 +710,8 @@ cout<<"here"<<endl;
         << "1.015 - "
         <<"# JER and JES " << endl;
   outFile << "btag_eff lnN "
-        << "1.0527 - "
-        << "0.9818 - "
+        << "1.050 - "
+        << "0.972 - "
         <<"# b tag efficiency uncertainty" << endl;
   outFile << "############## photon " << endl;
   outFile << "CMS_hgg_eff_g lnN "
@@ -814,7 +816,7 @@ cout<<"here"<<endl;
         << "1.015 - "
         <<"# JER and JES " << endl;
   outFile << "btag_eff lnN "
-        << "1.0527 - "
+        << "1.050 - "
         <<"# b tag efficiency uncertainty" << endl;
   outFile << "############## photon " << endl;
   outFile << "CMS_hgg_eff_g lnN "
