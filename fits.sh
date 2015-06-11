@@ -2,26 +2,30 @@
 
 doBlinding=1
 
-version=44
-limitdirs=("fitToMgg_nonresSearch_withKinFit" "fitToMgg_resSearch_withKinFit" "fitToMgg_resSearch_withRegKinFit" "fitTo2D_nonresSearch_withKinFit" "fitTo2D_resSearch_withRegKinFit" "fitTo2D_resSearch_withKinFit" "fitToFTR14001_nonresSearch_withKinFit")
-doResLimits=("0" "1" "1" "0" "1" "1" "0")
-do2DLimits=("0" "0" "0" "1" "1" "1" "1")
+version=45
+limitdirs=("fitToMgg_nonresSearch_withKinFit" "fitToMgg_resSearch_withKinFit" "fitToMgg_resSearch_withRegKinFit" "fitTo2D_nonresSearch_withKinFit" "fitTo2D_resSearch_withRegKinFit" "fitTo2D_resSearch_withKinFit" "fitToFTR14001_nonresSearch_withKinFit" "fitTo2D_resSearch_withRegKinFit_interpolation")
+doResLimits=("0" "1" "1" "0" "1" "1" "0" "2")
+do2DLimits=("0" "0" "0" "1" "1" "1" "1" "2")
 
 #If you only want to run on a subset of directories, edit this array with the appropriate indices.
-runLimits=("3" "4")
+runLimits=("7")
 
 for i in `echo ${runLimits[@]}`; do
 
     if [ ${doResLimits[$i]} == "0" ]; then
 	masses=("0")
-    else
+    elif [ ${doResLimits[$i]} == "1" ]; then
 	masses=("260" "270" "300" "350" "400") #the limit trees exist to do 450 and 500 too
+    else
+	masses=("260" "270" "280" "290" "300" "310" "320" "330" "340" "350" "360" "370" "380" "390" "400" "410" "420" "430" "440" "450")
     fi
 
     if [ ${do2DLimits[$i]} == "0" ]; then
 	fitter="R2GGBBFitter_mgg_addhiggs.exe"
-    else
+    elif [ ${do2DLimits[$i]} == "1" ]; then
 	fitter="R2GGBBFitter_2D_addhiggs.exe"
+    else
+	fitter="R2GGBBFitter_2D_addhiggs_interpolation.exe"
     fi
 
     for imass in `echo ${masses[@]}`; do
