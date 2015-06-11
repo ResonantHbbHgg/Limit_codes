@@ -169,7 +169,7 @@ int main(int argc, const char* argv[])
   // Francois Lagarde
   if(unknowme==false)
   {
-    Known={270,300,350,400};
+    Known={260,270,300,350,400};
   }
 
 
