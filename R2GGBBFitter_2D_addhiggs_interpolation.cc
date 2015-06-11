@@ -106,11 +106,6 @@ bool IsKnown(int sigMass)
  if(find(Known.begin(),Known.end(),sigMass)!=Known.end()) return true;
  else return false;
 }
-bool IsGenerated(int sigMass)
-{
- if(find(Generated.begin(),Generated.end(),sigMass)!=Generated.end()) return true;
- else return false;
-}
 
 double CalculateValue(std::string name, int sigMass)
 {
