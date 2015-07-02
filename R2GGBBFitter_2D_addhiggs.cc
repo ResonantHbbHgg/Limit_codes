@@ -383,6 +383,7 @@ void HigModelFit(RooWorkspace* w, Float_t mass, int higgschannel) {
   const Int_t ncat = NCAT;
   Float_t MASS(mass);
   // four categories to fit
+  RooBernstein* mjjHig_Ber0;
   RooBernstein* mjjHig_Ber1;
   RooBernstein* mjjHig_Ber2;
   RooDataSet* higToFit[ncat];
@@ -402,20 +403,26 @@ void HigModelFit(RooWorkspace* w, Float_t mass, int higgschannel) {
     RooFormulaVar *mjj_hig_p1 = new RooFormulaVar(TString::Format("mjj_hig_p1_%d_cat%d",higgschannel,c),"","@0*@0",*w->var(TString::Format("mjj_hig_slope1_%d_cat%d",higgschannel,c)));
     RooFormulaVar *mjj_hig_p2 = new RooFormulaVar(TString::Format("mjj_hig_p2_%d_cat%d",higgschannel,c),"","@0*@0",*w->var(TString::Format("mjj_hig_slope2_%d_cat%d",higgschannel,c)));
     RooFormulaVar *mjj_hig_p3 = new RooFormulaVar(TString::Format("mjj_hig_p3_%d_cat%d",higgschannel,c),"","@0*@0",*w->var(TString::Format("mjj_hig_slope3_%d_cat%d",higgschannel,c)));
+    mjjHig_Ber0 = new RooBernstein(TString::Format("mjjHig_Ber0_%d_cat%d",higgschannel,c), "", *mjj,RooArgList(*mjj_hig_p1));
     mjjHig_Ber1 = new RooBernstein(TString::Format("mjjHig_Ber1_%d_cat%d",higgschannel,c), "", *mjj,RooArgList(*mjj_hig_p1,*mjj_hig_p2));
     mjjHig_Ber2 = new RooBernstein(TString::Format("mjjHig_Ber2_%d_cat%d",higgschannel,c), "", *mjj,RooArgList(*mjj_hig_p1,*mjj_hig_p2,*mjj_hig_p3));
     higToFit[c] = (RooDataSet*) w->data(TString::Format("Hig_%d_cat%d",higgschannel,c));
     mggHig[c] = (RooAbsPdf*) w->pdf(TString::Format("mggHig_%d_cat%d",higgschannel,c));
     if(higgschannel == 1 || higgschannel == 3) mjjHig[c] = (RooAbsPdf*) w->pdf(TString::Format("mjjHig_%d_cat%d",higgschannel,c));
     else{
-       if(c == 0 || c == 2) mjjHig[c] = mjjHig_Ber1;
-       else mjjHig[c] = mjjHig_Ber2;
+       mjjHig[c] = mjjHig_Ber0;
     }
     HigPdf[c] = new RooProdPdf(TString::Format("HigPdf_%d_cat%d",higgschannel,c),"",RooArgSet(*mggHig[c], *mjjHig[c]));
-
     //((RooRealVar*) w->var(TString::Format("mgg_hig_m0_%d_cat%d",higgschannel,c)))->setVal(MASS);
     cout << "OK up to now..." <<MASS<< endl;
     HigPdf[c]->fitTo(*higToFit[c],Range("HigFitRange"),SumW2Error(kTRUE));
+    RooArgSet* paramsMjj = (RooArgSet*) mjjHig[c]->getParameters(*mjj);
+    TIterator* iterMjj = paramsMjj->createIterator();
+    TObject* tempObjMjj=0;
+    while((tempObjMjj=iterMjj->Next())){
+                RooRealVar* var = (RooRealVar*)tempObjMjj;
+                std::cout << "Variables after fit = " << tempObjMjj->GetName() << " " << var->getVal() << "+/-" << var->getError() << std::endl;
+    }
 
     cout << "old = " << ((RooRealVar*) w->var(TString::Format("mgg_hig_m0_%d_cat%d",higgschannel,c)))->getVal() << endl;
 
@@ -443,13 +450,8 @@ void HigModelFit(RooWorkspace* w, Float_t mass, int higgschannel) {
 			   *w->var(TString::Format("mjj_hig_gsigma_%d_cat%d",higgschannel,c)),
 			   *w->var(TString::Format("mjj_hig_frac_%d_cat%d",higgschannel,c)) ) );
     }else{
-       if(c == 0 || c == 2)sigParams.add(RooArgSet(
-			   *w->var(TString::Format("mjj_hig_slope1_%d_cat%d",higgschannel,c)),
-			   *w->var(TString::Format("mjj_hig_slope2_%d_cat%d",higgschannel,c)) ) );
-       else sigParams.add(RooArgSet(
-			   *w->var(TString::Format("mjj_hig_slope1_%d_cat%d",higgschannel,c)),
-			   *w->var(TString::Format("mjj_hig_slope2_%d_cat%d",higgschannel,c)),
-			   *w->var(TString::Format("mjj_hig_slope3_%d_cat%d",higgschannel,c)) ) );
+       sigParams.add(RooArgSet(
+			   *w->var(TString::Format("mjj_hig_slope1_%d_cat%d",higgschannel,c)) ) );
     }
     w->defineSet(TString::Format("HigPdfParam_%d_cat%d",higgschannel,c), sigParams);
 
@@ -1509,8 +1511,7 @@ void MakePlotsHiggs(RooWorkspace* w, Float_t Mass) {
          mjjCBSig[c] = (RooAbsPdf*) w->pdf(TString::Format("mjjCBHig_%d_cat%d",d,c));
          mjjSig[c] = (RooAbsPdf*) w->pdf(TString::Format("mjjHig_%d_cat%d",d,c));
       }else{
-         if(c == 0 || c == 2) mjjSig[c] = (RooAbsPdf*) w->pdf(TString::Format("mjjHig_Ber1_%d_cat%d",d,c));
-         else mjjSig[c] = (RooAbsPdf*) w->pdf(TString::Format("mjjHig_Ber2_%d_cat%d",d,c));
+         mjjSig[c] = (RooAbsPdf*) w->pdf(TString::Format("mjjHig_Ber0_%d_cat%d",d,c));
       }
       mjjBkg[c] = (RooAbsPdf*) w->pdf(TString::Format("mjjBkg_%d_cat%d",d,c));
     } // close categories
@@ -1860,19 +1861,19 @@ void MakeHigWS(RooWorkspace* w, const char* fileHiggsName,int higgschannel) {
              wAll->factory(TString::Format("prod::CMS_hbb_hig_gsigma_%d_cat3(mjj_hig_gsigma_%d_cat3, CMS_hbb_hig_%d_sigmaScale)",higgschannel,higgschannel,higgschannel));
         }
   }else{
-        wAll->factory(TString::Format("CMS_hbb_hig_slope1_%d_cat0[%g,-100.0,100.0]",higgschannel,w->var(TString::Format("mjj_hig_slope1_%d_cat0",higgschannel))->getVal()));
-        wAll->factory(TString::Format("CMS_hbb_hig_slope2_%d_cat0[%g,-100.0,100.0]",higgschannel,w->var(TString::Format("mjj_hig_slope2_%d_cat0",higgschannel))->getVal()));
+        wAll->factory(TString::Format("CMS_hbb_hig_slope1_%d_cat0[%g,-1.0,1.0]",higgschannel,w->var(TString::Format("mjj_hig_slope1_%d_cat0",higgschannel))->getVal()));
+        //wAll->factory(TString::Format("CMS_hbb_hig_slope2_%d_cat0[%g,-1.0,1.0]",higgschannel,w->var(TString::Format("mjj_hig_slope2_%d_cat0",higgschannel))->getVal()));
         //wAll->factory(TString::Format("CMS_hbb_hig_slope3_%d_cat0[%g,-100.0,100.0]",higgschannel,w->var(TString::Format("mjj_hig_slope3_%d_cat0",higgschannel))->getVal()));
-        wAll->factory(TString::Format("CMS_hbb_hig_slope1_%d_cat1[%g,-100.0,100.0]",higgschannel,w->var(TString::Format("mjj_hig_slope1_%d_cat1",higgschannel))->getVal()));
-        wAll->factory(TString::Format("CMS_hbb_hig_slope2_%d_cat1[%g,-100.0,100.0]",higgschannel,w->var(TString::Format("mjj_hig_slope2_%d_cat1",higgschannel))->getVal()));
-        wAll->factory(TString::Format("CMS_hbb_hig_slope3_%d_cat1[%g,-100.0,100.0]",higgschannel,w->var(TString::Format("mjj_hig_slope3_%d_cat1",higgschannel))->getVal()));
+        wAll->factory(TString::Format("CMS_hbb_hig_slope1_%d_cat1[%g,-1.0,1.0]",higgschannel,w->var(TString::Format("mjj_hig_slope1_%d_cat1",higgschannel))->getVal()));
+        //wAll->factory(TString::Format("CMS_hbb_hig_slope2_%d_cat1[%g,-1.0,1.0]",higgschannel,w->var(TString::Format("mjj_hig_slope2_%d_cat1",higgschannel))->getVal()));
+        //wAll->factory(TString::Format("CMS_hbb_hig_slope3_%d_cat1[%g,-1.0,1.0]",higgschannel,w->var(TString::Format("mjj_hig_slope3_%d_cat1",higgschannel))->getVal()));
         if ( NCAT > 2 ){
-             wAll->factory(TString::Format("CMS_hbb_hig_slope1_%d_cat2[%g,-100.0,100.0]",higgschannel,w->var(TString::Format("mjj_hig_slope1_%d_cat2",higgschannel))->getVal()));
-             wAll->factory(TString::Format("CMS_hbb_hig_slope2_%d_cat2[%g,-100.0,100.0]",higgschannel,w->var(TString::Format("mjj_hig_slope2_%d_cat2",higgschannel))->getVal()));
+             wAll->factory(TString::Format("CMS_hbb_hig_slope1_%d_cat2[%g,-1.0,1.0]",higgschannel,w->var(TString::Format("mjj_hig_slope1_%d_cat2",higgschannel))->getVal()));
+             //wAll->factory(TString::Format("CMS_hbb_hig_slope2_%d_cat2[%g,-1.0,1.0]",higgschannel,w->var(TString::Format("mjj_hig_slope2_%d_cat2",higgschannel))->getVal()));
              //wAll->factory(TString::Format("CMS_hbb_hig_slope3_%d_cat2[%g,-100.0,100.0]",higgschannel,w->var(TString::Format("mjj_hig_slope3_%d_cat2",higgschannel))->getVal()));
-             wAll->factory(TString::Format("CMS_hbb_hig_slope1_%d_cat3[%g,-100.0,100.0]",higgschannel,w->var(TString::Format("mjj_hig_slope1_%d_cat3",higgschannel))->getVal()));
-             wAll->factory(TString::Format("CMS_hbb_hig_slope2_%d_cat3[%g,-100.0,100.0]",higgschannel,w->var(TString::Format("mjj_hig_slope2_%d_cat3",higgschannel))->getVal()));
-             wAll->factory(TString::Format("CMS_hbb_hig_slope3_%d_cat3[%g,-100.0,100.0]",higgschannel,w->var(TString::Format("mjj_hig_slope3_%d_cat3",higgschannel))->getVal()));
+             wAll->factory(TString::Format("CMS_hbb_hig_slope1_%d_cat3[%g,-1.0,1.0]",higgschannel,w->var(TString::Format("mjj_hig_slope1_%d_cat3",higgschannel))->getVal()));
+             //wAll->factory(TString::Format("CMS_hbb_hig_slope2_%d_cat3[%g,-1.0,1.0]",higgschannel,w->var(TString::Format("mjj_hig_slope2_%d_cat3",higgschannel))->getVal()));
+             //wAll->factory(TString::Format("CMS_hbb_hig_slope3_%d_cat3[%g,-1.0,1.0]",higgschannel,w->var(TString::Format("mjj_hig_slope3_%d_cat3",higgschannel))->getVal()));
         }
   }
   // (4) do reparametrization of signal
@@ -1887,29 +1888,13 @@ void MakeHigWS(RooWorkspace* w, const char* fileHiggsName,int higgschannel) {
 					       TString::Format(" mjj_hig_gsigma_%d_cat%d=CMS_hbb_hig_gsigma_%d_cat%d)",higgschannel, c,higgschannel,c)
 					       );
   }else{
-     // (4) do reparametrization of signal
-        for (int c = 0; c < ncat; ++c){ 
-             if(c == 0 || c == 2){
-                wAll->factory(
+     for (int c = 0; c < ncat; ++c) wAll->factory(
 					       TString::Format("EDIT::CMS_hig_%d_cat%d(HigPdf_%d_cat%d,",higgschannel,c,higgschannel,c) +
 					       TString::Format(" mgg_hig_m0_%d_cat%d=CMS_hgg_hig_m0_%d_cat%d,",higgschannel, c,higgschannel,c) +
 					       TString::Format(" mgg_hig_sigma_%d_cat%d=CMS_hgg_hig_sigma_%d_cat%d,",higgschannel, c,higgschannel,c) +
 					       TString::Format(" mgg_hig_gsigma_%d_cat%d=CMS_hgg_hig_gsigma_%d_cat%d,",higgschannel, c,higgschannel,c) +
-					       TString::Format(" mjj_hig_slope1_%d_cat%d=CMS_hbb_hig_slope1_%d_cat%d,",higgschannel, c,higgschannel,c) +
-					       TString::Format(" mjj_hig_slope2_%d_cat%d=CMS_hbb_hig_slope2_%d_cat%d)",higgschannel, c,higgschannel,c)
-	    				       );
-             }else{
-                wAll->factory(
-					       TString::Format("EDIT::CMS_hig_%d_cat%d(HigPdf_%d_cat%d,",higgschannel,c,higgschannel,c) +
-					       TString::Format(" mgg_hig_m0_%d_cat%d=CMS_hgg_hig_m0_%d_cat%d,",higgschannel, c,higgschannel,c) +
-					       TString::Format(" mgg_hig_sigma_%d_cat%d=CMS_hgg_hig_sigma_%d_cat%d,",higgschannel, c,higgschannel,c) +
-					       TString::Format(" mgg_hig_gsigma_%d_cat%d=CMS_hgg_hig_gsigma_%d_cat%d,",higgschannel, c,higgschannel,c) +
-					       TString::Format(" mjj_hig_slope1_%d_cat%d=CMS_hbb_hig_slope1_%d_cat%d,",higgschannel, c,higgschannel,c) +
-					       TString::Format(" mjj_hig_slope2_%d_cat%d=CMS_hbb_hig_slope2_%d_cat%d,",higgschannel, c,higgschannel,c) +         
-                                               TString::Format(" mjj_hig_slope3_%d_cat%d=CMS_hbb_hig_slope3_%d_cat%d)",higgschannel, c,higgschannel,c)
-	    				       );  
-             }
-        }       
+					       TString::Format(" mjj_hig_slope1_%d_cat%d=CMS_hbb_hig_slope1_%d_cat%d)",higgschannel, c,higgschannel,c)
+					       );
   }
 
   TString filename(wsDir+TString(fileHiggsName)+".inputhig.root");
