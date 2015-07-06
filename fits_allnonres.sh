@@ -1,6 +1,6 @@
 #!/bin/bash
 
-doBlinding=1
+doBlinding=0
 
 version=44
 limitdirs=("fitToMgg_nonresSearch_withKinFit" "fitTo2D_nonresSearch_withKinFit")
@@ -29,6 +29,10 @@ for i in `echo ${runLimits[@]}`; do
     for isample in `echo ${sampleList[@]}`; do
 
 	echo "Running limits for sample $isample on ${limitdirs[$i]}"
+
+        #if [ "$isample" != "Lam_1d0_Yt_1d0_c2_0d0" ]; then
+        #     continue
+        #fi
 
 	outputdir="radlim_${limitdirs[$i]}/${isample}"
 	mkdir -p $outputdir

@@ -7,12 +7,12 @@ mtot_sig_n_cat0[4.0, 0.0, 20];
 mtot_sig_gsigma_cat0[10.., 5., 15.0];
 mtot_sig_frac_cat0[0.7, 0.5, 0.8];
 
-mtot_sig_m0_cat1[720, 710, 740];
-mtot_sig_sigma_cat1[10.0, 0.5, 30.0];
-mtot_sig_alpha_cat1[-1.0, -3.0, -0.5];
-mtot_sig_n_cat1[10.0, 0.4, 20];
-mtot_sig_gsigma_cat1[10.0, 1.0, 20.0];
-mtot_sig_frac_cat1[0.6, 0.5, 0.8];
+mtot_sig_m0_cat1[710, 700, 750];
+mtot_sig_sigma_cat1[10., 5., 30.0];
+mtot_sig_alpha_cat1[-2.0, -4.0, -0.5];
+mtot_sig_n_cat1[4.0, 0.0, 20];
+mtot_sig_gsigma_cat1[10.., 5., 15.0];
+mtot_sig_frac_cat1[0.7, 0.5, 0.8];
 
 mtotGaussSig_cat0 = Gaussian(mtot, mtot_sig_m0_cat0, mtot_sig_gsigma_cat0);
 mtotCBSig_cat0 = CBShape(mtot, mtot_sig_m0_cat0, mtot_sig_sigma_cat0, mtot_sig_alpha_cat0, mtot_sig_n_cat0);
