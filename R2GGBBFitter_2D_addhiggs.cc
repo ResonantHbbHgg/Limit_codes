@@ -41,7 +41,7 @@ using namespace RooStats;
 namespace po = boost::program_options;
 
 //Important options first
-Bool_t doblinding = true; //True if you want to blind
+Bool_t doblinding = false; //True if you want to blind
 
 // this one is for 2D fit
 Int_t NCAT =0;
@@ -655,6 +655,8 @@ RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
     cout<<" here 1"<<endl;
     dataplot[c] = (RooDataSet*) w->data(TString::Format("Dataplot_cat%d",c));
     cout<<" here 1"<<endl;
+    if(sigMass == 260) plotmggBkg[c]->GetXaxis()->SetRangeUser(100.,145.);
+    if(sigMass == 270) plotmggBkg[c]->GetXaxis()->SetRangeUser(100.,155.);
     if(doblinding) dataplot[c]->plotOn(plotmggBkg[c],Invisible());
     else dataplot[c]->plotOn(plotmggBkg[c]);
     if(sigMass == 0)

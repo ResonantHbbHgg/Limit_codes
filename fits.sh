@@ -1,6 +1,6 @@
 #!/bin/bash
 
-doBlinding=1
+doBlinding=0
 
 version=44
 limitdirs=("fitToMgg_nonresSearch_withKinFit" "fitToMgg_resSearch_withKinFit" "fitToMgg_resSearch_withRegKinFit" "fitTo2D_nonresSearch_withKinFit" "fitTo2D_resSearch_withRegKinFit" "fitTo2D_resSearch_withKinFit" "fitToFTR14001_nonresSearch_withKinFit")

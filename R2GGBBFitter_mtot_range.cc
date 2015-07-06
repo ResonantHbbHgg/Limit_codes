@@ -1,5 +1,5 @@
 //Important options first
-Bool_t doblinding = true; //True if you want to blind
+Bool_t doblinding =  false; //True if you want to blind
 const int minfit =320, maxfit=1200;
 
 // this one is for 4 body fit
@@ -840,7 +840,7 @@ cout<<"here"<<endl;
   outFile << "############## with reparametrization" << endl;
   outFile << "CMS_hgg_bkg_8TeV_cat0_norm flatParam # Normalization uncertainty on background slope" << endl;
   outFile << "CMS_hgg_bkg_8TeV_slope1_cat0 flatParam # Mean and absolute uncertainty on background slope" << endl;
-  outFile << "CMS_hgg_bkg_8TeV_slope2_cat0 flatParam # Mean and absolute uncertainty on background slope" << endl;
+  //outFile << "CMS_hgg_bkg_8TeV_slope2_cat0 flatParam # Mean and absolute uncertainty on background slope" << endl;
   outFile.close();
   cout << "Write data card in: " << filename << " file" << endl;
   return;
