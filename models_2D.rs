@@ -7,6 +7,18 @@ mgg_bkg_8TeV_slope1_cat1[0.1,-100.0, 100.0];
 mgg_bkg_8TeV_slope1_cat2[0.1,-100.0, 100.0];
 mgg_bkg_8TeV_slope1_cat3[0.1,-100.0, 100.0];
 
+mgg_bkg_8TeV_slope2[0.1,-100.0, 100.0];
+mgg_bkg_8TeV_slope2_cat0[0.1,-100.0, 100.0];
+mgg_bkg_8TeV_slope2_cat1[0.1,-100.0, 100.0];
+mgg_bkg_8TeV_slope2_cat2[0.1,-100.0, 100.0];
+mgg_bkg_8TeV_slope2_cat3[0.1,-100.0, 100.0];
+
+mgg_bkg_8TeV_slope3[0.1,-100.0, 100.0];
+mgg_bkg_8TeV_slope3_cat0[0.1,-100.0, 100.0];
+mgg_bkg_8TeV_slope3_cat1[0.1,-100.0, 100.0];
+mgg_bkg_8TeV_slope3_cat2[0.1,-100.0, 100.0];
+mgg_bkg_8TeV_slope3_cat3[0.1,-100.0, 100.0];
+
 mgg_sig_m0_cat0[124.2, 123, 125];
 mgg_sig_sigma_cat0[2.0, 1.0, 3.0];
 mgg_sig_alpha_cat0[1.0, 0.0, 2.5];
@@ -323,6 +335,18 @@ mjj_bkg_8TeV_slope1_cat1[0.1,-100.0, 100.0];
 mjj_bkg_8TeV_slope1_cat2[0.1,-100.0, 100.0];
 mjj_bkg_8TeV_slope1_cat3[0.1,-100.0, 100.0];
 
+mjj_bkg_8TeV_slope2[0.1,-100.0, 100.0];
+mjj_bkg_8TeV_slope2_cat0[0.1,-100.0, 100.0];
+mjj_bkg_8TeV_slope2_cat1[0.1,-100.0, 100.0];
+mjj_bkg_8TeV_slope2_cat2[0.1,-100.0, 100.0];
+mjj_bkg_8TeV_slope2_cat3[0.1,-100.0, 100.0];
+
+mjj_bkg_8TeV_slope3[0.1,-100.0, 100.0];
+mjj_bkg_8TeV_slope3_cat0[0.1,-100.0, 100.0];
+mjj_bkg_8TeV_slope3_cat1[0.1,-100.0, 100.0];
+mjj_bkg_8TeV_slope3_cat2[0.1,-100.0, 100.0];
+mjj_bkg_8TeV_slope3_cat3[0.1,-100.0, 100.0];
+
 mjj_hig_m0_0_cat0[100, 60, 180];
 mjj_hig_sigma_0_cat0[25, 10, 50];
 mjj_hig_alpha_0_cat0[1.0, 0.0, 2.5];
@@ -366,21 +390,6 @@ mjjHig_0_cat2 = AddPdf(mjjGaussHig_0_cat2, mjjCBHig_0_cat2, mjj_hig_frac_0_cat2)
 mjjGaussHig_0_cat3 = Gaussian(mjj, mjj_hig_m0_0_cat3, mjj_hig_gsigma_0_cat3);
 mjjCBHig_0_cat3 = CBShape(mjj, mjj_hig_m0_0_cat3, mjj_hig_sigma_0_cat3, mjj_hig_alpha_0_cat3, mjj_hig_n_0_cat3);
 mjjHig_0_cat3 = AddPdf(mjjGaussHig_0_cat3, mjjCBHig_0_cat3, mjj_hig_frac_0_cat3);
-
-mjj_hig_slope1_0_cat0[0.1, -0.5, 0.5];
-mjj_hig_slope1_0_cat1[0.1, -0.5, 0.5];
-mjj_hig_slope1_0_cat2[0.1, -0.5, 0.5];
-mjj_hig_slope1_0_cat3[0.1, -0.5, 0.5];
-
-mjj_hig_slope2_0_cat0[0.11, -0.5, 0.5];
-mjj_hig_slope2_0_cat1[0.11, -0.5, 0.5];
-mjj_hig_slope2_0_cat2[0.11, -0.5, 0.5];
-mjj_hig_slope2_0_cat3[0.11, -0.5, 0.5];
-
-mjj_hig_slope3_0_cat0[0.09, -0.5, 0.5];
-mjj_hig_slope3_0_cat1[0.09, -0.5, 0.5];
-mjj_hig_slope3_0_cat2[0.09, -0.5, 0.5];
-mjj_hig_slope3_0_cat3[0.09, -0.5, 0.5];
 
 mjj_hig_m0_1_cat0[100, 60, 180];
 mjj_hig_sigma_1_cat0[25, 10, 50];
@@ -426,21 +435,6 @@ mjjGaussHig_1_cat3 = Gaussian(mjj, mjj_hig_m0_1_cat3, mjj_hig_gsigma_1_cat3);
 mjjCBHig_1_cat3 = CBShape(mjj, mjj_hig_m0_1_cat3, mjj_hig_sigma_1_cat3, mjj_hig_alpha_1_cat3, mjj_hig_n_1_cat3);
 mjjHig_1_cat3 = AddPdf(mjjGaussHig_1_cat3, mjjCBHig_1_cat3, mjj_hig_frac_1_cat3);
 
-mjj_hig_slope1_1_cat0[0.1, -0.5, 0.5];
-mjj_hig_slope1_1_cat1[0.1, -0.5, 0.5];
-mjj_hig_slope1_1_cat2[0.1, -0.5, 0.5];
-mjj_hig_slope1_1_cat3[0.1, -0.5, 0.5];
-
-mjj_hig_slope2_1_cat0[0.11, -0.5, 0.5];
-mjj_hig_slope2_1_cat1[0.11, -0.5, 0.5];
-mjj_hig_slope2_1_cat2[0.11, -0.5, 0.5];
-mjj_hig_slope2_1_cat3[0.11, -0.5, 0.5];
-
-mjj_hig_slope3_1_cat0[0.09, -0.5, 0.5];
-mjj_hig_slope3_1_cat1[0.09, -0.5, 0.5];
-mjj_hig_slope3_1_cat2[0.09, -0.5, 0.5];
-mjj_hig_slope3_1_cat3[0.09, -0.5, 0.5];
-
 mjj_hig_m0_2_cat0[100, 60, 180];
 mjj_hig_sigma_2_cat0[25, 10, 50];
 mjj_hig_alpha_2_cat0[1.0, 0.0, 2.5];
@@ -484,21 +478,6 @@ mjjHig_2_cat2 = AddPdf(mjjGaussHig_2_cat2, mjjCBHig_2_cat2, mjj_hig_frac_2_cat2)
 mjjGaussHig_2_cat3 = Gaussian(mjj, mjj_hig_m0_2_cat3, mjj_hig_gsigma_2_cat3);
 mjjCBHig_2_cat3 = CBShape(mjj, mjj_hig_m0_2_cat3, mjj_hig_sigma_2_cat3, mjj_hig_alpha_2_cat3, mjj_hig_n_2_cat3);
 mjjHig_2_cat3 = AddPdf(mjjGaussHig_2_cat3, mjjCBHig_2_cat3, mjj_hig_frac_2_cat3);
-
-mjj_hig_slope1_2_cat0[0.1, -0.5, 0.5];
-mjj_hig_slope1_2_cat1[0.1, -0.5, 0.5];
-mjj_hig_slope1_2_cat2[0.1, -0.5, 0.5];
-mjj_hig_slope1_2_cat3[0.1, -0.5, 0.5];
-
-mjj_hig_slope2_2_cat0[0.11, -0.5, 0.5];
-mjj_hig_slope2_2_cat1[0.11, -0.5, 0.5];
-mjj_hig_slope2_2_cat2[0.11, -0.5, 0.5];
-mjj_hig_slope2_2_cat3[0.11, -0.5, 0.5];
-
-mjj_hig_slope3_2_cat0[0.09, -0.5, 0.5];
-mjj_hig_slope3_2_cat1[0.09, -0.5, 0.5];
-mjj_hig_slope3_2_cat2[0.09, -0.5, 0.5];
-mjj_hig_slope3_2_cat3[0.09, -0.5, 0.5];
 
 mjj_hig_m0_3_cat0[100, 60, 180];
 mjj_hig_sigma_3_cat0[25, 10, 50];
@@ -544,21 +523,6 @@ mjjGaussHig_3_cat3 = Gaussian(mjj, mjj_hig_m0_3_cat3, mjj_hig_gsigma_3_cat3);
 mjjCBHig_3_cat3 = CBShape(mjj, mjj_hig_m0_3_cat3, mjj_hig_sigma_3_cat3, mjj_hig_alpha_3_cat3, mjj_hig_n_3_cat3);
 mjjHig_3_cat3 = AddPdf(mjjGaussHig_3_cat3, mjjCBHig_3_cat3, mjj_hig_frac_3_cat3);
 
-mjj_hig_slope1_3_cat0[0.1, -0.5, 0.5];
-mjj_hig_slope1_3_cat1[0.1, -0.5, 0.5];
-mjj_hig_slope1_3_cat2[0.1, -0.5, 0.5];
-mjj_hig_slope1_3_cat3[0.1, -0.5, 0.5];
-
-mjj_hig_slope2_3_cat0[0.11, -0.5, 0.5];
-mjj_hig_slope2_3_cat1[0.11, -0.5, 0.5];
-mjj_hig_slope2_3_cat2[0.11, -0.5, 0.5];
-mjj_hig_slope2_3_cat3[0.11, -0.5, 0.5];
-
-mjj_hig_slope3_3_cat0[0.09, -0.5, 0.5];
-mjj_hig_slope3_3_cat1[0.09, -0.5, 0.5];
-mjj_hig_slope3_3_cat2[0.09, -0.5, 0.5];
-mjj_hig_slope3_3_cat3[0.09, -0.5, 0.5];
-
 mjj_hig_m0_4_cat0[100, 60, 180];
 mjj_hig_sigma_4_cat0[25, 10, 50];
 mjj_hig_alpha_4_cat0[1.0, 0.0, 2.5];
@@ -602,19 +566,3 @@ mjjHig_4_cat2 = AddPdf(mjjGaussHig_4_cat2, mjjCBHig_4_cat2, mjj_hig_frac_4_cat2)
 mjjGaussHig_4_cat3 = Gaussian(mjj, mjj_hig_m0_4_cat3, mjj_hig_gsigma_4_cat3);
 mjjCBHig_4_cat3 = CBShape(mjj, mjj_hig_m0_4_cat3, mjj_hig_sigma_4_cat3, mjj_hig_alpha_4_cat3, mjj_hig_n_4_cat3);
 mjjHig_4_cat3 = AddPdf(mjjGaussHig_4_cat3, mjjCBHig_4_cat3, mjj_hig_frac_4_cat3);
-
-mjj_hig_slope1_4_cat0[0.1, -0.5, 0.5];
-mjj_hig_slope1_4_cat1[0.1, -0.5, 0.5];
-mjj_hig_slope1_4_cat2[0.1, -0.5, 0.5];
-mjj_hig_slope1_4_cat3[0.1, -0.5, 0.5];
-
-mjj_hig_slope2_4_cat0[0.11, -0.5, 0.5];
-mjj_hig_slope2_4_cat1[0.11, -0.5, 0.5];
-mjj_hig_slope2_4_cat2[0.11, -0.5, 0.5];
-mjj_hig_slope2_4_cat3[0.11, -0.5, 0.5];
-
-mjj_hig_slope3_4_cat0[0.09, -0.5, 0.5];
-mjj_hig_slope3_4_cat1[0.09, -0.5, 0.5];
-mjj_hig_slope3_4_cat2[0.09, -0.5, 0.5];
-mjj_hig_slope3_4_cat3[0.09, -0.5, 0.5];
-
