@@ -49,7 +49,7 @@ void runfits(const Float_t mass=120, Int_t mode=1, Bool_t dobands = false)
   style();
   TString fileBaseName(TString::Format("hgghbb.mH%.1f_8TeV", mass));
   TString fileBkgName(TString::Format("hgghbb.inputbkg_8TeV", mass));
-  TString card_name("models_mtot_range_m1100.rs"); // fit model parameters to kinfit
+  TString card_name("models_mtot_range_m400.rs"); // fit model parameters to kinfit
 //  TString card_name("models_mtot_range.rs"); // fit model parameters no kinfit
   // declare a first WS
   HLFactory hlf("HLFactory", card_name, false);
@@ -57,11 +57,11 @@ void runfits(const Float_t mass=120, Int_t mode=1, Bool_t dobands = false)
   RooFitResult* fitresults;
 
   //PAS limit trees
-  //  TString ssignal = "/afs/cern.ch/work/o/obondu/public/forRadion/limitTrees/v28/v28_fitToMggjj_withKinFit/Radion_m1100_8TeV_m1100.root";
+  //  TString ssignal = "/afs/cern.ch/work/o/obondu/public/forRadion/limitTrees/v28/v28_fitToMggjj_withKinFit/Radion_m400_8TeV_m400.root";
   //  TString ddata = "/afs/cern.ch/work/o/obondu/public/forRadion/limitTrees/v28/v28_fitToMggjj_withKinFit/Data_m500.root";
 
   TString ddata = "/afs/cern.ch/work/o/obondu/public/forRadion/limitTrees/v44/v44_fitToMggjj_withKinFit/Data_m400.root";
-  TString ssignal = "/afs/cern.ch/work/o/obondu/public/forRadion/limitTrees/v44/v44_fitToMggjj_withKinFit/Radion_m1100_8TeV_m1100.root";
+  TString ssignal = "/afs/cern.ch/work/o/obondu/public/forRadion/limitTrees/v44/v44_fitToMggjj_withKinFit/Radion_m400_8TeV_m400.root";
 
   //
   cout<<"Signal: "<< ssignal<<endl;
@@ -194,6 +194,7 @@ void SigModelFit(RooWorkspace* w, Float_t mass) {
          *w->var(TString::Format("mtot_sig_m0_cat%d",c)),
          *w->var(TString::Format("mtot_sig_alpha_cat%d",c)),
          *w->var(TString::Format("mtot_sig_n_cat%d",c)),
+         *w->var(TString::Format("mtot_sig_sigma_cat%d",c)),
 //         *w->var(TString::Format("mtot_sig_g_cat%d",c)), // voi
          *w->var(TString::Format("mtot_sig_gsigma_cat%d",c)),
          *w->var(TString::Format("mtot_sig_frac_cat%d",c))) );
@@ -242,14 +243,17 @@ w->factory(TString::Format("mtot_bkg_8TeV_norm_cat%d[1.0,0.0,100000]",c)); // is
   RooFormulaVar *p1mod = new RooFormulaVar(
         TString::Format("p1mod_cat%d",c),"","@0",*w->var(TString::Format("mtot_bkg_8TeV_slope1_cat%d",c)));
 
-  if(c==1) RooFormulaVar *p2mod = new RooFormulaVar(
+  RooFormulaVar *p2mod;
+  RooAbsPdf* mtotBkg;
+
+  if(c==1) p2mod = new RooFormulaVar(
         TString::Format("p2mod_cat%d",c),"","@0",*w->var(TString::Format("mtot_bkg_8TeV_slope2_cat%d",c)));
 
-  if(c==0) RooAbsPdf* mtotBkg = new RooGenericPdf( // if exp function
+  if(c==0) mtotBkg = new RooGenericPdf( // if exp function
                 TString::Format("mtotBkg_cat%d",c),
                 "1./pow(@0,@1*@1)",
                 RooArgList(*mtot, *p1mod));
-  if(c==1) RooAbsPdf* mtotBkg = new RooGenericPdf( // if exp function
+  if(c==1) mtotBkg = new RooGenericPdf( // if exp function
                 TString::Format("mtotBkg_cat%d",c),
                 "1./pow(@0+@2,@1*@1)",
                 RooArgList(*mtot, *p1mod, *p2mod));
@@ -266,6 +270,11 @@ w->factory(TString::Format("mtot_bkg_8TeV_norm_cat%d[1.0,0.0,100000]",c)); // is
         Range(minMassFit,maxMassFit),
         SumW2Error(kTRUE),
         Save(kTRUE));
+
+  w->defineSet(TString::Format("BkgPdfParam_cat%d",c),
+        RooArgSet(
+         *w->var(TString::Format("mtot_bkg_8TeV_slope2_cat%d",c))) );
+    SetConstantParams(w->set(TString::Format("BkgPdfParam_cat%d",c)));
 
   w->import(mtotBkgExt); //store the normalized pdf on wp
    //************************************************//
@@ -374,7 +383,7 @@ w->factory(TString::Format("mtot_bkg_8TeV_norm_cat%d[1.0,0.0,100000]",c)); // is
     legmc->AddEntry(plotmtotBkg[c]->getObject(1),"Fit","L");
     if(dobands)legmc->AddEntry(onesigma,"Fit #pm1 #sigma","F");
     if(dobands)legmc->AddEntry(twosigma,"Fit #pm2 #sigma","F");
-    //legmc->SetHeader("m_{X} = 1100 GeV");
+    //legmc->SetHeader("m_{X} = 400 GeV");
     legmc->SetBorderSize(0);
     legmc->SetFillStyle(0);
     legmc->Draw();
@@ -472,9 +481,9 @@ void MakeBkgWS(RooWorkspace* w, const char* fileBaseName) {
 TString::Format("CMS_hgg_bkg_8TeV_slope2_cat%d[%g,0,0]",
 c, wAll->var(TString::Format("mtot_bkg_8TeV_slope2_cat%d",c))->getVal()));
 */
-    if(c==1)wAll->factory(
+    /*if(c==1)wAll->factory(
         TString::Format("CMS_hgg_bkg_8TeV_slope2_cat%d[%g,800, 1200]",
-        c, wAll->var(TString::Format("mtot_bkg_8TeV_slope2_cat%d",c))->getVal()));
+        c, wAll->var(TString::Format("mtot_bkg_8TeV_slope2_cat%d",c))->getVal()));*/
   }
   // (2) do reparametrization of background
   for (int c = 0; c < ncat; ++c){
@@ -486,8 +495,7 @@ c, wAll->var(TString::Format("mtot_bkg_8TeV_slope2_cat%d",c))->getVal()));
    if(c==1) wAll->factory(
         TString::Format("EDIT::CMS_hgg_bkg_8TeV_cat%d(mtotBkg_cat%d,",c,c) +
         TString::Format(" mtot_bkg_8TeV_cat%d_norm=CMS_hgg_bkg_8TeV_cat%d_norm,", c,c)+
-        TString::Format(" mtot_bkg_8TeV_slope1_cat%d=CMS_hgg_bkg_8TeV_slope1_cat%d,", c,c)+
-        TString::Format(" mtot_bkg_8TeV_slope2_cat%d=CMS_hgg_bkg_8TeV_slope2_cat%d)", c,c)
+        TString::Format(" mtot_bkg_8TeV_slope1_cat%d=CMS_hgg_bkg_8TeV_slope1_cat%d)", c,c)
           );
   } // close for cat
   TString filename(wsDir+TString(fileBaseName)+".root");
@@ -595,7 +603,7 @@ void MakePlots(RooWorkspace* w, Float_t Mass, RooFitResult* fitresults) {
     lat->Draw();
     TLatex *lat2 = new TLatex(
         minMassFit+10.5,0.81*plotmtot[c]->GetMaximum(),
-        "m_{X} = 1100 GeV");
+        "m_{X} = 400 GeV");
     lat2->Draw();
     TLatex *lat2 = new TLatex(
         minMassFit+10.5,0.71*plotmtot[c]->GetMaximum(),catdesc.at(c));
@@ -733,7 +741,7 @@ cout<<"here"<<endl;
   outFile << "CMS_hgg_bkg_8TeV_cat1_norm flatParam # Normalization uncertainty on background slope" << endl;
   outFile << "CMS_hgg_bkg_8TeV_slope1_cat0 flatParam # Mean and absolute uncertainty on background slope" << endl;
   outFile << "CMS_hgg_bkg_8TeV_slope1_cat1 flatParam # Mean and absolute uncertainty on background slope" << endl;
-  outFile << "CMS_hgg_bkg_8TeV_slope2_cat1 flatParam # Mean and absolute uncertainty on background slope" << endl;
+  //outFile << "CMS_hgg_bkg_8TeV_slope2_cat1 flatParam # Mean and absolute uncertainty on background slope" << endl;
   outFile.close();
   cout << "Write data card in: " << filename << " file" << endl;
   return;

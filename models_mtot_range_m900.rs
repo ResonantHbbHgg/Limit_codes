@@ -1,4 +1,4 @@
-mtot[300,1200];
+mtot[320,1200];
 
 mtot_sig_m0_cat0[920, 900, 950];
 mtot_sig_sigma_cat0[7., 4., 15.0];
