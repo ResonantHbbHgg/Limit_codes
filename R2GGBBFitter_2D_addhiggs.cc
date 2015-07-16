@@ -1812,49 +1812,49 @@ void MakeHigWS(RooWorkspace* w, const char* fileHiggsName,int higgschannel) {
   }
   // (2) Systematics on energy scale and resolution
   // 1,1,1 statistical to be treated on the datacard
-  wAll->factory(TString::Format("CMS_hgg_hig_%d_m0_absShift[1,1,1]",higgschannel));
-  wAll->factory(TString::Format("prod::CMS_hgg_hig_m0_%d_cat0(mgg_hig_m0_%d_cat0, CMS_hgg_hig_%d_m0_absShift)",higgschannel,higgschannel,higgschannel));
-  wAll->factory(TString::Format("prod::CMS_hgg_hig_m0_%d_cat1(mgg_hig_m0_%d_cat1, CMS_hgg_hig_%d_m0_absShift)",higgschannel,higgschannel,higgschannel));
+  wAll->factory("CMS_hgg_sig_m0_absShift[1,1,1]");
+  wAll->factory(TString::Format("prod::CMS_hgg_hig_m0_%d_cat0(mgg_hig_m0_%d_cat0, CMS_hgg_sig_m0_absShift)",higgschannel,higgschannel));
+  wAll->factory(TString::Format("prod::CMS_hgg_hig_m0_%d_cat1(mgg_hig_m0_%d_cat1, CMS_hgg_sig_m0_absShift)",higgschannel,higgschannel));
   if ( NCAT > 2 ){
-       wAll->factory(TString::Format("prod::CMS_hgg_hig_m0_%d_cat2(mgg_hig_m0_%d_cat2, CMS_hgg_hig_%d_m0_absShift)",higgschannel,higgschannel,higgschannel));
-       wAll->factory(TString::Format("prod::CMS_hgg_hig_m0_%d_cat3(mgg_hig_m0_%d_cat3, CMS_hgg_hig_%d_m0_absShift)",higgschannel,higgschannel,higgschannel));
+       wAll->factory(TString::Format("prod::CMS_hgg_hig_m0_%d_cat2(mgg_hig_m0_%d_cat2, CMS_hgg_sig_m0_absShift)",higgschannel,higgschannel));
+       wAll->factory(TString::Format("prod::CMS_hgg_hig_m0_%d_cat3(mgg_hig_m0_%d_cat3, CMS_hgg_sig_m0_absShift)",higgschannel,higgschannel));
   }
   if(higgschannel == 1 || higgschannel == 3){
-     wAll->factory(TString::Format("CMS_hbb_hig_%d_m0_absShift[1,1,1]",higgschannel));
-     wAll->factory(TString::Format("prod::CMS_hbb_hig_m0_%d_cat0(mjj_hig_m0_%d_cat0, CMS_hbb_hig_%d_m0_absShift)",higgschannel,higgschannel,higgschannel));
-     wAll->factory(TString::Format("prod::CMS_hbb_hig_m0_%d_cat1(mjj_hig_m0_%d_cat1, CMS_hbb_hig_%d_m0_absShift)",higgschannel,higgschannel,higgschannel));
+     wAll->factory("CMS_hbb_sig_m0_absShift[1,1,1]");
+     wAll->factory(TString::Format("prod::CMS_hbb_hig_m0_%d_cat0(mjj_hig_m0_%d_cat0, CMS_hbb_sig_m0_absShift)",higgschannel,higgschannel));
+     wAll->factory(TString::Format("prod::CMS_hbb_hig_m0_%d_cat1(mjj_hig_m0_%d_cat1, CMS_hbb_sig_m0_absShift)",higgschannel,higgschannel));
      if ( NCAT > 2 ){
-          wAll->factory(TString::Format("prod::CMS_hbb_hig_m0_%d_cat2(mjj_hig_m0_%d_cat2, CMS_hbb_hig_%d_m0_absShift)",higgschannel,higgschannel,higgschannel));
-          wAll->factory(TString::Format("prod::CMS_hbb_hig_m0_%d_cat3(mjj_hig_m0_%d_cat3, CMS_hbb_hig_%d_m0_absShift)",higgschannel,higgschannel,higgschannel));
+          wAll->factory(TString::Format("prod::CMS_hbb_hig_m0_%d_cat2(mjj_hig_m0_%d_cat2, CMS_hbb_sig_m0_absShift)",higgschannel,higgschannel));
+          wAll->factory(TString::Format("prod::CMS_hbb_hig_m0_%d_cat3(mjj_hig_m0_%d_cat3, CMS_hbb_sig_m0_absShift)",higgschannel,higgschannel));
      }
   }
   // (3) Systematics on resolution
-  wAll->factory(TString::Format("CMS_hgg_hig_%d_sigmaScale[1,1,1]",higgschannel));
-  wAll->factory(TString::Format("prod::CMS_hgg_hig_sigma_%d_cat0(mgg_hig_sigma_%d_cat0, CMS_hgg_hig_%d_sigmaScale)",higgschannel,higgschannel,higgschannel));
-  wAll->factory(TString::Format("prod::CMS_hgg_hig_sigma_%d_cat1(mgg_hig_sigma_%d_cat1, CMS_hgg_hig_%d_sigmaScale)",higgschannel,higgschannel,higgschannel));
+  wAll->factory("CMS_hgg_sig_sigmaScale[1,1,1]");
+  wAll->factory(TString::Format("prod::CMS_hgg_hig_sigma_%d_cat0(mgg_hig_sigma_%d_cat0, CMS_hgg_sig_sigmaScale)",higgschannel,higgschannel));
+  wAll->factory(TString::Format("prod::CMS_hgg_hig_sigma_%d_cat1(mgg_hig_sigma_%d_cat1, CMS_hgg_sig_sigmaScale)",higgschannel,higgschannel));
   if ( NCAT > 2 ){
-       wAll->factory(TString::Format("prod::CMS_hgg_hig_sigma_%d_cat2(mgg_hig_sigma_%d_cat2, CMS_hgg_hig_%d_sigmaScale)",higgschannel,higgschannel,higgschannel));
-       wAll->factory(TString::Format("prod::CMS_hgg_hig_sigma_%d_cat3(mgg_hig_sigma_%d_cat3, CMS_hgg_hig_%d_sigmaScale)",higgschannel,higgschannel,higgschannel));
+       wAll->factory(TString::Format("prod::CMS_hgg_hig_sigma_%d_cat2(mgg_hig_sigma_%d_cat2, CMS_hgg_sig_sigmaScale)",higgschannel,higgschannel));
+       wAll->factory(TString::Format("prod::CMS_hgg_hig_sigma_%d_cat3(mgg_hig_sigma_%d_cat3, CMS_hgg_sig_sigmaScale)",higgschannel,higgschannel));
   }
-  wAll->factory(TString::Format("prod::CMS_hgg_hig_gsigma_%d_cat0(mgg_hig_gsigma_%d_cat0, CMS_hgg_hig_%d_sigmaScale)",higgschannel,higgschannel,higgschannel));
-  wAll->factory(TString::Format("prod::CMS_hgg_hig_gsigma_%d_cat1(mgg_hig_gsigma_%d_cat1, CMS_hgg_hig_%d_sigmaScale)",higgschannel,higgschannel,higgschannel));
+  wAll->factory(TString::Format("prod::CMS_hgg_hig_gsigma_%d_cat0(mgg_hig_gsigma_%d_cat0, CMS_hgg_sig_sigmaScale)",higgschannel,higgschannel));
+  wAll->factory(TString::Format("prod::CMS_hgg_hig_gsigma_%d_cat1(mgg_hig_gsigma_%d_cat1, CMS_hgg_sig_sigmaScale)",higgschannel,higgschannel));
   if ( NCAT > 2 ){
-       wAll->factory(TString::Format("prod::CMS_hgg_hig_gsigma_%d_cat2(mgg_hig_gsigma_%d_cat2, CMS_hgg_hig_%d_sigmaScale)",higgschannel,higgschannel,higgschannel));
-       wAll->factory(TString::Format("prod::CMS_hgg_hig_gsigma_%d_cat3(mgg_hig_gsigma_%d_cat3, CMS_hgg_hig_%d_sigmaScale)",higgschannel,higgschannel,higgschannel));
+       wAll->factory(TString::Format("prod::CMS_hgg_hig_gsigma_%d_cat2(mgg_hig_gsigma_%d_cat2, CMS_hgg_sig_sigmaScale)",higgschannel,higgschannel));
+       wAll->factory(TString::Format("prod::CMS_hgg_hig_gsigma_%d_cat3(mgg_hig_gsigma_%d_cat3, CMS_hgg_sig_sigmaScale)",higgschannel,higgschannel));
   }
   if(higgschannel == 1 || higgschannel == 3){
-        wAll->factory(TString::Format("CMS_hbb_hig_%d_sigmaScale[1,1,1]",higgschannel));
-        wAll->factory(TString::Format("prod::CMS_hbb_hig_sigma_%d_cat0(mjj_hig_sigma_%d_cat0, CMS_hbb_hig_%d_sigmaScale)",higgschannel,higgschannel,higgschannel));
-        wAll->factory(TString::Format("prod::CMS_hbb_hig_sigma_%d_cat1(mjj_hig_sigma_%d_cat1, CMS_hbb_hig_%d_sigmaScale)",higgschannel,higgschannel,higgschannel));
+        wAll->factory("CMS_hbb_sig_sigmaScale[1,1,1]");
+        wAll->factory(TString::Format("prod::CMS_hbb_hig_sigma_%d_cat0(mjj_hig_sigma_%d_cat0, CMS_hbb_sig_sigmaScale)",higgschannel,higgschannel));
+        wAll->factory(TString::Format("prod::CMS_hbb_hig_sigma_%d_cat1(mjj_hig_sigma_%d_cat1, CMS_hbb_sig_sigmaScale)",higgschannel,higgschannel));
         if ( NCAT > 2 ){
-             wAll->factory(TString::Format("prod::CMS_hbb_hig_sigma_%d_cat2(mjj_hig_sigma_%d_cat2, CMS_hbb_hig_%d_sigmaScale)",higgschannel,higgschannel,higgschannel));
-             wAll->factory(TString::Format("prod::CMS_hbb_hig_sigma_%d_cat3(mjj_hig_sigma_%d_cat3, CMS_hbb_hig_%d_sigmaScale)",higgschannel,higgschannel,higgschannel));
+             wAll->factory(TString::Format("prod::CMS_hbb_hig_sigma_%d_cat2(mjj_hig_sigma_%d_cat2, CMS_hbb_sig_sigmaScale)",higgschannel,higgschannel));
+             wAll->factory(TString::Format("prod::CMS_hbb_hig_sigma_%d_cat3(mjj_hig_sigma_%d_cat3, CMS_hbb_sig_sigmaScale)",higgschannel,higgschannel));
         }
-        wAll->factory(TString::Format("prod::CMS_hbb_hig_gsigma_%d_cat0(mjj_hig_gsigma_%d_cat0, CMS_hbb_hig_%d_sigmaScale)",higgschannel,higgschannel,higgschannel));
-        wAll->factory(TString::Format("prod::CMS_hbb_hig_gsigma_%d_cat1(mjj_hig_gsigma_%d_cat1, CMS_hbb_hig_%d_sigmaScale)",higgschannel,higgschannel,higgschannel));
+        wAll->factory(TString::Format("prod::CMS_hbb_hig_gsigma_%d_cat0(mjj_hig_gsigma_%d_cat0, CMS_hbb_sig_sigmaScale)",higgschannel,higgschannel));
+        wAll->factory(TString::Format("prod::CMS_hbb_hig_gsigma_%d_cat1(mjj_hig_gsigma_%d_cat1, CMS_hbb_sig_sigmaScale)",higgschannel,higgschannel));
         if ( NCAT > 2 ){
-             wAll->factory(TString::Format("prod::CMS_hbb_hig_gsigma_%d_cat2(mjj_hig_gsigma_%d_cat2, CMS_hbb_hig_%d_sigmaScale)",higgschannel,higgschannel,higgschannel));
-             wAll->factory(TString::Format("prod::CMS_hbb_hig_gsigma_%d_cat3(mjj_hig_gsigma_%d_cat3, CMS_hbb_hig_%d_sigmaScale)",higgschannel,higgschannel,higgschannel));
+             wAll->factory(TString::Format("prod::CMS_hbb_hig_gsigma_%d_cat2(mjj_hig_gsigma_%d_cat2, CMS_hbb_sig_sigmaScale)",higgschannel,higgschannel));
+             wAll->factory(TString::Format("prod::CMS_hbb_hig_gsigma_%d_cat3(mjj_hig_gsigma_%d_cat3, CMS_hbb_sig_sigmaScale)",higgschannel,higgschannel));
         }
   }
   // (4) do reparametrization of signal
@@ -2207,52 +2207,6 @@ void MakeDataCard(RooWorkspace* w, const char* fileBaseName, const char* fileBkg
     //
     outFile << "CMS_hbb_sig_m0_absShift param 1 0.026 # displacement of the dijet mean error " << endl;
     outFile << "CMS_hbb_sig_sigmaScale param 1 0.10 # optimistic estimate of resolution uncertainty " << endl;
-    //
-    outFile << "# Parametric shape uncertainties, entered by hand. they act on higgs" << endl;
-    if ( sigMass > 0)
-      outFile << "CMS_hgg_hig_m0_0_absShift param 1 0.0045 # displacement of the dipho mean error = sqrt(0.4^ 2 + 0.2^ 2)" << endl;
-    else
-      outFile << "CMS_hgg_hig_m0_0_absShift param 1 0.0054 # displacement of the dipho mean error = sqrt(0.5^ 2 + 0.2^ 2)" << endl;
-    outFile << "CMS_hgg_hig_0_sigmaScale param 1 0.05 # optimistic estimate of resolution uncertainty " << endl;
-    //
-    if ( sigMass > 0)
-      outFile << "CMS_hgg_hig_m0_1_absShift param 1 0.0045 # displacement of the dipho mean error = sqrt(0.4^ 2 + 0.2^ 2)" << endl;
-    else
-      outFile << "CMS_hgg_hig_m0_1_absShift param 1 0.0054 # displacement of the dipho mean error = sqrt(0.5^ 2 + 0.2^ 2)" << endl;
-    outFile << "CMS_hgg_hig_1_sigmaScale param 1 0.05 # optimistic estimate of resolution uncertainty " << endl;
-    //
-    if ( sigMass > 0)
-      outFile << "CMS_hgg_hig_m0_2_absShift param 1 0.0045 # displacement of the dipho mean error = sqrt(0.4^ 2 + 0.2^ 2)" << endl;
-    else
-      outFile << "CMS_hgg_hig_m0_2_absShift param 1 0.0054 # displacement of the dipho mean error = sqrt(0.5^ 2 + 0.2^ 2)" << endl;
-    outFile << "CMS_hgg_hig_2_sigmaScale param 1 0.05 # optimistic estimate of resolution uncertainty " << endl;
-    //
-    if ( sigMass > 0)
-      outFile << "CMS_hgg_hig_m0_3_absShift param 1 0.0045 # displacement of the dipho mean error = sqrt(0.4^ 2 + 0.2^ 2)" << endl;
-    else
-      outFile << "CMS_hgg_hig_m0_3_absShift param 1 0.0054 # displacement of the dipho mean error = sqrt(0.5^ 2 + 0.2^ 2)" << endl;
-    outFile << "CMS_hgg_hig_3_sigmaScale param 1 0.05 # optimistic estimate of resolution uncertainty " << endl;
-     //
-    if ( sigMass > 0)
-      outFile << "CMS_hgg_hig_m0_4_absShift param 1 0.0045 # displacement of the dipho mean error = sqrt(0.4^ 2 + 0.2^ 2)" << endl;
-    else
-      outFile << "CMS_hgg_hig_m0_4_absShift param 1 0.0054 # displacement of the dipho mean error = sqrt(0.5^ 2 + 0.2^ 2)" << endl;
-    outFile << "CMS_hgg_hig_4_sigmaScale param 1 0.05 # optimistic estimate of resolution uncertainty " << endl;
-    // resonant Higgs_mjj components
-    //outFile << "CMS_hbb_hig_m0_0_absShift param 1 0.026 # displacement of the dijet mean error " << endl;
-    //outFile << "CMS_hbb_hig_0_sigmaScale param 1 0.10 # optimistic estimate of resolution uncertainty " << endl;
-    //
-    outFile << "CMS_hbb_hig_m0_1_absShift param 1 0.026 # displacement of the dijet mean error " << endl;
-    outFile << "CMS_hbb_hig_1_sigmaScale param 1 0.10 # optimistic estimate of resolution uncertainty " << endl;
-    //
-    //outFile << "CMS_hbb_hig_m0_2_absShift param 1 0.026 # displacement of the dijet mean error " << endl;
-    //outFile << "CMS_hbb_hig_2_sigmaScale param 1 0.10 # optimistic estimate of resolution uncertainty " << endl;
-    //
-    outFile << "CMS_hbb_hig_m0_3_absShift param 1 0.026 # displacement of the dijet mean error " << endl;
-    outFile << "CMS_hbb_hig_3_sigmaScale param 1 0.10 # optimistic estimate of resolution uncertainty " << endl;
-    //
-    //outFile << "CMS_hbb_hig_m0_4_absShift param 1 0.026 # displacement of the dijet mean error " << endl;
-    //outFile << "CMS_hbb_hig_4_sigmaScale param 1 0.10 # optimistic estimate of resolution uncertainty " << endl;
     //
     outFile << "############## for mggxmjj fit - slopes" << endl;
     outFile << "CMS_bkg_8TeV_cat0_norm flatParam # Normalization uncertainty on background slope" << endl;
