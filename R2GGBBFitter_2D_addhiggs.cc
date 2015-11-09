@@ -11,11 +11,12 @@
 #include <TTree.h>
 #include <TH2F.h>
 #include <TLatex.h>
-#include <TPaveText.h>
 #include <TGraphAsymmErrors.h>
 #include <TCanvas.h>
 #include <TStyle.h>
 #include <TLegend.h>
+#include <TList.h>
+#include <TPaveText.h>
 // RooFit headers
 #include <RooWorkspace.h>
 #include <RooFitResult.h>
@@ -44,6 +45,7 @@ namespace po = boost::program_options;
 
 //Important options first
 Bool_t doblinding = false; //True if you want to blind
+Bool_t plot_singleH = false;
 
 // this one is for 2D fit
 Int_t NCAT =0;
@@ -220,7 +222,7 @@ int main(int argc, const char* argv[])
 void AddSigData(RooWorkspace* w, Float_t mass, TString signalfile) {
   cout << "================= Add Signal==============================" << endl;
   const Int_t ncat = NCAT;
-  Float_t MASS(mass);
+//  Float_t MASS(mass);
   // Luminosity:
   Float_t Lum = 19712.0; // pb-1
   RooRealVar lumi("lumi","lumi",Lum);
@@ -385,9 +387,9 @@ void HigModelFit(RooWorkspace* w, Float_t mass, int higgschannel) {
   const Int_t ncat = NCAT;
   Float_t MASS(mass);
   // four categories to fit
-  RooBernstein* mjjHig_Ber0;
-  RooBernstein* mjjHig_Ber1;
-  RooBernstein* mjjHig_Ber2;
+//  RooBernstein* mjjHig_Ber0;
+//  RooBernstein* mjjHig_Ber1;
+//  RooBernstein* mjjHig_Ber2;
   RooPolynomial* mjjHig_pol0;
   RooDataSet* higToFit[ncat];
   RooAbsPdf* mggHig[ncat];
@@ -459,16 +461,16 @@ void HigModelFit(RooWorkspace* w, Float_t mass, int higgschannel) {
 ////////////////////////////////////////////////////////////
 RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
   const Int_t ncat = NCAT;
-  std::vector<TString> catdesc;
+  std::vector<string> catdesc;
   if ( NCAT == 2 ){
     catdesc.push_back(" High Purity");
     catdesc.push_back(" Med. Purity");
   }
   else{
-    catdesc.push_back(" #splitline{High Purity}{High m_{#gamma#gammajj}^{kin}}");
-    catdesc.push_back(" #splitline{Med. Purity}{High m_{#gamma#gammajj}^{kin}}");
-    catdesc.push_back(" #splitline{High Purity}{Low m_{#gamma#gammajj}^{kin}}");
-    catdesc.push_back(" #splitline{Med. Purity}{Low m_{#gamma#gammajj}^{kin}}");
+    catdesc.push_back("High Purity, High m_{#gamma#gammajj}^{kin}");
+    catdesc.push_back("Med. Purity, High m_{#gamma#gammajj}^{kin}");
+    catdesc.push_back("High Purity, Low m_{#gamma#gammajj}^{kin}");
+    catdesc.push_back("Med. Purity, Low m_{#gamma#gammajj}^{kin}");
   }
   //******************************************//
   // Fit background with model pdfs
@@ -476,8 +478,8 @@ RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
   // retrieve pdfs and datasets from workspace to fit with pdf models
   RooDataSet* data[ncat];
   RooDataSet* dataplot[ncat]; // the data
-  RooBernstein* mggBkg[ncat];// the polinomial of 4* order
-  RooBernstein* mjjBkg[ncat];// the polinomial of 4* order
+//  RooBernstein* mggBkg[ncat];// the polinomial of 4* order
+//  RooBernstein* mjjBkg[ncat];// the polinomial of 4* order
   RooPlot* plotmggBkg[ncat];
   RooPlot* plotmjjBkg[ncat];
   RooDataSet* sigToFit0[ncat];
@@ -485,13 +487,13 @@ RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
   RooDataSet* sigToFit2[ncat];
   RooDataSet* sigToFit3[ncat];
   RooDataSet* sigToFit4[ncat];
-  RooAbsPdf* mggSig[ncat];
+//  RooAbsPdf* mggSig[ncat];
   RooAbsPdf* mggSig0[ncat];
   RooAbsPdf* mggSig1[ncat];
   RooAbsPdf* mggSig2[ncat];
   RooAbsPdf* mggSig3[ncat];
   RooAbsPdf* mggSig4[ncat];
-  RooAbsPdf* mjjSig[ncat];
+//  RooAbsPdf* mjjSig[ncat];
   RooAbsPdf* mjjSig0[ncat];
   RooAbsPdf* mjjSig1[ncat];
   RooAbsPdf* mjjSig2[ncat];
@@ -511,16 +513,12 @@ RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
   // Fit data with background pdf for data limit
   RooRealVar* mgg = w->var("mgg");
   RooRealVar* mjj = w->var("mjj");
-  RooRealVar* mtot = w->var("mtot");
+//  RooRealVar* mtot = w->var("mtot");
   mgg->setUnit("GeV");
   mjj->setUnit("GeV");
   mgg->setRange("BkgFitRange",minMggMassFit,maxMggMassFit);
   mjj->setRange("BkgFitRange",minMjjMassFit,maxMjjMassFit);
   RooFitResult* fitresults;
-  //
-  TLatex *text = new TLatex();
-  text->SetNDC();
-  text->SetTextSize(0.04);
   //
   for (int c = 0; c < ncat; ++c) { // to each category
     data[c] = (RooDataSet*) w->data(TString::Format("Data_cat%d",c));
@@ -651,6 +649,12 @@ RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
     cout<<" here 1"<<endl;
     if(sigMass == 260) plotmggBkg[c]->GetXaxis()->SetRangeUser(100.,145.);
     if(sigMass == 270) plotmggBkg[c]->GetXaxis()->SetRangeUser(100.,155.);
+    if(c==0||c==2)plotmggBkg[c]->SetMinimum(0.005); // no error bar in bins with zero events
+    if(c==1||c==3)plotmggBkg[c]->SetMinimum(0.01); // no error bar in bins with zero events
+    if(c==0)plotmggBkg[c]->SetMaximum(9.0); // no error bar in bins with zero events
+    if(c==1)plotmggBkg[c]->SetMaximum(14); // no error bar in bins with zero events
+    if(c==2)plotmggBkg[c]->SetMaximum(8.); // no error bar in bins with zero events
+    if(c==3)plotmggBkg[c]->SetMaximum(22); // no error bar in bins with zero events
     if(doblinding) dataplot[c]->plotOn(plotmggBkg[c],Invisible());
     else dataplot[c]->plotOn(plotmggBkg[c]);
     if(sigMass == 0)
@@ -673,17 +677,27 @@ RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
     plotmggBkg[c]->Draw();
     //plotmggBkg[c]->SetTitle("CMS preliminary 19.7/fb");
     //plotmggBkg[c]->SetMinimum(0.01); // no error bar in bins with zero events
-    plotmggBkg[c]->SetMaximum(1.40*plotmggBkg[c]->GetMaximum());
+//    plotmggBkg[c]->SetMaximum(1.40*plotmggBkg[c]->GetMaximum());
     plotmggBkg[c]->GetXaxis()->SetTitle("m_{#gamma#gamma} (GeV)");
     //double test = sigToFit[c]->sumEntries();
     //cout<<"number of events on dataset "<<test<<endl;
-    TPaveText *pt = new TPaveText(0.1,0.94,0.9,0.99, "brNDC");
+//    TPaveText *pt = new TPaveText(0.8,0.94,0.9,0.99, "brNDC");
     // pt->SetName("title");
-    pt->SetBorderSize(0);
-    pt->SetFillColor(0);
-    pt->SetTextSize(0.035);
-    pt->AddText("            CMS Preliminary                     L = 19.7 fb^{-1}    #sqrt{s} = 8 TeV   ");
-    pt->Draw();
+//    pt->SetBorderSize(0);
+//    pt->SetFillColor(0);
+//    pt->SetTextSize(0.035);
+//    pt->AddText("19.7 fb^{-1} (8 TeV)");
+//    pt->Draw();
+    TLatex *latexLabel = new TLatex();
+    latexLabel->SetTextSize(0.75 * ctmp->GetTopMargin());
+    latexLabel->SetNDC();
+    latexLabel->SetTextFont(42); // helvetica
+    latexLabel->DrawLatex(0.72, 0.96, "19.7 fb^{-1} (8 TeV)");
+    latexLabel->SetTextFont(61); // helvetica bold face
+    latexLabel->DrawLatex(0.19, 0.89, "CMS");
+//    latexLabel.SetTextFont(52) // helvetica italics
+//    latexLabel.DrawLatex(0.17, 0.85, "Simulation")
+//    latexLabel.DrawLatex(0.37, 0.20, "Limit trees v44 ; Uncertainties #times 5")
     TGraphAsymmErrors *onesigma, *twosigma;
     if (dobands) {
       RooAbsPdf *cpdf;
@@ -708,7 +722,7 @@ RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
         RooAbsReal *nll = epdf->createNLL(*(data[c]),Extended());
         RooMinimizer minim(*nll);
         minim.setStrategy(0);
-        double clone = 1.0 - 2.0*RooStats::SignificanceToPValue(1.0);
+//        double clone = 1.0 - 2.0*RooStats::SignificanceToPValue(1.0);
         double cltwo = 1.0 - 2.0*RooStats::SignificanceToPValue(2.0);
         minim.migrad();
         minim.minos(*nlim);
@@ -744,12 +758,12 @@ RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
     //norm0 = 0.0000001;
     mggSig0[c] = (RooAbsPdf*) w->pdf(TString::Format("mggHig_0_cat%d",c));
     // we are not constructing signal pdf, this is constructed on sig to fit function...
-    mggSig0[c] ->plotOn(
+    if (plot_singleH) mggSig0[c] ->plotOn(
 			plotmggBkg[c],
 			Normalization(norm0,RooAbsPdf::NumEvent),
 			DrawOption("F"),
 			LineColor(kRed),FillStyle(1001),FillColor(19));
-    mggSig0[c]->plotOn(
+    if (plot_singleH) mggSig0[c]->plotOn(
 		       plotmggBkg[c],
 		       Normalization(norm0,RooAbsPdf::NumEvent),LineColor(kRed),LineStyle(1));
     //
@@ -757,12 +771,12 @@ RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
     double norm1 = 1.0*sigToFit1[c]->sumEntries(); //
     mggSig1[c] = (RooAbsPdf*) w->pdf(TString::Format("mggHig_1_cat%d",c));
     // we are not constructing signal pdf, this is constructed on sig to fit function...
-    mggSig1[c] ->plotOn(
+    if (plot_singleH) mggSig1[c] ->plotOn(
 			plotmggBkg[c],
 			Normalization(norm1,RooAbsPdf::NumEvent),
 			DrawOption("F"),
 			LineColor(kGreen),FillStyle(1001),FillColor(19));
-    mggSig1[c]->plotOn(
+    if (plot_singleH) mggSig1[c]->plotOn(
 		       plotmggBkg[c],
 		       Normalization(norm1,RooAbsPdf::NumEvent),LineColor(kGreen),LineStyle(1));
     //
@@ -773,12 +787,12 @@ RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
     //norm2 = 0.0000000000001; //
     mggSig2[c] = (RooAbsPdf*) w->pdf(TString::Format("mggHig_2_cat%d",c));
     // we are not constructing signal pdf, this is constructed on sig to fit function...
-    mggSig2[c] ->plotOn(
+    if (plot_singleH) mggSig2[c] ->plotOn(
 			plotmggBkg[c],
 			Normalization(norm2,RooAbsPdf::NumEvent),
 			DrawOption("F"),
 			LineColor(kMagenta),FillStyle(1001),FillColor(19));
-    mggSig2[c]->plotOn(
+    if (plot_singleH) mggSig2[c]->plotOn(
 		       plotmggBkg[c],
 		       Normalization(norm2,RooAbsPdf::NumEvent),LineColor(kMagenta),LineStyle(1));
     //
@@ -786,12 +800,12 @@ RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
     double norm3 = 1.0*sigToFit3[c]->sumEntries(); //
     mggSig3[c] = (RooAbsPdf*) w->pdf(TString::Format("mggHig_3_cat%d",c));
     // we are not constructing signal pdf, this is constructed on sig to fit function...
-    mggSig3[c] ->plotOn(
+    if (plot_singleH) mggSig3[c] ->plotOn(
 			plotmggBkg[c],
 			Normalization(norm3,RooAbsPdf::NumEvent),
 			DrawOption("F"),
 			LineColor(kCyan),FillStyle(1001),FillColor(19));
-    mggSig3[c]->plotOn(
+    if (plot_singleH) mggSig3[c]->plotOn(
 		       plotmggBkg[c],
 		       Normalization(norm3,RooAbsPdf::NumEvent),LineColor(kCyan),LineStyle(1));
 
@@ -799,49 +813,45 @@ RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
     double norm4 = 1.0*sigToFit4[c]->sumEntries(); //
     mggSig4[c] = (RooAbsPdf*) w->pdf(TString::Format("mggHig_4_cat%d",c));
     // we are not constructing signal pdf, this is constructed on sig to fit function...
-    mggSig4[c] ->plotOn(
+    if (plot_singleH) mggSig4[c] ->plotOn(
 			plotmggBkg[c],
 			Normalization(norm4,RooAbsPdf::NumEvent),
 			DrawOption("F"),
 			LineColor(kBlue),FillStyle(1001),FillColor(19));
-    mggSig4[c]->plotOn(
+    if (plot_singleH) mggSig4[c]->plotOn(
 		       plotmggBkg[c],
 		       Normalization(norm4,RooAbsPdf::NumEvent),LineColor(kBlue),LineStyle(1));
 
     //////////////////////////////////////////////////////////
     plotmggBkg[c]->Draw("SAME");
-    if(c==0||c==2)plotmggBkg[c]->SetMinimum(0.005); // no error bar in bins with zero events
-    if(c==1||c==3)plotmggBkg[c]->SetMinimum(0.01); // no error bar in bins with zero events
-    if(c==0||c==2)plotmggBkg[c]->SetMaximum(5.3); // no error bar in bins with zero events
-    if(c==1||c==3)plotmggBkg[c]->SetMaximum(20); // no error bar in bins with zero events
     // plotmggBkg[c]->SetMinimum(0.005); // no error bar in bins with zero events
     //plotmggBkg[c]->SetLogy(0);
     cout << "!!!!!!!!!!!!!!!!!" << endl;
-    TLegend *legmc = new TLegend(0.40,0.72,0.62,0.9);
+    TLegend *legmc = new TLegend(0.50,0.70,0.92,0.8);
+    legmc->SetNColumns(2);
     TLegend *legmcH = new TLegend(0.66,0.72,0.94,0.9);
     if(doblinding) legmc->AddEntry(plotmggBkg[c]->getObject(2),"Data ","");
     else  legmc->AddEntry(plotmggBkg[c]->getObject(2),"Data ","LPE");
-    legmc->AddEntry(plotmggBkg[c]->getObject(1),"Bkg Fit","L");
     if(dobands)legmc->AddEntry(onesigma,"Fit #pm1 #sigma","F");
+    legmc->AddEntry(plotmggBkg[c]->getObject(1),"Background fit","L");
     if(dobands)legmc->AddEntry(twosigma,"Fit #pm2 #sigma ","F"); // not...
-    legmcH->AddEntry(plotmggBkg[c]->getObject(3),"ggH ","LPE"); // not...
-    legmcH->AddEntry(plotmggBkg[c]->getObject(5),"ttH ","LPE"); // not...
-    legmcH->AddEntry(plotmggBkg[c]->getObject(7),"VBF ","LPE"); // not...
-    legmcH->AddEntry(plotmggBkg[c]->getObject(9),"VH ","LPE"); // not...
-    legmcH->AddEntry(plotmggBkg[c]->getObject(11),"bbH ","LPE"); // not...
-    if(sigMass==0)
-      legmc->SetHeader(" Nonresonant HH");
-    else
-      legmc->SetHeader(TString::Format(" m_{X} = %d GeV",sigMass));
-    legmcH->SetHeader(" Higgs");
+    if (plot_singleH) legmcH->AddEntry(plotmggBkg[c]->getObject(3),"ggH ","LPE"); // not...
+    if (plot_singleH) legmcH->AddEntry(plotmggBkg[c]->getObject(5),"ttH ","LPE"); // not...
+    if (plot_singleH) legmcH->AddEntry(plotmggBkg[c]->getObject(7),"VBF ","LPE"); // not...
+    if (plot_singleH) legmcH->AddEntry(plotmggBkg[c]->getObject(9),"VH ","LPE"); // not...
+    if (plot_singleH) legmcH->AddEntry(plotmggBkg[c]->getObject(11),"bbH ","LPE"); // not...
+    latexLabel->SetTextFont(42); // helvetica
+    latexLabel->DrawLatex(0.50, 0.88, "H(b#bar{b})H(#gamma#gamma) non-res.");
+    latexLabel->DrawLatex(0.50, 0.83, catdesc.at(c).c_str());
+    if (plot_singleH) legmcH->SetHeader(" Higgs");
     legmc->SetBorderSize(0);
     legmc->SetFillStyle(0);
-    legmcH->SetBorderSize(0);
-    legmcH->SetFillStyle(0);
+    if (plot_singleH) legmcH->SetBorderSize(0);
+    if (plot_singleH) legmcH->SetFillStyle(0);
     legmc->Draw();
-    legmcH->Draw();
-    TLatex *lat2 = new TLatex(minMggMassFit+1.5,0.85*plotmggBkg[c]->GetMaximum(),catdesc.at(c));
-    lat2->Draw();
+    if (plot_singleH) legmcH->Draw();
+//    TLatex *lat2 = new TLatex(minMggMassFit+1.5,0.85*plotmggBkg[c]->GetMaximum(),catdesc.at(c));
+//    lat2->Draw();
     //
     ctmp->SaveAs(TString::Format("databkgoversigMgg_cat%d.pdf",c));
     ctmp->SaveAs(TString::Format("databkgoversigMgg_cat%d.png",c));
@@ -851,17 +861,18 @@ RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
     ctmp->SetLogy(1);
     ctmp->SaveAs(TString::Format("databkgoversigMgg_cat%d_log.pdf",c));
     ctmp->SaveAs(TString::Format("databkgoversigMgg_cat%d_log.png",c));
-    // ctmp->SaveAs(TString::Format("databkgoversigMgg_cat%d.C",c));
 
     //************************************************//
     // Plot mjj background fit results per categories
     //************************************************//
     ctmp = new TCanvas(TString::Format("ctmpBkgMjj_cat%d",c),"mjj Background Categories",0,0,500,500);
-    nBinsMass = 60;
+    nBinsMass = 24;
     plotmjjBkg[c] = mjj->frame(nBinsMass);
     cout<<" here 1"<<endl;
     dataplot[c] = (RooDataSet*) w->data(TString::Format("Dataplot_cat%d",c));
     cout<<" here 1"<<endl;
+    if(c==0||c==2)plotmggBkg[c]->SetMinimum(0.005); // no error bar in bins with zero events
+    if(c==1||c==3)plotmggBkg[c]->SetMinimum(0.01); // no error bar in bins with zero events
     if(doblinding) dataplot[c]->plotOn(plotmjjBkg[c],Invisible());
     else dataplot[c]->plotOn(plotmjjBkg[c]);
     if(sigMass == 0)
@@ -876,26 +887,36 @@ RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
     }
     if(doblinding) dataplot[c]->plotOn(plotmjjBkg[c],Invisible());
     else dataplot[c]->plotOn(plotmjjBkg[c]);
-
     cout << "!!!!!!!!!!!!!!!!!" << endl;
     cout << "!!!!!!!!!!!!!!!!!" << endl; // now we fit the gaussian on signal
     //plotmjjBkg[c]->SetMinimum(0.01); // no error bar in bins with zero events
-    if(c==0||c==2)plotmjjBkg[c]->SetMinimum(0.005); // no error bar in bins with zero events
-    if(c==1||c==3)plotmjjBkg[c]->SetMinimum(0.001); // no error bar in bins with zero events
     plotmjjBkg[c]->Draw();
+    if(c==0||c==2)plotmjjBkg[c]->SetMinimum(0.005); // no error bar in bins with zero events
+    if(c==1||c==3)plotmjjBkg[c]->SetMinimum(0.01); // no error bar in bins with zero events
+    if(c==0)plotmjjBkg[c]->SetMaximum(13); // no error bar in bins with zero events
+    if(c==1)plotmjjBkg[c]->SetMaximum(22); // no error bar in bins with zero events
+    if(c==2)plotmjjBkg[c]->SetMaximum(12); // no error bar in bins with zero events
+    if(c==3)plotmjjBkg[c]->SetMaximum(35); // no error bar in bins with zero events
     //plotmjjBkg[c]->SetTitle("CMS preliminary 19.7/fb");
     //plotmjjBkg[c]->SetMinimum(0.01); // no error bar in bins with zero events
-    plotmjjBkg[c]->SetMaximum(1.40*plotmjjBkg[c]->GetMaximum());
+//    plotmjjBkg[c]->SetMaximum(1.40*plotmjjBkg[c]->GetMaximum());
     plotmjjBkg[c]->GetXaxis()->SetTitle("m_{jj} (GeV)");
     //double test = sigToFit[c]->sumEntries();
     //cout<<"number of events on dataset "<<test<<endl;
-    pt = new TPaveText(0.1,0.94,0.9,0.99, "brNDC");
+//    pt = new TPaveText(0.1,0.94,0.9,0.99, "brNDC");
     // pt->SetName("title");
-    pt->SetBorderSize(0);
-    pt->SetFillColor(0);
-    pt->SetTextSize(0.035);
-    pt->AddText("            CMS Preliminary                     L = 19.7 fb^{-1}    #sqrt{s} = 8 TeV   ");
-    pt->Draw();
+//    pt->SetBorderSize(0);
+//    pt->SetFillColor(0);
+//    pt->SetTextSize(0.035);
+//    pt->AddText("            CMS Preliminary                     L = 19.7 fb^{-1}    #sqrt{s} = 8 TeV   ");
+//    pt->Draw();
+//    TLatex latexLabel();
+    latexLabel->SetTextSize(0.75 * ctmp->GetTopMargin());
+    latexLabel->SetNDC();
+    latexLabel->SetTextFont(42); // helvetica
+    latexLabel->DrawLatex(0.72, 0.96, "19.7 fb^{-1} (8 TeV)");
+    latexLabel->SetTextFont(61); // helvetica bold face
+    latexLabel->DrawLatex(0.19, 0.89, "CMS");
     if (dobands) {
       RooAbsPdf *cpdf;
       if(sigMass == 0 && (c == 0 || c == 2)) cpdf = mjjBkgTmpExp1;
@@ -919,7 +940,7 @@ RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
         RooAbsReal *nll = epdf->createNLL(*(data[c]),Extended());
         RooMinimizer minim(*nll);
         minim.setStrategy(0);
-        double clone = 1.0 - 2.0*RooStats::SignificanceToPValue(1.0);
+//        double clone = 1.0 - 2.0*RooStats::SignificanceToPValue(1.0);
         double cltwo = 1.0 - 2.0*RooStats::SignificanceToPValue(2.0);
         minim.migrad();
         minim.minos(*nlim);
@@ -946,7 +967,9 @@ RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
       onesigma->SetMarkerColor(kGreen);
       onesigma->Draw("L3 SAME");
       plotmjjBkg[c]->Draw("SAME");
-    } else plotmjjBkg[c]->Draw("SAME"); // close dobands
+    } else {
+        plotmjjBkg[c]->Draw("SAME"); // close dobands
+    }
     //plotmjjBkg[c]->getObject(1)->Draw("SAME");
     //plotmjjBkg[c]->getObject(2)->Draw("P SAME");
     ////////////////////////////////////////////////////////// plot higgs
@@ -955,12 +978,12 @@ RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
     //norm0 = 0.0000001;
     mjjSig0[c] = (RooAbsPdf*) w->pdf(TString::Format("mjjHig_0_cat%d",c));
     // we are not constructing signal pdf, this is constructed on sig to fit function...
-    mjjSig0[c] ->plotOn(
+    if (plot_singleH) mjjSig0[c] ->plotOn(
 			plotmjjBkg[c],
 			Normalization(norm0,RooAbsPdf::NumEvent),
 			DrawOption("F"),
 			LineColor(kRed),FillStyle(1001),FillColor(19));
-    mjjSig0[c]->plotOn(
+    if (plot_singleH) mjjSig0[c]->plotOn(
 		       plotmjjBkg[c],
 		       Normalization(norm0,RooAbsPdf::NumEvent),LineColor(kRed),LineStyle(1));
     //
@@ -968,12 +991,12 @@ RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
     norm1 = 1.0*sigToFit1[c]->sumEntries(); //
     mjjSig1[c] = (RooAbsPdf*) w->pdf(TString::Format("mjjHig_1_cat%d",c));
     // we are not constructing signal pdf, this is constructed on sig to fit function...
-    mjjSig1[c] ->plotOn(
+    if (plot_singleH) mjjSig1[c] ->plotOn(
 			plotmjjBkg[c],
 			Normalization(norm1,RooAbsPdf::NumEvent),
 			DrawOption("F"),
 			LineColor(kGreen),FillStyle(1001),FillColor(19));
-    mjjSig1[c]->plotOn(
+    if (plot_singleH) mjjSig1[c]->plotOn(
 		       plotmjjBkg[c],
 		       Normalization(norm1,RooAbsPdf::NumEvent),LineColor(kGreen),LineStyle(1));
     //
@@ -983,12 +1006,12 @@ RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
     //norm2 = 0.0000000000001; //
     mjjSig2[c] = (RooAbsPdf*) w->pdf(TString::Format("mjjHig_2_cat%d",c));
     // we are not constructing signal pdf, this is constructed on sig to fit function...
-    mjjSig2[c] ->plotOn(
+    if (plot_singleH) mjjSig2[c] ->plotOn(
 			plotmjjBkg[c],
 			Normalization(norm2,RooAbsPdf::NumEvent),
 			DrawOption("F"),
 			LineColor(kMagenta),FillStyle(1001),FillColor(19));
-    mjjSig2[c]->plotOn(
+    if (plot_singleH) mjjSig2[c]->plotOn(
 		       plotmjjBkg[c],
 		       Normalization(norm2,RooAbsPdf::NumEvent),LineColor(kMagenta),LineStyle(1));
     //
@@ -996,12 +1019,12 @@ RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
     norm3 = 1.0*sigToFit3[c]->sumEntries(); //
     mjjSig3[c] = (RooAbsPdf*) w->pdf(TString::Format("mjjHig_3_cat%d",c));
     // we are not constructing signal pdf, this is constructed on sig to fit function...
-    mjjSig3[c] ->plotOn(
+    if (plot_singleH) mjjSig3[c] ->plotOn(
 			plotmjjBkg[c],
 			Normalization(norm3,RooAbsPdf::NumEvent),
 			DrawOption("F"),
 			LineColor(kCyan),FillStyle(1001),FillColor(19));
-    mjjSig3[c]->plotOn(
+    if (plot_singleH) mjjSig3[c]->plotOn(
 		       plotmjjBkg[c],
 		       Normalization(norm3,RooAbsPdf::NumEvent),LineColor(kCyan),LineStyle(1));
 
@@ -1009,49 +1032,41 @@ RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
     norm4 = 1.0*sigToFit4[c]->sumEntries(); //
     mjjSig4[c] = (RooAbsPdf*) w->pdf(TString::Format("mjjHig_4_cat%d",c));
     // we are not constructing signal pdf, this is constructed on sig to fit function...
-    mjjSig4[c] ->plotOn(
+    if (plot_singleH) mjjSig4[c] ->plotOn(
 			plotmjjBkg[c],
 			Normalization(norm4,RooAbsPdf::NumEvent),
 			DrawOption("F"),
 			LineColor(kBlue),FillStyle(1001),FillColor(19));
-    mjjSig4[c]->plotOn(
+    if (plot_singleH) mjjSig4[c]->plotOn(
 		       plotmjjBkg[c],
 		       Normalization(norm4,RooAbsPdf::NumEvent),LineColor(kBlue),LineStyle(1));
-
     //////////////////////////////////////////////////////////
     plotmjjBkg[c]->Draw("SAME");
-    if(c==0||c==2)plotmjjBkg[c]->SetMinimum(0.005); // no error bar in bins with zero events
-    if(c==1||c==3)plotmjjBkg[c]->SetMinimum(0.01); // no error bar in bins with zero events
-    if(c==0||c==2)plotmjjBkg[c]->SetMaximum(5.3); // no error bar in bins with zero events
-    if(c==1||c==3)plotmjjBkg[c]->SetMaximum(20); // no error bar in bins with zero events
-    // plotmjjBkg[c]->SetMinimum(0.005); // no error bar in bins with zero events
-    //plotmjjBkg[c]->SetLogy(0);
     cout << "!!!!!!!!!!!!!!!!!" << endl;
-    legmc = new TLegend(0.40,0.72,0.62,0.9);
+    legmc = new TLegend(0.50,0.70,0.92,0.80);
+    legmc->SetNColumns(2);
     legmcH = new TLegend(0.66,0.72,0.94,0.9);
     if(doblinding) legmc->AddEntry(plotmjjBkg[c]->getObject(2),"Data ","");
     else legmc->AddEntry(plotmjjBkg[c]->getObject(2),"Data ","LPE");
-    legmc->AddEntry(plotmjjBkg[c]->getObject(1),"Fit","L");
-    if(dobands)legmc->AddEntry(twosigma,"two sigma ","F"); // not...
-    if(dobands)legmc->AddEntry(onesigma,"one sigma","F");
-    legmcH->AddEntry(plotmjjBkg[c]->getObject(3),"ggH ","LPE"); // not...
-    legmcH->AddEntry(plotmjjBkg[c]->getObject(5),"ttH ","LPE"); // not...
-    legmcH->AddEntry(plotmjjBkg[c]->getObject(7),"VBF ","LPE"); // not...
-    legmcH->AddEntry(plotmjjBkg[c]->getObject(9),"VH ","LPE"); // not...
-    legmcH->AddEntry(plotmjjBkg[c]->getObject(11),"bbH ","LPE"); // not...
-    if(sigMass==0)
-      legmc->SetHeader(" Nonresonant HH");
-    else
-      legmc->SetHeader(TString::Format(" m_{X} = %d GeV",sigMass));
-    legmcH->SetHeader(" Higgs");
+    if(dobands)legmc->AddEntry(onesigma,"Fit #pm1 #sigma","F");
+    legmc->AddEntry(plotmjjBkg[c]->getObject(1),"Background fit","L");
+    if(dobands)legmc->AddEntry(twosigma,"Fit #pm2 #sigma ","F"); // not...
+    if (plot_singleH) legmcH->AddEntry(plotmjjBkg[c]->getObject(3),"ggH ","LPE"); // not...
+    if (plot_singleH) legmcH->AddEntry(plotmjjBkg[c]->getObject(5),"ttH ","LPE"); // not...
+    if (plot_singleH) legmcH->AddEntry(plotmjjBkg[c]->getObject(7),"VBF ","LPE"); // not...
+    if (plot_singleH) legmcH->AddEntry(plotmjjBkg[c]->getObject(9),"VH ","LPE"); // not...
+    if (plot_singleH) legmcH->AddEntry(plotmjjBkg[c]->getObject(11),"bbH ","LPE"); // not...
+    latexLabel->SetTextFont(42); // helvetica
+    latexLabel->DrawLatex(0.50, 0.88, "H(b#bar{b})H(#gamma#gamma) non-res.");
+    latexLabel->DrawLatex(0.50, 0.83, catdesc.at(c).c_str());
     legmc->SetBorderSize(0);
     legmc->SetFillStyle(0);
     legmcH->SetBorderSize(0);
     legmcH->SetFillStyle(0);
     legmc->Draw();
     legmcH->Draw();
-    lat2 = new TLatex(minMjjMassFit+1.5,0.85*plotmjjBkg[c]->GetMaximum(),catdesc.at(c));
-    lat2->Draw();
+//    lat2 = new TLatex(minMjjMassFit+1.5,0.85*plotmjjBkg[c]->GetMaximum(),catdesc.at(c));
+//    lat2->Draw();
     //
     ctmp->SaveAs(TString::Format("databkgoversigMjj_cat%d.pdf",c));
     ctmp->SaveAs(TString::Format("databkgoversigMjj_cat%d.png",c));
@@ -1061,7 +1076,6 @@ RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
     ctmp->SetLogy(1);
     ctmp->SaveAs(TString::Format("databkgoversigMjj_cat%d_log.pdf",c));
     ctmp->SaveAs(TString::Format("databkgoversigMjj_cat%d_log.png",c));
-    // ctmp->SaveAs(TString::Format("databkgoversigMjj_cat%d.C",c));
 
   } // close to each category
 
@@ -1241,16 +1255,16 @@ void SetConstantParams(const RooArgSet* params) {
 ////////////////////////////////////////////////////////////////////////
 void MakePlots(RooWorkspace* w, Float_t Mass) {
   const Int_t ncat = NCAT;
-  std::vector<TString> catdesc;
+  std::vector<string> catdesc;
   if ( NCAT == 2 ){
     catdesc.push_back(" High Purity");
     catdesc.push_back(" Med. Purity");
   }
   else{
-    catdesc.push_back(" #splitline{High Purity}{High m_{#gamma#gammajj}^{kin}}");
-    catdesc.push_back(" #splitline{Med. Purity}{High m_{#gamma#gammajj}^{kin}}");
-    catdesc.push_back(" #splitline{High Purity}{Low m_{#gamma#gammajj}^{kin}}");
-    catdesc.push_back(" #splitline{Med. Purity}{Low m_{#gamma#gammajj}^{kin}}");
+    catdesc.push_back("High Purity, High m_{#gamma#gammajj}^{kin}");
+    catdesc.push_back("Med. Purity, High m_{#gamma#gammajj}^{kin}");
+    catdesc.push_back("High Purity, Low m_{#gamma#gammajj}^{kin}");
+    catdesc.push_back("Med. Purity, Low m_{#gamma#gammajj}^{kin}");
   }
   // retrieve data sets from the workspace
   // RooDataSet* dataAll = (RooDataSet*) w->data("Data");
@@ -1282,14 +1296,14 @@ void MakePlots(RooWorkspace* w, Float_t Mass) {
   } // close categories
   RooRealVar* mgg = w->var("mgg");
   mgg->setUnit("GeV");
-  RooAbsPdf* mggGaussSigAll = w->pdf("mggGaussSig");
-  RooAbsPdf* mggCBSigAll = w->pdf("mggCBSig");
-  RooAbsPdf* mggSigAll = w->pdf("mggSig");
+//  RooAbsPdf* mggGaussSigAll = w->pdf("mggGaussSig");
+//  RooAbsPdf* mggCBSigAll = w->pdf("mggCBSig");
+//  RooAbsPdf* mggSigAll = w->pdf("mggSig");
   RooRealVar* mjj = w->var("mjj");
   mjj->setUnit("GeV");
-  RooAbsPdf* mjjGaussSigAll = w->pdf("mjjGaussSig");
-  RooAbsPdf* mjjCBSigAll = w->pdf("mjjCBSig");
-  RooAbsPdf* mjjSigAll = w->pdf("mjjSig");
+//  RooAbsPdf* mjjGaussSigAll = w->pdf("mjjGaussSig");
+//  RooAbsPdf* mjjCBSigAll = w->pdf("mjjCBSig");
+//  RooAbsPdf* mjjSigAll = w->pdf("mjjSig");
   //RooAbsPdf* mggBkgAll = w->pdf("mggBkg_cat1");
   //
   //****************************//
@@ -1298,12 +1312,12 @@ void MakePlots(RooWorkspace* w, Float_t Mass) {
   // Set P.D.F. parameter names
   // WARNING: Do not use it if Workspaces are created
   // SetParamNames(w);
-  Float_t minSigPlotMgg(115),maxSigPlotMgg(135);
+  Float_t minSigPlotMgg(110),maxSigPlotMgg(150);
   Float_t minSigPlotMjj(60),maxSigPlotMjj(180);
   mgg->setRange("SigPlotRange",minSigPlotMgg,maxSigPlotMgg);
   mjj->setRange("SigPlotRange",minSigPlotMjj,maxSigPlotMjj);
-  Float_t MASS(Mass);
-  Int_t nBinsMass(20); // just need to plot
+//  Float_t MASS(Mass);
+  Int_t nBinsMass(40); // just need to plot
   RooPlot* plotmggAll = mgg->frame(Range("SigPlotRange"),Bins(nBinsMass));
   signalAll->plotOn(plotmggAll);
   gStyle->SetOptTitle(0);
@@ -1312,13 +1326,10 @@ void MakePlots(RooWorkspace* w, Float_t Mass) {
   //********************************************//
   // Plot Signal Categories
   //****************************//
-  TLatex *text = new TLatex();
-  text->SetNDC();
-  text->SetTextSize(0.04);
   RooPlot* plotmgg[ncat];
   for (int c = 0; c < ncat; ++c) {
     plotmgg[c] = mgg->frame(Range("SigPlotRange"),Bins(nBinsMass));
-    sigToFit[c]->plotOn(plotmgg[c]);
+    sigToFit[c]->plotOn(plotmgg[c], MarkerStyle(25));
     mggSig[c] ->plotOn(plotmgg[c]);
     double chi2n = plotmgg[c]->chiSquare(0) ;
     cout << "------------------------- Experimental chi2 = " << chi2n << endl;
@@ -1331,9 +1342,9 @@ void MakePlots(RooWorkspace* w, Float_t Mass) {
 		       Components(TString::Format("mggCBSig_cat%d",c)),
 		       LineStyle(kDashed),LineColor(kRed));
     mggSig[c] ->paramOn(plotmgg[c]);
-    sigToFit[c] ->plotOn(plotmgg[c]);
+    sigToFit[c] ->plotOn(plotmgg[c], MarkerStyle(25));
     // TCanvas* dummy = new TCanvas("dummy", "dummy",0, 0, 400, 400);
-    TH1F *hist = new TH1F(TString::Format("histMgg_cat%d",c), "hist", 400, minSigPlotMgg, maxSigPlotMgg);
+//    TH1F *hist = new TH1F(TString::Format("histMgg_cat%d",c), "hist", 400, minSigPlotMgg, maxSigPlotMgg);
     //plotmgg[c]->SetTitle("CMS preliminary 19.7/fb ");
     plotmgg[c]->SetMinimum(0.0);
     plotmgg[c]->SetMaximum(1.40*plotmgg[c]->GetMaximum());
@@ -1341,34 +1352,45 @@ void MakePlots(RooWorkspace* w, Float_t Mass) {
     TCanvas* ctmp = new TCanvas(TString::Format("ctmpSigMgg_cat%d",c),"Background Categories",0,0,500,500);
     plotmgg[c]->Draw();
     plotmgg[c]->Draw("SAME");
-    TLegend *legmc = new TLegend(0.62,0.75,0.99,0.99);
+    TLegend *legmc = new TLegend(0.50,0.70,0.92,0.80);
+    legmc->SetNColumns(2);
     legmc->AddEntry(plotmgg[c]->getObject(5),"Simulation","LPE");
-    legmc->AddEntry(plotmgg[c]->getObject(1),"Parametric Model","L");
-    legmc->AddEntry(plotmgg[c]->getObject(2),"Gaussian Outliers","L");
-    legmc->AddEntry(plotmgg[c]->getObject(3),"Crystal Ball component","L");
-    legmc->SetHeader(" ");
+    legmc->AddEntry(plotmgg[c]->getObject(2),"Gaussian","L");
+    legmc->AddEntry(plotmgg[c]->getObject(1),"Parametric model","L");
+    legmc->AddEntry(plotmgg[c]->getObject(3),"Crystal-Ball","L");
+//    legmc->SetHeader(Form("H(b#bar{b})H(#gamma#gamma) non-res.; %s", catdesc.at(c).c_str()));
     legmc->SetBorderSize(0);
     legmc->SetFillStyle(0);
     legmc->Draw();
-    TPaveText *pt = new TPaveText(0.1,0.94,0.7,0.99, "brNDC");
-    //pt->SetName("title");
-    pt->SetBorderSize(0);
-    pt->SetFillColor(0);
-    pt->SetTextSize(0.035);
-    pt->AddText("CMS Preliminary Simulation ");
-    pt->Draw();
+    TLatex *latexLabel = new TLatex();
+    latexLabel->SetTextSize(0.75 * ctmp->GetTopMargin());
+    latexLabel->SetNDC();
+    latexLabel->SetTextFont(42); // helvetica
+    latexLabel->DrawLatex(0.87, 0.96, "8 TeV");
+    latexLabel->SetTextFont(61); // helvetica bold face
+    latexLabel->DrawLatex(0.19, 0.89, "CMS");
+    latexLabel->SetTextFont(52); // helvetica italics
+    latexLabel->DrawLatex(0.19, 0.85, "Simulation");
+    latexLabel->SetTextFont(42); // helvetica
+    latexLabel->DrawLatex(0.50, 0.88, "H(b#bar{b})H(#gamma#gamma) non-res.");
+    latexLabel->DrawLatex(0.50, 0.83, catdesc.at(c).c_str());
+//   TPaveText *pt = new TPaveText(0.1,0.94,0.7,0.99, "brNDC");
+//    //pt->SetName("title");
+//    pt->SetBorderSize(0);
+//    pt->SetFillColor(0);
+//    pt->SetTextSize(0.035);
+//    pt->AddText("CMS Preliminary Simulation ");
+//    pt->Draw();
     // float effS = effSigma(hist);
-    TString str_desc;
-    if(sigMass==0)
-      str_desc=" Nonresonant HH";
-    else
-      str_desc=TString::Format(" m_{X} = %d GeV",sigMass);
-    TLatex *lat = new TLatex(
-			     minSigPlotMgg+0.5,0.85*plotmgg[c]->GetMaximum(),str_desc);
-    lat->Draw();
-    TLatex *lat2 = new TLatex(
-			      minSigPlotMgg+0.5,0.70*plotmgg[c]->GetMaximum(),catdesc.at(c));
-    lat2->Draw();
+    string str_desc = "H(b#bar{b})H(#gamma#gamma) non-res.";
+//    else
+//      str_desc=TString::Format(" m_{X} = %d GeV",sigMass);
+//    TLatex *lat = new TLatex(
+//			     minSigPlotMgg+0.5,0.85*plotmgg[c]->GetMaximum(),str_desc);
+//    lat->Draw();
+//    TLatex *lat2 = new TLatex(
+//			      minSigPlotMgg+0.5,0.70*plotmgg[c]->GetMaximum(),catdesc.at(c));
+//    lat2->Draw();
     ///////
     char myChi2buffer[50];
     sprintf(myChi2buffer,"#chi^{2}/ndof = %f",chi2n);
@@ -1377,9 +1399,20 @@ void MakePlots(RooWorkspace* w, Float_t Mass) {
     latex -> SetTextFont(42);
     latex -> SetTextSize(0.04);
     //latex -> Draw("same");
+    // Remove spurious line created by I don't know what, but it is a TPaveText
+    TList *MyList = ctmp->GetListOfPrimitives();
+    TObject *obj1;
+    TIter next(MyList);
+    while(obj1=(TObject *)next()){
+//        std::cout << "object class name " << obj1->ClassName() << std::endl;
+        if (strcmp(obj1->ClassName(), "TPaveText") == 0)
+        {
+//            std::cout << "gotcha, now let's SetBorderSize(0)" << std::endl;
+            ((TPaveText*)obj1)->SetBorderSize(0);
+        }
+    }
     ctmp->SaveAs(TString::Format("sigmodelMgg_cat%d.pdf",c));
     ctmp->SaveAs(TString::Format("sigmodelMgg_cat%d.png",c));
-    //ctmp->SaveAs(TString::Format("sigmodelMgg_cat%d.C",c));
   } // close categories
 
   c1 = new TCanvas("cMjj","mgg",0,0,500,500);
@@ -1387,13 +1420,11 @@ void MakePlots(RooWorkspace* w, Float_t Mass) {
   //********************************************//
   // Plot Signal Categories
   //****************************//
-  text = new TLatex();
-  text->SetNDC();
-  text->SetTextSize(0.04);
   RooPlot* plotmjj[ncat];
+  nBinsMass = 24;
   for (int c = 0; c < ncat; ++c) {
     plotmjj[c] = mjj->frame(Range("SigPlotRange"),Bins(nBinsMass));
-    sigToFit[c]->plotOn(plotmjj[c]);
+    sigToFit[c]->plotOn(plotmjj[c], MarkerStyle(25));
     mjjSig[c] ->plotOn(plotmjj[c]);
     double chi2n = plotmjj[c]->chiSquare(0) ;
     cout << "------------------------- Experimental chi2 = " << chi2n << endl;
@@ -1406,9 +1437,9 @@ void MakePlots(RooWorkspace* w, Float_t Mass) {
 		       Components(TString::Format("mjjCBSig_cat%d",c)),
 		       LineStyle(kDashed),LineColor(kRed));
     mjjSig[c] ->paramOn(plotmjj[c]);
-    sigToFit[c] ->plotOn(plotmjj[c]);
+    sigToFit[c] ->plotOn(plotmjj[c], MarkerStyle(25));
     // TCanvas* dummy = new TCanvas("dummy", "dummy",0, 0, 400, 400);
-    TH1F *hist = new TH1F(TString::Format("histMjj_cat%d",c), "hist", 400, minSigPlotMjj, maxSigPlotMjj);
+//    TH1F *hist = new TH1F(TString::Format("histMjj_cat%d",c), "hist", 400, minSigPlotMjj, maxSigPlotMjj);
     //plotmjj[c]->SetTitle("CMS preliminary 19.7/fb ");
     plotmjj[c]->SetMinimum(0.0);
     plotmjj[c]->SetMaximum(1.40*plotmjj[c]->GetMaximum());
@@ -1416,34 +1447,48 @@ void MakePlots(RooWorkspace* w, Float_t Mass) {
     TCanvas* ctmp = new TCanvas(TString::Format("ctmpSigMjj_cat%d",c),"Background Categories",0,0,500,500);
     plotmjj[c]->Draw();
     plotmjj[c]->Draw("SAME");
-    TLegend *legmc = new TLegend(0.62,0.75,0.99,0.99);
+    string str_desc="H(b#bar{b})H(#gamma#gamma) non-res.";
+    TLegend *legmc = new TLegend(0.50,0.70,0.92,0.80);
+//    legmc->SetHeader(Form("%s; %s", str_desc.c_str(), catdesc.at(c).c_str()));
+    legmc->SetNColumns(2);
     legmc->AddEntry(plotmjj[c]->getObject(5),"Simulation","LPE");
-    legmc->AddEntry(plotmjj[c]->getObject(1),"Parametric Model","L");
-    legmc->AddEntry(plotmjj[c]->getObject(2),"Gaussian Outliers","L");
-    legmc->AddEntry(plotmjj[c]->getObject(3),"Crystal Ball component","L");
-    legmc->SetHeader(" ");
+    legmc->AddEntry(plotmjj[c]->getObject(2),"Gaussian","L");
+    legmc->AddEntry(plotmjj[c]->getObject(1),"Parametric model","L");
+    legmc->AddEntry(plotmjj[c]->getObject(3),"Crystal-Ball","L");
     legmc->SetBorderSize(0);
     legmc->SetFillStyle(0);
     legmc->Draw();
-    TPaveText *pt = new TPaveText(0.1,0.94,0.7,0.99, "brNDC");
-    //pt->SetName("title");
-    pt->SetBorderSize(0);
-    pt->SetFillColor(0);
-    pt->SetTextSize(0.035);
-    pt->AddText("CMS Preliminary Simulation ");
-    pt->Draw();
+    TLatex *latexLabel = new TLatex();
+    latexLabel->SetTextSize(0.75 * ctmp->GetTopMargin());
+    latexLabel->SetNDC();
+    latexLabel->SetTextFont(42); // helvetica
+    latexLabel->DrawLatex(0.87, 0.96, "8 TeV");
+    latexLabel->SetTextFont(61); // helvetica bold face
+    latexLabel->DrawLatex(0.19, 0.89, "CMS");
+    latexLabel->SetTextFont(52); // helvetica italics
+    latexLabel->DrawLatex(0.19, 0.85, "Simulation");
+    latexLabel->SetTextFont(42); // helvetica
+    latexLabel->DrawLatex(0.50, 0.88, "H(b#bar{b})H(#gamma#gamma) non-res.");
+    latexLabel->DrawLatex(0.50, 0.83, catdesc.at(c).c_str());
+//    TPaveText *pt = new TPaveText(0.1,0.94,0.7,0.99, "brNDC");
+//    //pt->SetName("title");
+//    pt->SetBorderSize(0);
+//    pt->SetFillColor(0);
+//    pt->SetTextSize(0.035);
+//    pt->AddText("CMS Preliminary Simulation ");
+//    pt->Draw();
     // float effS = effSigma(hist);
-    TString str_desc;
-    if(sigMass==0)
-      str_desc=" Nonresonant HH";
-    else
-      str_desc=TString::Format(" m_{X} = %d GeV",sigMass);
-    TLatex *lat = new TLatex(
-			     minSigPlotMjj+0.5,0.85*plotmjj[c]->GetMaximum(),str_desc);
-    lat->Draw();
-    TLatex *lat2 = new TLatex(
-			      minSigPlotMjj+0.5,0.70*plotmjj[c]->GetMaximum(),catdesc.at(c));
-    lat2->Draw();
+//    string str_desc;
+//    if(sigMass==0)
+//      str_desc="H(b#bar{b})H(#gamma#gamma) non-res.";
+//    else
+//      str_desc=TString::Format(" m_{X} = %d GeV",sigMass);
+//    TLatex *lat = new TLatex(
+//			     minSigPlotMjj+0.5,0.85*plotmjj[c]->GetMaximum(),str_desc);
+//    lat->Draw();
+//    TLatex *lat2 = new TLatex(
+//			      minSigPlotMjj+0.5,0.70*plotmjj[c]->GetMaximum(),catdesc.at(c));
+//    lat2->Draw();
     ///////
     char myChi2buffer[50];
     sprintf(myChi2buffer,"#chi^{2}/ndof = %f",chi2n);
@@ -1452,9 +1497,20 @@ void MakePlots(RooWorkspace* w, Float_t Mass) {
     latex -> SetTextFont(42);
     latex -> SetTextSize(0.04);
     //latex -> Draw("same");
+    // Remove spurious line created by I don't know what, but it is a TPaveText
+    TList *MyList = ctmp->GetListOfPrimitives();
+    TObject *obj1;
+    TIter next(MyList);
+    while(obj1=(TObject *)next()){
+//        std::cout << "object class name " << obj1->ClassName() << std::endl;
+        if (strcmp(obj1->ClassName(), "TPaveText") == 0)
+        {
+//            std::cout << "gotcha, now let's SetBorderSize(0)" << std::endl;
+            ((TPaveText*)obj1)->SetBorderSize(0);
+        }
+    }
     ctmp->SaveAs(TString::Format("sigmodelMjj_cat%d.pdf",c));
     ctmp->SaveAs(TString::Format("sigmodelMjj_cat%d.png",c));
-    //ctmp->SaveAs(TString::Format("sigmodelMjj_cat%d.C",c));
   } // close categories
 
   return;
@@ -1527,7 +1583,7 @@ void MakePlotsHiggs(RooWorkspace* w, Float_t Mass) {
     // SetParamNames(w);
     Float_t minHigPlotMgg(115),maxHigPlotMgg(135);
     Float_t minHigPlotMjj(60),maxHigPlotMjj(180);
-    Float_t MASS(Mass);
+//    Float_t MASS(Mass);
     Int_t nBinsMass(20); // just need to plot
     //RooPlot* plotmggAll = mgg->frame(Range(minSigFit,maxSigFit),Bins(nBinsMass));
     //higgsAll->plotOn(plotmggAll);
@@ -1537,9 +1593,6 @@ void MakePlotsHiggs(RooWorkspace* w, Float_t Mass) {
     //********************************************//
     // Plot Signal Categories
     //****************************//
-    TLatex *text = new TLatex();
-    text->SetNDC();
-    text->SetTextSize(0.04);
     RooPlot* plotmgg[ncat];
 
     for (int c = 0; c < ncat; ++c) {
@@ -1559,7 +1612,7 @@ void MakePlotsHiggs(RooWorkspace* w, Float_t Mass) {
       mggSig[c] ->paramOn(plotmgg[c]);
       higToFit[c] ->plotOn(plotmgg[c]);
       // TCanvas* dummy = new TCanvas("dummy", "dummy",0, 0, 400, 400);
-      TH1F *hist = new TH1F(TString::Format("histMgg_%d_cat%d",d,c), "hist", 400, minHigPlotMgg, maxHigPlotMgg);
+//      TH1F *hist = new TH1F(TString::Format("histMgg_%d_cat%d",d,c), "hist", 400, minHigPlotMgg, maxHigPlotMgg);
       //plotmgg[c]->SetTitle("CMS Preliminary 19.7/fb ");
       plotmgg[c]->SetMinimum(0.0);
       plotmgg[c]->SetMaximum(1.40*plotmgg[c]->GetMaximum());
@@ -1576,17 +1629,24 @@ void MakePlotsHiggs(RooWorkspace* w, Float_t Mass) {
       legmc->SetBorderSize(0);
       legmc->SetFillStyle(0);
       legmc->Draw();
-      TPaveText *pt = new TPaveText(0.1,0.94,0.7,0.99, "brNDC");
+    TLatex *latexLabel = new TLatex();
+    latexLabel->SetTextSize(0.75 * ctmp->GetTopMargin());
+    latexLabel->SetNDC();
+    latexLabel->SetTextFont(42); // helvetica
+    latexLabel->DrawLatex(0.72, 0.96, "19.7 fb^{-1} (8 TeV)");
+    latexLabel->SetTextFont(61); // helvetica bold face
+    latexLabel->DrawLatex(0.19, 0.89, "CMS");
+//      TPaveText *pt = new TPaveText(0.1,0.94,0.7,0.99, "brNDC");
       //pt->SetName("title");
-      pt->SetBorderSize(0);
-      pt->SetFillColor(0);
-      pt->SetTextSize(0.035);
-      pt->AddText("CMS Preliminary Simulation ");
-      pt->Draw();
+//      pt->SetBorderSize(0);
+//      pt->SetFillColor(0);
+//      pt->SetTextSize(0.035);
+//      pt->AddText("CMS Preliminary Simulation ");
+//      pt->Draw();
       // float effS = effSigma(hist);
       TString str_desc;
       if(sigMass==0)
-	str_desc=" Nonresonant HH";
+	str_desc="H(b#bar{b})H(#gamma#gamma) non-res.";
       else
 	str_desc=TString::Format(" m_{X} = %d GeV",sigMass);
       TLatex *lat = new TLatex(
@@ -1605,7 +1665,6 @@ void MakePlotsHiggs(RooWorkspace* w, Float_t Mass) {
       //latex -> Draw("same");
       ctmp->SaveAs(TString::Format("higmodelMgg_%d_cat%d.pdf",d,c));
       ctmp->SaveAs(TString::Format("higmodelMgg_%d_cat%d.png",d,c));
-      //ctmp->SaveAs(TString::Format("sigmodelMgg_cat%d.C",c));
     } // close categories
 
     c1 = new TCanvas(TString::Format("cMjj_%d",d),"mjj",0,0,500,500);
@@ -1613,9 +1672,6 @@ void MakePlotsHiggs(RooWorkspace* w, Float_t Mass) {
     //********************************************//
     // Plot Signal Categories
     //****************************//
-    text = new TLatex();
-    text->SetNDC();
-    text->SetTextSize(0.04);
     RooPlot* plotmjj[ncat];
 
     for (int c = 0; c < ncat; ++c) {
@@ -1636,7 +1692,7 @@ void MakePlotsHiggs(RooWorkspace* w, Float_t Mass) {
          mjjSig[c] ->paramOn(plotmjj[c]);
          higToFit[c] ->plotOn(plotmjj[c]);
          // TCanvas* dummy = new TCanvas("dummy", "dummy",0, 0, 400, 400);
-         TH1F *hist = new TH1F(TString::Format("histMjj_%d_cat%d",d,c), "hist", 400, minHigPlotMjj, maxHigPlotMjj);
+//         TH1F *hist = new TH1F(TString::Format("histMjj_%d_cat%d",d,c), "hist", 400, minHigPlotMjj, maxHigPlotMjj);
          //plotmjj[c]->SetTitle("CMS preliminary 19.7/fb ");
          plotmjj[c]->SetMinimum(0.0);
          plotmjj[c]->SetMaximum(1.40*plotmjj[c]->GetMaximum());
@@ -1654,17 +1710,24 @@ void MakePlotsHiggs(RooWorkspace* w, Float_t Mass) {
          legmc->SetBorderSize(0);
          legmc->SetFillStyle(0);
          legmc->Draw();
-         TPaveText *pt = new TPaveText(0.1,0.94,0.7,0.99, "brNDC");
-         //pt->SetName("title");
-         pt->SetBorderSize(0);
-         pt->SetFillColor(0);
-         pt->SetTextSize(0.035);
-         pt->AddText("CMS Preliminary Simulation ");
-         pt->Draw();
+    TLatex *latexLabel = new TLatex();
+    latexLabel->SetTextSize(0.75 * ctmp->GetTopMargin());
+    latexLabel->SetNDC();
+    latexLabel->SetTextFont(42); // helvetica
+    latexLabel->DrawLatex(0.72, 0.96, "19.7 fb^{-1} (8 TeV)");
+    latexLabel->SetTextFont(61); // helvetica bold face
+    latexLabel->DrawLatex(0.19, 0.89, "CMS");
+//         TPaveText *pt = new TPaveText(0.1,0.94,0.7,0.99, "brNDC");
+//         //pt->SetName("title");
+//         pt->SetBorderSize(0);
+//         pt->SetFillColor(0);
+//         pt->SetTextSize(0.035);
+//         pt->AddText("CMS Preliminary Simulation ");
+//         pt->Draw();
          // float effS = effSigma(hist);
          TString str_desc;
          if(sigMass==0)
-	    str_desc=" Nonresonant HH";
+	    str_desc="H(b#bar{b})H(#gamma#gamma) non-res.";
          else
 	    str_desc=TString::Format(" m_{X} = %d GeV",sigMass);
          TLatex *lat = new TLatex(
@@ -1687,7 +1750,7 @@ void MakePlotsHiggs(RooWorkspace* w, Float_t Mass) {
          //mjjSig[c] ->paramOn(plotmjj[c]);
          higToFit[c] ->plotOn(plotmjj[c]);
          // TCanvas* dummy = new TCanvas("dummy", "dummy",0, 0, 400, 400);
-         TH1F *hist = new TH1F(TString::Format("histMjj_%d_cat%d",d,c), "hist", 400, minHigPlotMjj, maxHigPlotMjj);
+//         TH1F *hist = new TH1F(TString::Format("histMjj_%d_cat%d",d,c), "hist", 400, minHigPlotMjj, maxHigPlotMjj);
          //plotmjj[c]->SetTitle("CMS preliminary 19.7/fb ");
          plotmjj[c]->SetMinimum(0.0);
          plotmjj[c]->SetMaximum(1.40*plotmjj[c]->GetMaximum());
@@ -1702,17 +1765,24 @@ void MakePlotsHiggs(RooWorkspace* w, Float_t Mass) {
          legmc->SetBorderSize(0);
          legmc->SetFillStyle(0);
          legmc->Draw();
-         TPaveText *pt = new TPaveText(0.1,0.94,0.7,0.99, "brNDC");
-         //pt->SetName("title");
-         pt->SetBorderSize(0);
-         pt->SetFillColor(0);
-         pt->SetTextSize(0.035);
-         pt->AddText("CMS Preliminary Simulation ");
-         pt->Draw();
+        TLatex *latexLabel = new TLatex();
+        latexLabel->SetTextSize(0.75 * ctmp->GetTopMargin());
+        latexLabel->SetNDC();
+        latexLabel->SetTextFont(42); // helvetica
+        latexLabel->DrawLatex(0.72, 0.96, "19.7 fb^{-1} (8 TeV)");
+        latexLabel->SetTextFont(61); // helvetica bold face
+        latexLabel->DrawLatex(0.19, 0.89, "CMS");
+//         TPaveText *pt = new TPaveText(0.1,0.94,0.7,0.99, "brNDC");
+//         //pt->SetName("title");
+//         pt->SetBorderSize(0);
+//         pt->SetFillColor(0);
+//         pt->SetTextSize(0.035);
+//         pt->AddText("CMS Preliminary Simulation ");
+//         pt->Draw();
          // float effS = effSigma(hist);
          TString str_desc;
          if(sigMass==0)
-	    str_desc=" Nonresonant HH";
+	    str_desc="H(b#bar{b})H(#gamma#gamma) non-res.";
          else
 	    str_desc=TString::Format(" m_{X} = %d GeV",sigMass);
          TLatex *lat = new TLatex(
@@ -1732,7 +1802,6 @@ void MakePlotsHiggs(RooWorkspace* w, Float_t Mass) {
          ctmp->SaveAs(TString::Format("higmodelMjj_%d_cat%d.pdf",d,c));
          ctmp->SaveAs(TString::Format("higmodelMjj_%d_cat%d.png",d,c));
       }
-      //ctmp->SaveAs(TString::Format("sigmodelMjj_cat%d.C",c));
     } // close categories
 
   } // close to higgs component
@@ -1742,7 +1811,7 @@ void MakePlotsHiggs(RooWorkspace* w, Float_t Mass) {
 // we add the higgs to the workspace in categories
 void AddHigData(RooWorkspace* w, Float_t mass, TString signalfile, int higgschannel) {
   const Int_t ncat = NCAT;
-  Float_t MASS(mass);
+//  Float_t MASS(mass);
   RooArgSet* ntplVars = defineVariables();
   TFile higFile(signalfile);
   TTree* higTree = (TTree*) higFile.Get("TCVARS");
@@ -1896,7 +1965,7 @@ Double_t effSigma(TH1 *hist) {
     std::cout << "effsigma: Not a valid histo. bwid = " << bwid << std::endl;
     return 0.;
   }
-  Double_t xmax = xaxis->GetXmax();
+//  Double_t xmax = xaxis->GetXmax();
   Double_t xmin = xaxis->GetXmin();
   Double_t ave = hist->GetMean();
   Double_t rms = hist->GetRMS();
@@ -2389,8 +2458,8 @@ void style(){
   defaultStyle->SetPadColor(0);
   defaultStyle->SetPadTopMargin(0.05);
   defaultStyle->SetPadBottomMargin(0.13);
-  defaultStyle->SetPadLeftMargin(0.13);
-  defaultStyle->SetPadRightMargin(0.02);
+  defaultStyle->SetPadLeftMargin(0.15);
+  defaultStyle->SetPadRightMargin(0.04);
   /////// canvas /////////
   defaultStyle->SetCanvasBorderMode(0);
   defaultStyle->SetCanvasColor(0);
@@ -2408,7 +2477,7 @@ void style(){
   /////// title //////////
   defaultStyle->SetTitleOffset(1.1,"X");
   defaultStyle->SetTitleSize(0.01,"X");
-  defaultStyle->SetTitleOffset(1.25,"Y");
+  defaultStyle->SetTitleOffset(1.10,"Y");
   defaultStyle->SetTitleSize(0.05,"Y");
   defaultStyle->SetTitleFont(42, "XYZ");
   /////// various ////////
