@@ -11,11 +11,12 @@
 #include <TTree.h>
 #include <TH2F.h>
 #include <TLatex.h>
-#include <TPaveText.h>
 #include <TGraphAsymmErrors.h>
 #include <TCanvas.h>
 #include <TStyle.h>
 #include <TLegend.h>
+#include <TList.h>
+#include <TPaveText.h>
 // RooFit headers
 #include <RooWorkspace.h>
 #include <RooFitResult.h>
@@ -519,10 +520,6 @@ RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
   mjj->setRange("BkgFitRange",minMjjMassFit,maxMjjMassFit);
   RooFitResult* fitresults;
   //
-  TLatex *text = new TLatex();
-  text->SetNDC();
-  text->SetTextSize(0.04);
-  //
   for (int c = 0; c < ncat; ++c) { // to each category
     data[c] = (RooDataSet*) w->data(TString::Format("Data_cat%d",c));
     cout << "!!!!!!!!!!!!!" << endl;
@@ -652,6 +649,12 @@ RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
     cout<<" here 1"<<endl;
     if(sigMass == 260) plotmggBkg[c]->GetXaxis()->SetRangeUser(100.,145.);
     if(sigMass == 270) plotmggBkg[c]->GetXaxis()->SetRangeUser(100.,155.);
+    if(c==0||c==2)plotmggBkg[c]->SetMinimum(0.005); // no error bar in bins with zero events
+    if(c==1||c==3)plotmggBkg[c]->SetMinimum(0.01); // no error bar in bins with zero events
+    if(c==0)plotmggBkg[c]->SetMaximum(9.0); // no error bar in bins with zero events
+    if(c==1)plotmggBkg[c]->SetMaximum(14); // no error bar in bins with zero events
+    if(c==2)plotmggBkg[c]->SetMaximum(8.); // no error bar in bins with zero events
+    if(c==3)plotmggBkg[c]->SetMaximum(22); // no error bar in bins with zero events
     if(doblinding) dataplot[c]->plotOn(plotmggBkg[c],Invisible());
     else dataplot[c]->plotOn(plotmggBkg[c]);
     if(sigMass == 0)
@@ -674,7 +677,7 @@ RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
     plotmggBkg[c]->Draw();
     //plotmggBkg[c]->SetTitle("CMS preliminary 19.7/fb");
     //plotmggBkg[c]->SetMinimum(0.01); // no error bar in bins with zero events
-    plotmggBkg[c]->SetMaximum(1.40*plotmggBkg[c]->GetMaximum());
+//    plotmggBkg[c]->SetMaximum(1.40*plotmggBkg[c]->GetMaximum());
     plotmggBkg[c]->GetXaxis()->SetTitle("m_{#gamma#gamma} (GeV)");
     //double test = sigToFit[c]->sumEntries();
     //cout<<"number of events on dataset "<<test<<endl;
@@ -821,16 +824,10 @@ RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
 
     //////////////////////////////////////////////////////////
     plotmggBkg[c]->Draw("SAME");
-    if(c==0||c==2)plotmggBkg[c]->SetMinimum(0.005); // no error bar in bins with zero events
-    if(c==1||c==3)plotmggBkg[c]->SetMinimum(0.01); // no error bar in bins with zero events
-    if(c==0)plotmggBkg[c]->SetMaximum(6.5); // no error bar in bins with zero events
-    if(c==2)plotmggBkg[c]->SetMaximum(7.5); // no error bar in bins with zero events
-    if(c==1)plotmggBkg[c]->SetMaximum(15); // no error bar in bins with zero events
-    if(c==3)plotmggBkg[c]->SetMaximum(20); // no error bar in bins with zero events
     // plotmggBkg[c]->SetMinimum(0.005); // no error bar in bins with zero events
     //plotmggBkg[c]->SetLogy(0);
     cout << "!!!!!!!!!!!!!!!!!" << endl;
-    TLegend *legmc = new TLegend(0.50,0.72,0.92,0.9);
+    TLegend *legmc = new TLegend(0.50,0.70,0.92,0.8);
     legmc->SetNColumns(2);
     TLegend *legmcH = new TLegend(0.66,0.72,0.94,0.9);
     if(doblinding) legmc->AddEntry(plotmggBkg[c]->getObject(2),"Data ","");
@@ -843,10 +840,9 @@ RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
     if (plot_singleH) legmcH->AddEntry(plotmggBkg[c]->getObject(7),"VBF ","LPE"); // not...
     if (plot_singleH) legmcH->AddEntry(plotmggBkg[c]->getObject(9),"VH ","LPE"); // not...
     if (plot_singleH) legmcH->AddEntry(plotmggBkg[c]->getObject(11),"bbH ","LPE"); // not...
-    if(sigMass==0)
-      legmc->SetHeader(Form("H(b#bar{b})H(#gamma#gamma) non-res.; %s", catdesc.at(c).c_str()));
-    else
-      legmc->SetHeader(TString::Format(" m_{X} = %d GeV",sigMass));
+    latexLabel->SetTextFont(42); // helvetica
+    latexLabel->DrawLatex(0.50, 0.88, "H(b#bar{b})H(#gamma#gamma) non-res.");
+    latexLabel->DrawLatex(0.50, 0.83, catdesc.at(c).c_str());
     if (plot_singleH) legmcH->SetHeader(" Higgs");
     legmc->SetBorderSize(0);
     legmc->SetFillStyle(0);
@@ -865,17 +861,18 @@ RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
     ctmp->SetLogy(1);
     ctmp->SaveAs(TString::Format("databkgoversigMgg_cat%d_log.pdf",c));
     ctmp->SaveAs(TString::Format("databkgoversigMgg_cat%d_log.png",c));
-    // ctmp->SaveAs(TString::Format("databkgoversigMgg_cat%d.C",c));
 
     //************************************************//
     // Plot mjj background fit results per categories
     //************************************************//
     ctmp = new TCanvas(TString::Format("ctmpBkgMjj_cat%d",c),"mjj Background Categories",0,0,500,500);
-    nBinsMass = 60;
+    nBinsMass = 24;
     plotmjjBkg[c] = mjj->frame(nBinsMass);
     cout<<" here 1"<<endl;
     dataplot[c] = (RooDataSet*) w->data(TString::Format("Dataplot_cat%d",c));
     cout<<" here 1"<<endl;
+    if(c==0||c==2)plotmggBkg[c]->SetMinimum(0.005); // no error bar in bins with zero events
+    if(c==1||c==3)plotmggBkg[c]->SetMinimum(0.01); // no error bar in bins with zero events
     if(doblinding) dataplot[c]->plotOn(plotmjjBkg[c],Invisible());
     else dataplot[c]->plotOn(plotmjjBkg[c]);
     if(sigMass == 0)
@@ -890,16 +887,19 @@ RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
     }
     if(doblinding) dataplot[c]->plotOn(plotmjjBkg[c],Invisible());
     else dataplot[c]->plotOn(plotmjjBkg[c]);
-
     cout << "!!!!!!!!!!!!!!!!!" << endl;
     cout << "!!!!!!!!!!!!!!!!!" << endl; // now we fit the gaussian on signal
     //plotmjjBkg[c]->SetMinimum(0.01); // no error bar in bins with zero events
-    if(c==0||c==2)plotmjjBkg[c]->SetMinimum(0.005); // no error bar in bins with zero events
-    if(c==1||c==3)plotmjjBkg[c]->SetMinimum(0.001); // no error bar in bins with zero events
     plotmjjBkg[c]->Draw();
+    if(c==0||c==2)plotmjjBkg[c]->SetMinimum(0.005); // no error bar in bins with zero events
+    if(c==1||c==3)plotmjjBkg[c]->SetMinimum(0.01); // no error bar in bins with zero events
+    if(c==0)plotmjjBkg[c]->SetMaximum(13); // no error bar in bins with zero events
+    if(c==1)plotmjjBkg[c]->SetMaximum(22); // no error bar in bins with zero events
+    if(c==2)plotmjjBkg[c]->SetMaximum(12); // no error bar in bins with zero events
+    if(c==3)plotmjjBkg[c]->SetMaximum(35); // no error bar in bins with zero events
     //plotmjjBkg[c]->SetTitle("CMS preliminary 19.7/fb");
     //plotmjjBkg[c]->SetMinimum(0.01); // no error bar in bins with zero events
-    plotmjjBkg[c]->SetMaximum(1.40*plotmjjBkg[c]->GetMaximum());
+//    plotmjjBkg[c]->SetMaximum(1.40*plotmjjBkg[c]->GetMaximum());
     plotmjjBkg[c]->GetXaxis()->SetTitle("m_{jj} (GeV)");
     //double test = sigToFit[c]->sumEntries();
     //cout<<"number of events on dataset "<<test<<endl;
@@ -967,7 +967,9 @@ RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
       onesigma->SetMarkerColor(kGreen);
       onesigma->Draw("L3 SAME");
       plotmjjBkg[c]->Draw("SAME");
-    } else plotmjjBkg[c]->Draw("SAME"); // close dobands
+    } else {
+        plotmjjBkg[c]->Draw("SAME"); // close dobands
+    }
     //plotmjjBkg[c]->getObject(1)->Draw("SAME");
     //plotmjjBkg[c]->getObject(2)->Draw("P SAME");
     ////////////////////////////////////////////////////////// plot higgs
@@ -1038,37 +1040,25 @@ RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
     if (plot_singleH) mjjSig4[c]->plotOn(
 		       plotmjjBkg[c],
 		       Normalization(norm4,RooAbsPdf::NumEvent),LineColor(kBlue),LineStyle(1));
-
     //////////////////////////////////////////////////////////
     plotmjjBkg[c]->Draw("SAME");
-    if(c==0||c==2)plotmjjBkg[c]->SetMinimum(0.005); // no error bar in bins with zero events
-    if(c==1||c==3)plotmjjBkg[c]->SetMinimum(0.01); // no error bar in bins with zero events
-    if(c==0)plotmggBkg[c]->SetMaximum(6.5); // no error bar in bins with zero events
-    if(c==2)plotmggBkg[c]->SetMaximum(7.5); // no error bar in bins with zero events
-    if(c==1)plotmggBkg[c]->SetMaximum(15); // no error bar in bins with zero events
-    if(c==3)plotmggBkg[c]->SetMaximum(20); // no error bar in bins with zero events
-    // plotmjjBkg[c]->SetMinimum(0.005); // no error bar in bins with zero events
-    //plotmjjBkg[c]->SetLogy(0);
     cout << "!!!!!!!!!!!!!!!!!" << endl;
-    legmc = new TLegend(0.50,0.72,0.92,0.9);
+    legmc = new TLegend(0.50,0.70,0.92,0.80);
     legmc->SetNColumns(2);
     legmcH = new TLegend(0.66,0.72,0.94,0.9);
     if(doblinding) legmc->AddEntry(plotmjjBkg[c]->getObject(2),"Data ","");
     else legmc->AddEntry(plotmjjBkg[c]->getObject(2),"Data ","LPE");
-    if(dobands)legmc->AddEntry(twosigma,"Fit #pm2 sigma ","F"); // not...
-    legmc->AddEntry(plotmjjBkg[c]->getObject(1),"Background fit","L");
     if(dobands)legmc->AddEntry(onesigma,"Fit #pm1 #sigma","F");
+    legmc->AddEntry(plotmjjBkg[c]->getObject(1),"Background fit","L");
+    if(dobands)legmc->AddEntry(twosigma,"Fit #pm2 #sigma ","F"); // not...
     if (plot_singleH) legmcH->AddEntry(plotmjjBkg[c]->getObject(3),"ggH ","LPE"); // not...
     if (plot_singleH) legmcH->AddEntry(plotmjjBkg[c]->getObject(5),"ttH ","LPE"); // not...
     if (plot_singleH) legmcH->AddEntry(plotmjjBkg[c]->getObject(7),"VBF ","LPE"); // not...
     if (plot_singleH) legmcH->AddEntry(plotmjjBkg[c]->getObject(9),"VH ","LPE"); // not...
     if (plot_singleH) legmcH->AddEntry(plotmjjBkg[c]->getObject(11),"bbH ","LPE"); // not...
-    if(sigMass==0)
-//      legmc->SetHeader("H(b#bar{b})H(#gamma#gamma) non-res.");
-      legmc->SetHeader(Form("H(b#bar{b})H(#gamma#gamma) non-res.; %s", catdesc.at(c).c_str()));
-    else
-      legmc->SetHeader(TString::Format(" m_{X} = %d GeV",sigMass));
-//    legmcH->SetHeader(" Higgs");
+    latexLabel->SetTextFont(42); // helvetica
+    latexLabel->DrawLatex(0.50, 0.88, "H(b#bar{b})H(#gamma#gamma) non-res.");
+    latexLabel->DrawLatex(0.50, 0.83, catdesc.at(c).c_str());
     legmc->SetBorderSize(0);
     legmc->SetFillStyle(0);
     legmcH->SetBorderSize(0);
@@ -1086,7 +1076,6 @@ RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
     ctmp->SetLogy(1);
     ctmp->SaveAs(TString::Format("databkgoversigMjj_cat%d_log.pdf",c));
     ctmp->SaveAs(TString::Format("databkgoversigMjj_cat%d_log.png",c));
-    // ctmp->SaveAs(TString::Format("databkgoversigMjj_cat%d.C",c));
 
   } // close to each category
 
@@ -1323,12 +1312,12 @@ void MakePlots(RooWorkspace* w, Float_t Mass) {
   // Set P.D.F. parameter names
   // WARNING: Do not use it if Workspaces are created
   // SetParamNames(w);
-  Float_t minSigPlotMgg(115),maxSigPlotMgg(135);
+  Float_t minSigPlotMgg(110),maxSigPlotMgg(150);
   Float_t minSigPlotMjj(60),maxSigPlotMjj(180);
   mgg->setRange("SigPlotRange",minSigPlotMgg,maxSigPlotMgg);
   mjj->setRange("SigPlotRange",minSigPlotMjj,maxSigPlotMjj);
 //  Float_t MASS(Mass);
-  Int_t nBinsMass(20); // just need to plot
+  Int_t nBinsMass(40); // just need to plot
   RooPlot* plotmggAll = mgg->frame(Range("SigPlotRange"),Bins(nBinsMass));
   signalAll->plotOn(plotmggAll);
   gStyle->SetOptTitle(0);
@@ -1337,9 +1326,6 @@ void MakePlots(RooWorkspace* w, Float_t Mass) {
   //********************************************//
   // Plot Signal Categories
   //****************************//
-  TLatex *text = new TLatex();
-  text->SetNDC();
-  text->SetTextSize(0.04);
   RooPlot* plotmgg[ncat];
   for (int c = 0; c < ncat; ++c) {
     plotmgg[c] = mgg->frame(Range("SigPlotRange"),Bins(nBinsMass));
@@ -1366,13 +1352,13 @@ void MakePlots(RooWorkspace* w, Float_t Mass) {
     TCanvas* ctmp = new TCanvas(TString::Format("ctmpSigMgg_cat%d",c),"Background Categories",0,0,500,500);
     plotmgg[c]->Draw();
     plotmgg[c]->Draw("SAME");
-    TLegend *legmc = new TLegend(0.62,0.75,0.90,0.90);
+    TLegend *legmc = new TLegend(0.50,0.70,0.92,0.80);
     legmc->SetNColumns(2);
     legmc->AddEntry(plotmgg[c]->getObject(5),"Simulation","LPE");
     legmc->AddEntry(plotmgg[c]->getObject(2),"Gaussian","L");
-    legmc->AddEntry(plotmgg[c]->getObject(1),"Parametric Model","L");
+    legmc->AddEntry(plotmgg[c]->getObject(1),"Parametric model","L");
     legmc->AddEntry(plotmgg[c]->getObject(3),"Crystal-Ball","L");
-    legmc->SetHeader(Form("H(b#bar{b})H(#gamma#gamma) non-res.; %s", catdesc.at(c).c_str()));
+//    legmc->SetHeader(Form("H(b#bar{b})H(#gamma#gamma) non-res.; %s", catdesc.at(c).c_str()));
     legmc->SetBorderSize(0);
     legmc->SetFillStyle(0);
     legmc->Draw();
@@ -1385,6 +1371,9 @@ void MakePlots(RooWorkspace* w, Float_t Mass) {
     latexLabel->DrawLatex(0.19, 0.89, "CMS");
     latexLabel->SetTextFont(52); // helvetica italics
     latexLabel->DrawLatex(0.19, 0.85, "Simulation");
+    latexLabel->SetTextFont(42); // helvetica
+    latexLabel->DrawLatex(0.50, 0.88, "H(b#bar{b})H(#gamma#gamma) non-res.");
+    latexLabel->DrawLatex(0.50, 0.83, catdesc.at(c).c_str());
 //   TPaveText *pt = new TPaveText(0.1,0.94,0.7,0.99, "brNDC");
 //    //pt->SetName("title");
 //    pt->SetBorderSize(0);
@@ -1410,6 +1399,18 @@ void MakePlots(RooWorkspace* w, Float_t Mass) {
     latex -> SetTextFont(42);
     latex -> SetTextSize(0.04);
     //latex -> Draw("same");
+    // Remove spurious line created by I don't know what, but it is a TPaveText
+    TList *MyList = ctmp->GetListOfPrimitives();
+    TObject *obj1;
+    TIter next(MyList);
+    while(obj1=(TObject *)next()){
+//        std::cout << "object class name " << obj1->ClassName() << std::endl;
+        if (strcmp(obj1->ClassName(), "TPaveText") == 0)
+        {
+//            std::cout << "gotcha, now let's SetBorderSize(0)" << std::endl;
+            ((TPaveText*)obj1)->SetBorderSize(0);
+        }
+    }
     ctmp->SaveAs(TString::Format("sigmodelMgg_cat%d.pdf",c));
     ctmp->SaveAs(TString::Format("sigmodelMgg_cat%d.png",c));
   } // close categories
@@ -1419,13 +1420,11 @@ void MakePlots(RooWorkspace* w, Float_t Mass) {
   //********************************************//
   // Plot Signal Categories
   //****************************//
-  text = new TLatex();
-  text->SetNDC();
-  text->SetTextSize(0.04);
   RooPlot* plotmjj[ncat];
+  nBinsMass = 24;
   for (int c = 0; c < ncat; ++c) {
     plotmjj[c] = mjj->frame(Range("SigPlotRange"),Bins(nBinsMass));
-    sigToFit[c]->plotOn(plotmjj[c]);
+    sigToFit[c]->plotOn(plotmjj[c], MarkerStyle(25));
     mjjSig[c] ->plotOn(plotmjj[c]);
     double chi2n = plotmjj[c]->chiSquare(0) ;
     cout << "------------------------- Experimental chi2 = " << chi2n << endl;
@@ -1438,7 +1437,7 @@ void MakePlots(RooWorkspace* w, Float_t Mass) {
 		       Components(TString::Format("mjjCBSig_cat%d",c)),
 		       LineStyle(kDashed),LineColor(kRed));
     mjjSig[c] ->paramOn(plotmjj[c]);
-    sigToFit[c] ->plotOn(plotmjj[c]);
+    sigToFit[c] ->plotOn(plotmjj[c], MarkerStyle(25));
     // TCanvas* dummy = new TCanvas("dummy", "dummy",0, 0, 400, 400);
 //    TH1F *hist = new TH1F(TString::Format("histMjj_cat%d",c), "hist", 400, minSigPlotMjj, maxSigPlotMjj);
     //plotmjj[c]->SetTitle("CMS preliminary 19.7/fb ");
@@ -1449,12 +1448,13 @@ void MakePlots(RooWorkspace* w, Float_t Mass) {
     plotmjj[c]->Draw();
     plotmjj[c]->Draw("SAME");
     string str_desc="H(b#bar{b})H(#gamma#gamma) non-res.";
-    TLegend *legmc = new TLegend(0.62,0.75,0.90,0.90);
-    legmc->SetHeader(Form("%s; %s", str_desc.c_str(), catdesc.at(c).c_str()));
+    TLegend *legmc = new TLegend(0.50,0.70,0.92,0.80);
+//    legmc->SetHeader(Form("%s; %s", str_desc.c_str(), catdesc.at(c).c_str()));
+    legmc->SetNColumns(2);
     legmc->AddEntry(plotmjj[c]->getObject(5),"Simulation","LPE");
-    legmc->AddEntry(plotmjj[c]->getObject(1),"Parametric Model","L");
-    legmc->AddEntry(plotmjj[c]->getObject(2),"Gaussian Outliers","L");
-    legmc->AddEntry(plotmjj[c]->getObject(3),"Crystal Ball component","L");
+    legmc->AddEntry(plotmjj[c]->getObject(2),"Gaussian","L");
+    legmc->AddEntry(plotmjj[c]->getObject(1),"Parametric model","L");
+    legmc->AddEntry(plotmjj[c]->getObject(3),"Crystal-Ball","L");
     legmc->SetBorderSize(0);
     legmc->SetFillStyle(0);
     legmc->Draw();
@@ -1467,6 +1467,9 @@ void MakePlots(RooWorkspace* w, Float_t Mass) {
     latexLabel->DrawLatex(0.19, 0.89, "CMS");
     latexLabel->SetTextFont(52); // helvetica italics
     latexLabel->DrawLatex(0.19, 0.85, "Simulation");
+    latexLabel->SetTextFont(42); // helvetica
+    latexLabel->DrawLatex(0.50, 0.88, "H(b#bar{b})H(#gamma#gamma) non-res.");
+    latexLabel->DrawLatex(0.50, 0.83, catdesc.at(c).c_str());
 //    TPaveText *pt = new TPaveText(0.1,0.94,0.7,0.99, "brNDC");
 //    //pt->SetName("title");
 //    pt->SetBorderSize(0);
@@ -1494,6 +1497,18 @@ void MakePlots(RooWorkspace* w, Float_t Mass) {
     latex -> SetTextFont(42);
     latex -> SetTextSize(0.04);
     //latex -> Draw("same");
+    // Remove spurious line created by I don't know what, but it is a TPaveText
+    TList *MyList = ctmp->GetListOfPrimitives();
+    TObject *obj1;
+    TIter next(MyList);
+    while(obj1=(TObject *)next()){
+//        std::cout << "object class name " << obj1->ClassName() << std::endl;
+        if (strcmp(obj1->ClassName(), "TPaveText") == 0)
+        {
+//            std::cout << "gotcha, now let's SetBorderSize(0)" << std::endl;
+            ((TPaveText*)obj1)->SetBorderSize(0);
+        }
+    }
     ctmp->SaveAs(TString::Format("sigmodelMjj_cat%d.pdf",c));
     ctmp->SaveAs(TString::Format("sigmodelMjj_cat%d.png",c));
   } // close categories
@@ -1578,9 +1593,6 @@ void MakePlotsHiggs(RooWorkspace* w, Float_t Mass) {
     //********************************************//
     // Plot Signal Categories
     //****************************//
-    TLatex *text = new TLatex();
-    text->SetNDC();
-    text->SetTextSize(0.04);
     RooPlot* plotmgg[ncat];
 
     for (int c = 0; c < ncat; ++c) {
@@ -1660,9 +1672,6 @@ void MakePlotsHiggs(RooWorkspace* w, Float_t Mass) {
     //********************************************//
     // Plot Signal Categories
     //****************************//
-    text = new TLatex();
-    text->SetNDC();
-    text->SetTextSize(0.04);
     RooPlot* plotmjj[ncat];
 
     for (int c = 0; c < ncat; ++c) {
