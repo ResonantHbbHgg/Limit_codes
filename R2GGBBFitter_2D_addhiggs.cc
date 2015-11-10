@@ -842,7 +842,7 @@ RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
     if (plot_singleH) legmcH->AddEntry(plotmggBkg[c]->getObject(11),"bbH ","LPE"); // not...
     latexLabel->SetTextFont(42); // helvetica
     latexLabel->SetTextSize(0.6 * ctmp->GetTopMargin());
-    latexLabel->DrawLatex(0.50, 0.88, "H(b#bar{b})H(#gamma#gamma) non-resonant");
+    latexLabel->DrawLatex(0.50, 0.88, "H(b#bar{b})H(#gamma#gamma) nonresonant");
     latexLabel->DrawLatex(0.50, 0.83, catdesc.at(c).c_str());
     if (plot_singleH) legmcH->SetHeader(" Higgs");
     legmc->SetBorderSize(0);
@@ -1059,7 +1059,7 @@ RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
     if (plot_singleH) legmcH->AddEntry(plotmjjBkg[c]->getObject(11),"bbH ","LPE"); // not...
     latexLabel->SetTextFont(42); // helvetica
     latexLabel->SetTextSize(0.6 * ctmp->GetTopMargin());
-    latexLabel->DrawLatex(0.50, 0.88, "H(b#bar{b})H(#gamma#gamma) non-resonant");
+    latexLabel->DrawLatex(0.50, 0.88, "H(b#bar{b})H(#gamma#gamma) nonresonant");
     latexLabel->DrawLatex(0.50, 0.83, catdesc.at(c).c_str());
     legmc->SetBorderSize(0);
     legmc->SetFillStyle(0);
@@ -1376,7 +1376,7 @@ void MakePlots(RooWorkspace* w, Float_t Mass) {
     latexLabel->DrawLatex(0.19, 0.85, "Simulation");
     latexLabel->SetTextFont(42); // helvetica
     latexLabel->SetTextSize(0.6 * ctmp->GetTopMargin());
-    latexLabel->DrawLatex(0.50, 0.88, "H(b#bar{b})H(#gamma#gamma) non-resonant");
+    latexLabel->DrawLatex(0.50, 0.88, "H(b#bar{b})H(#gamma#gamma) nonresonant");
     latexLabel->DrawLatex(0.50, 0.83, catdesc.at(c).c_str());
 //   TPaveText *pt = new TPaveText(0.1,0.94,0.7,0.99, "brNDC");
 //    //pt->SetName("title");
@@ -1474,7 +1474,7 @@ void MakePlots(RooWorkspace* w, Float_t Mass) {
     latexLabel->DrawLatex(0.19, 0.85, "Simulation");
     latexLabel->SetTextFont(42); // helvetica
     latexLabel->SetTextSize(0.6 * ctmp->GetTopMargin());
-    latexLabel->DrawLatex(0.50, 0.88, "H(b#bar{b})H(#gamma#gamma) non-resonant");
+    latexLabel->DrawLatex(0.50, 0.88, "H(b#bar{b})H(#gamma#gamma) nonresonant");
     latexLabel->DrawLatex(0.50, 0.83, catdesc.at(c).c_str());
 //    TPaveText *pt = new TPaveText(0.1,0.94,0.7,0.99, "brNDC");
 //    //pt->SetName("title");
