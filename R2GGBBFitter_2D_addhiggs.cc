@@ -841,7 +841,8 @@ RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
     if (plot_singleH) legmcH->AddEntry(plotmggBkg[c]->getObject(9),"VH ","LPE"); // not...
     if (plot_singleH) legmcH->AddEntry(plotmggBkg[c]->getObject(11),"bbH ","LPE"); // not...
     latexLabel->SetTextFont(42); // helvetica
-    latexLabel->DrawLatex(0.50, 0.88, "H(b#bar{b})H(#gamma#gamma) non-res.");
+    latexLabel->SetTextSize(0.6 * ctmp->GetTopMargin());
+    latexLabel->DrawLatex(0.50, 0.88, "H(b#bar{b})H(#gamma#gamma) non-resonant");
     latexLabel->DrawLatex(0.50, 0.83, catdesc.at(c).c_str());
     if (plot_singleH) legmcH->SetHeader(" Higgs");
     legmc->SetBorderSize(0);
@@ -1057,7 +1058,8 @@ RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
     if (plot_singleH) legmcH->AddEntry(plotmjjBkg[c]->getObject(9),"VH ","LPE"); // not...
     if (plot_singleH) legmcH->AddEntry(plotmjjBkg[c]->getObject(11),"bbH ","LPE"); // not...
     latexLabel->SetTextFont(42); // helvetica
-    latexLabel->DrawLatex(0.50, 0.88, "H(b#bar{b})H(#gamma#gamma) non-res.");
+    latexLabel->SetTextSize(0.6 * ctmp->GetTopMargin());
+    latexLabel->DrawLatex(0.50, 0.88, "H(b#bar{b})H(#gamma#gamma) non-resonant");
     latexLabel->DrawLatex(0.50, 0.83, catdesc.at(c).c_str());
     legmc->SetBorderSize(0);
     legmc->SetFillStyle(0);
@@ -1349,6 +1351,7 @@ void MakePlots(RooWorkspace* w, Float_t Mass) {
     plotmgg[c]->SetMinimum(0.0);
     plotmgg[c]->SetMaximum(1.40*plotmgg[c]->GetMaximum());
     plotmgg[c]->GetXaxis()->SetTitle("m_{#gamma#gamma} (GeV)");
+    plotmgg[c]->SetYTitle("Norm. to unity / (1 GeV)");
     TCanvas* ctmp = new TCanvas(TString::Format("ctmpSigMgg_cat%d",c),"Background Categories",0,0,500,500);
     plotmgg[c]->Draw();
     plotmgg[c]->Draw("SAME");
@@ -1372,7 +1375,8 @@ void MakePlots(RooWorkspace* w, Float_t Mass) {
     latexLabel->SetTextFont(52); // helvetica italics
     latexLabel->DrawLatex(0.19, 0.85, "Simulation");
     latexLabel->SetTextFont(42); // helvetica
-    latexLabel->DrawLatex(0.50, 0.88, "H(b#bar{b})H(#gamma#gamma) non-res.");
+    latexLabel->SetTextSize(0.6 * ctmp->GetTopMargin());
+    latexLabel->DrawLatex(0.50, 0.88, "H(b#bar{b})H(#gamma#gamma) non-resonant");
     latexLabel->DrawLatex(0.50, 0.83, catdesc.at(c).c_str());
 //   TPaveText *pt = new TPaveText(0.1,0.94,0.7,0.99, "brNDC");
 //    //pt->SetName("title");
@@ -1444,6 +1448,7 @@ void MakePlots(RooWorkspace* w, Float_t Mass) {
     plotmjj[c]->SetMinimum(0.0);
     plotmjj[c]->SetMaximum(1.40*plotmjj[c]->GetMaximum());
     plotmjj[c]->GetXaxis()->SetTitle("m_{jj} (GeV)");
+    plotmjj[c]->SetYTitle("Norm. to unity / (5 GeV)");
     TCanvas* ctmp = new TCanvas(TString::Format("ctmpSigMjj_cat%d",c),"Background Categories",0,0,500,500);
     plotmjj[c]->Draw();
     plotmjj[c]->Draw("SAME");
@@ -1468,7 +1473,8 @@ void MakePlots(RooWorkspace* w, Float_t Mass) {
     latexLabel->SetTextFont(52); // helvetica italics
     latexLabel->DrawLatex(0.19, 0.85, "Simulation");
     latexLabel->SetTextFont(42); // helvetica
-    latexLabel->DrawLatex(0.50, 0.88, "H(b#bar{b})H(#gamma#gamma) non-res.");
+    latexLabel->SetTextSize(0.6 * ctmp->GetTopMargin());
+    latexLabel->DrawLatex(0.50, 0.88, "H(b#bar{b})H(#gamma#gamma) non-resonant");
     latexLabel->DrawLatex(0.50, 0.83, catdesc.at(c).c_str());
 //    TPaveText *pt = new TPaveText(0.1,0.94,0.7,0.99, "brNDC");
 //    //pt->SetName("title");
