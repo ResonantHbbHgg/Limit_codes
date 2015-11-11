@@ -49,7 +49,7 @@ void runfits(const Float_t mass=120, Int_t mode=1, Bool_t dobands = false)
   style();
   TString fileBaseName(TString::Format("hgghbb.mH%.1f_8TeV", mass));
   TString fileBkgName(TString::Format("hgghbb.inputbkg_8TeV", mass));
-  TString card_name("models_mtot_range_m400.rs"); // fit model parameters to kinfit
+  TString card_name("models_mtot_range_m550.rs"); // fit model parameters to kinfit
 //  TString card_name("models_mtot_range.rs"); // fit model parameters no kinfit
   // declare a first WS
   HLFactory hlf("HLFactory", card_name, false);
@@ -57,11 +57,11 @@ void runfits(const Float_t mass=120, Int_t mode=1, Bool_t dobands = false)
   RooFitResult* fitresults;
 
   //PAS limit trees
-  //  TString ssignal = "/afs/cern.ch/work/o/obondu/public/forRadion/limitTrees/v28/v28_fitToMggjj_withKinFit/Radion_m400_8TeV_m400.root";
+  //  TString ssignal = "/afs/cern.ch/work/o/obondu/public/forRadion/limitTrees/v28/v28_fitToMggjj_withKinFit/Radion_m550_8TeV_m550.root";
   //  TString ddata = "/afs/cern.ch/work/o/obondu/public/forRadion/limitTrees/v28/v28_fitToMggjj_withKinFit/Data_m500.root";
 
   TString ddata = "/afs/cern.ch/work/o/obondu/public/forRadion/limitTrees/v44/v44_fitToMggjj_withKinFit/Data_m400.root";
-  TString ssignal = "/afs/cern.ch/work/o/obondu/public/forRadion/limitTrees/v44/v44_fitToMggjj_withKinFit/Radion_m400_8TeV_m400.root";
+  TString ssignal = "/afs/cern.ch/work/o/obondu/public/forRadion/limitTrees/v44/v44_fitToMggjj_withKinFit/Radion_m550_8TeV_m550.root";
 
   //
   cout<<"Signal: "<< ssignal<<endl;
@@ -282,8 +282,7 @@ w->factory(TString::Format("mtot_bkg_8TeV_norm_cat%d[1.0,0.0,100000]",c)); // is
    //************************************************//
    TCanvas* ctmp = new TCanvas(TString::Format("ctmpBkg_cat%d",c),"mtot Background Categories",0,0,501,501);
     ctmp->cd();
-   int binning; if(c==0) binning=22; else binning = 22;
-   Int_t nBinsMass(binning);
+   Int_t nBinsMass(44);
    plotmtotBkg[c] = mtot->frame(minfit,maxfit,nBinsMass);
    //plotlinemtotBkg[c] = mtot->frame(nBinsMass);
    dataplot[c] = (RooDataSet*) w->data(TString::Format("Dataplot_cat%d",c));
@@ -359,8 +358,8 @@ w->factory(TString::Format("mtot_bkg_8TeV_norm_cat%d[1.0,0.0,100000]",c)); // is
     else dataplot[c]->plotOn(plotmtotBkg[c]);
    plotmtotBkg[c]->Draw("SAME");
    plotmtotBkg[c]->GetYaxis()->SetRangeUser(0.0000001,10);
-    if(c==0) plotmtotBkg[c]->SetMaximum(4.5);
-    if (c==1) plotmtotBkg[c]->SetMaximum(20);
+    if(c==0) plotmtotBkg[c]->SetMaximum(5.5);
+    if (c==1) plotmtotBkg[c]->SetMaximum(13);
     plotmtotBkg[c]->GetXaxis()->SetTitle("m_{#gamma#gammajj}^{kin} (GeV)");
   // plotmtotBkg[c]->Draw("AC");
     //////////////////////////////////////////////////////////////////
@@ -371,26 +370,38 @@ w->factory(TString::Format("mtot_bkg_8TeV_norm_cat%d[1.0,0.0,100000]",c)); // is
    //   pt->SetShadowColor(kWhite);
    pt->AddText("               CMS Preliminary     L = 19.7 fb^{-1}    #sqrt{s} = 8 TeV   ");
    pt->SetTextSize(0.04);
-   pt->Draw();
+//   pt->Draw();
+   TLatex *latexLabel = new TLatex();
+    latexLabel->SetTextSize(0.75 * ctmp->GetTopMargin());
+    latexLabel->SetNDC();
+    latexLabel->SetTextFont(42); // helvetica
+    latexLabel->DrawLatex(0.72, 0.96, "19.7 fb^{-1} (8 TeV)");
+    latexLabel->SetTextFont(61); // helvetica bold face
+    latexLabel->DrawLatex(0.19, 0.89, "CMS");
     ////////////////////////////////////////////////////////////////////
    ctmp->SetLogy(0);
 //   ctmp->SetGrid(0);
    cout << "!!!!!!!!!!!!!!!!!" << endl;
 
-    TLegend *legmc = new TLegend(0.6,0.7,0.9,0.9);
+    TLegend *legmc = new TLegend(0.50,0.70,0.92,0.80);
+    legmc->SetNColumns(2);
     if(doblinding) legmc->AddEntry(plotmtotBkg[c]->getObject(3),"Data ","");
     else legmc->AddEntry(plotmtotBkg[c]->getObject(3),"Data ","LPE");
-    legmc->AddEntry(plotmtotBkg[c]->getObject(1),"Fit","L");
     if(dobands)legmc->AddEntry(onesigma,"Fit #pm1 #sigma","F");
+    legmc->AddEntry(plotmtotBkg[c]->getObject(1), "Background fit","L");
     if(dobands)legmc->AddEntry(twosigma,"Fit #pm2 #sigma","F");
-    //legmc->SetHeader("m_{X} = 400 GeV");
+    //legmc->SetHeader("m_{X} = 550 GeV");
     legmc->SetBorderSize(0);
     legmc->SetFillStyle(0);
     legmc->Draw();
+    latexLabel->SetTextFont(42); // helvetica
+    latexLabel->SetTextSize(0.6 * ctmp->GetTopMargin());
+    latexLabel->DrawLatex(0.50, 0.88, "X#rightarrow H(b#bar{b})H(#gamma#gamma)");
+    latexLabel->DrawLatex(0.50, 0.83, catdesc.at(c));
     TLatex *lat1 = new TLatex(minfit+43.0,0.91*plotmtotBkg[c]->GetMaximum(),"X#rightarrowHH#rightarrow#gamma#gammab#bar{b}");
-    lat1->Draw();
+//    lat1->Draw();
     TLatex *lat2 = new TLatex(minfit+43.0,0.81*plotmtotBkg[c]->GetMaximum(),catdesc.at(c));
-    lat2->Draw();
+//    lat2->Draw();
 
     ctmp->SaveAs(TString::Format("databkgoversig_cat%d.pdf",c));
   cout<<"here 2 "<< c<<endl;
@@ -557,10 +568,11 @@ void MakePlots(RooWorkspace* w, Float_t Mass, RooFitResult* fitresults) {
   //text->SetNDC();
   //text->SetTextSize(0.04);
   RooPlot* plotmtot[ncat];
+  Int_t nBinsMass(24);
   for (int c = 0; c < ncat; ++c) {
     if(c==0)plotmtot[c] = mtot->frame(Range(minMassFit,maxMassFit),Bins(nBinsMass));
     if(c==1)plotmtot[c] = mtot->frame(Range(minMassFit,maxMassFit),Bins(nBinsMass));
-    sigToFit[c]->plotOn(plotmtot[c]);
+    sigToFit[c]->plotOn(plotmtot[c], MarkerStyle(25));
     mtotSig[c] ->plotOn(plotmtot[c]);
     double chi2n = plotmtot[c]->chiSquare(0) ;
     cout << "------------------------- Experimentakl chi2 = " << chi2n << endl;
@@ -573,7 +585,7 @@ void MakePlots(RooWorkspace* w, Float_t Mass, RooFitResult* fitresults) {
         Components(TString::Format("mtotCBSig_cat%d",c)),
         LineStyle(kDashed),LineColor(kRed));
     //mtotSig[c] ->paramOn(plotmtot[c]);
-    sigToFit[c] ->plotOn(plotmtot[c]);
+    sigToFit[c] ->plotOn(plotmtot[c], MarkerStyle(25));
 //    TCanvas* dummy = new TCanvas("dummy", "dummy",0, 0, 450, 450);
     //TH1F *hist = new TH1F("hist", "hist", 450, minMassFit, maxMassFit);
     TCanvas* ctmp = new TCanvas(TString::Format("ctmpSig_cat%d",c),"Background Categories",0,0,501,501);
@@ -584,14 +596,16 @@ void MakePlots(RooWorkspace* w, Float_t Mass, RooFitResult* fitresults) {
     plotmtot[c]->SetMinimum(0.0);
     plotmtot[c]->SetMaximum(1.40*plotmtot[c]->GetMaximum());
     plotmtot[c]->GetXaxis()->SetTitle("m_{#gamma#gammajj}^{kin} (GeV)");
-
+    plotmtot[c]->SetYTitle("Norm. to unity / (10 GeV)");
 
     plotmtot[c]->Draw("SAME");
-    TLegend *legmc = new TLegend(0.58,0.7,0.95,0.9);
-    legmc->AddEntry(plotmtot[c]->getObject(5),"Simulation","LPE");
+    TLegend *legmc = new TLegend(0.50,0.70,0.92,0.80);
+    legmc->SetNColumns(2);
+    std::cout << "plotmtot[c]->getObject(0)= " << plotmtot[c]->getObject(0) << std::endl;
+    legmc->AddEntry(plotmtot[c]->getObject(0),"Simulation","LPE");
+    legmc->AddEntry(plotmtot[c]->getObject(2),"Gaussian ","L");
     legmc->AddEntry(plotmtot[c]->getObject(1),"Parametric Model","L");
     legmc->AddEntry(plotmtot[c]->getObject(3),"Crystal Ball ","L");
-    legmc->AddEntry(plotmtot[c]->getObject(2),"Gaussian ","L");
     //legmc->SetHeader(" ");
     legmc->SetBorderSize(0);
     legmc->SetFillStyle(0);
@@ -600,14 +614,14 @@ void MakePlots(RooWorkspace* w, Float_t Mass, RooFitResult* fitresults) {
     TLatex *lat = new TLatex(
         minMassFit+10.5,0.91*plotmtot[c]->GetMaximum(),
         "X#rightarrowHH#rightarrow#gamma#gammab#bar{b}");
-    lat->Draw();
+//    lat->Draw();
     TLatex *lat2 = new TLatex(
         minMassFit+10.5,0.81*plotmtot[c]->GetMaximum(),
-        "m_{X} = 400 GeV");
-    lat2->Draw();
+        "m_{X} = 550 GeV");
+//    lat2->Draw();
     TLatex *lat2 = new TLatex(
         minMassFit+10.5,0.71*plotmtot[c]->GetMaximum(),catdesc.at(c));
-    lat2->Draw();
+//    lat2->Draw();
 
  
   TPaveText *pt = new TPaveText(0.2,0.93,0.8,0.99, "brNDC");
@@ -617,8 +631,22 @@ void MakePlots(RooWorkspace* w, Float_t Mass, RooFitResult* fitresults) {
    //   pt->SetShadowColor(kWhite);
    pt->AddText("               CMS Preliminary     L = 19.7 fb^{-1}    #sqrt{s} = 8 TeV   ");
    pt->SetTextSize(0.04);
-   pt->Draw();
+//   pt->Draw();
+   TLatex *latexLabel = new TLatex();
+    latexLabel->SetTextSize(0.75 * ctmp->GetTopMargin());
+    latexLabel->SetNDC();
+    latexLabel->SetTextFont(42); // helvetica
+    latexLabel->DrawLatex(0.87, 0.96, "8 TeV");
+    latexLabel->SetTextFont(61); // helvetica bold face
+    latexLabel->DrawLatex(0.19, 0.89, "CMS");
+    latexLabel->SetTextFont(52); // helvetica italics
+    latexLabel->DrawLatex(0.19, 0.85, "Simulation");
+    latexLabel->SetTextFont(42); // helvetica
+    latexLabel->SetTextSize(0.6 * ctmp->GetTopMargin());
+    latexLabel->DrawLatex(0.50, 0.88, "X #rightarrow H(b#bar{b})H(#gamma#gamma), m_{X} = 550 GeV");
+    latexLabel->DrawLatex(0.50, 0.83, catdesc.at(c));
  
+
    ctmp->SaveAs(TString::Format("sigmodel_cat%d.pdf",c));
    ctmp->SaveAs(TString::Format("sigmodel_cat%d.png",c));
    ctmp->SaveAs(TString::Format("sigmodel_cat%d.root",c));
@@ -856,46 +884,60 @@ cout<<"here"<<endl;
 
 void style(){
   TStyle *defaultStyle = new TStyle("defaultStyle","Default Style");
-//  defaultStyle->SetOptStat(0000);
-//  defaultStyle->SetOptFit(000); 
-//  defaultStyle->SetPalette(1);
+  defaultStyle->SetOptStat(0000);
+  defaultStyle->SetOptFit(000); 
+  defaultStyle->SetPalette(1);
   /////// pad ////////////
   defaultStyle->SetPadBorderMode(1);
   defaultStyle->SetPadBorderSize(1);
   defaultStyle->SetPadColor(0);
-  defaultStyle->SetPadTopMargin(0.08);
-  defaultStyle->SetPadBottomMargin(0.15);
-  defaultStyle->SetPadLeftMargin(0.20);
-  defaultStyle->SetPadRightMargin(0.06);
+  defaultStyle->SetPadTopMargin(0.05);
+  defaultStyle->SetPadBottomMargin(0.13);
+  defaultStyle->SetPadLeftMargin(0.15);
+  defaultStyle->SetPadRightMargin(0.04);
   /////// canvas /////////
   defaultStyle->SetCanvasBorderMode(0);
   defaultStyle->SetCanvasColor(0);
+  defaultStyle->SetCanvasDefH(600);
+  defaultStyle->SetCanvasDefW(600);
   /////// frame //////////
   defaultStyle->SetFrameBorderMode(0);
   defaultStyle->SetFrameBorderSize(1);
   defaultStyle->SetFrameFillColor(0); 
   defaultStyle->SetFrameLineColor(1);
   /////// label //////////
+  defaultStyle->SetLabelOffset(0.005,"XY");
   defaultStyle->SetLabelSize(0.05,"XY");
   defaultStyle->SetLabelFont(42,"XY");
   /////// title //////////
+  defaultStyle->SetTitleOffset(1.1,"X");
+  defaultStyle->SetTitleSize(0.01,"X");
+  defaultStyle->SetTitleOffset(1.10,"Y");
+  defaultStyle->SetTitleSize(0.05,"Y");
   defaultStyle->SetTitleFont(42, "XYZ");
   /////// various ////////
-  defaultStyle->SetNdivisions(303,"Y");
+  defaultStyle->SetNdivisions(505,"Y");
+  defaultStyle->SetLegendBorderSize(0); // For the axis titles:
 
+  defaultStyle->SetTitleColor(1, "XYZ");
+  defaultStyle->SetTitleFont(42, "XYZ");
   defaultStyle->SetTitleSize(0.06, "XYZ");
- 
+  defaultStyle->SetTitleXOffset(0.9);
+  defaultStyle->SetTitleYOffset(1.05);
   
   // For the axis labels:
   defaultStyle->SetLabelColor(1, "XYZ");
   defaultStyle->SetLabelFont(42, "XYZ");
-  
-  defaultStyle->SetLabelSize(0.045, "XYZ");
+  defaultStyle->SetLabelOffset(0.007, "XYZ");
+  defaultStyle->SetLabelSize(0.04, "XYZ");
 
   // For the axis:
+    defaultStyle->SetAxisColor(1, "XYZ");
     defaultStyle->SetStripDecimals(kTRUE);
     defaultStyle->SetTickLength(0.03, "XYZ");
     defaultStyle->SetNdivisions(510, "XYZ");
+    defaultStyle->SetPadTickX(1);
+    defaultStyle->SetPadTickY(1);
     defaultStyle->cd();
   return;
 }
