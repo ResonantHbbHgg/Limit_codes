@@ -49,7 +49,7 @@ void runfits(const Float_t mass=120, Int_t mode=1, Bool_t dobands = false)
   style();
   TString fileBaseName(TString::Format("hgghbb.mH%.1f_8TeV", mass));
   TString fileBkgName(TString::Format("hgghbb.inputbkg_8TeV", mass));
-  TString card_name("models_mtot_range_m1100.rs"); // fit model parameters to kinfit
+  TString card_name("models_mtot_range_m550.rs"); // fit model parameters to kinfit
 //  TString card_name("models_mtot_range.rs"); // fit model parameters no kinfit
   // declare a first WS
   HLFactory hlf("HLFactory", card_name, false);
@@ -57,11 +57,11 @@ void runfits(const Float_t mass=120, Int_t mode=1, Bool_t dobands = false)
   RooFitResult* fitresults;
 
   //PAS limit trees
-  //  TString ssignal = "/afs/cern.ch/work/o/obondu/public/forRadion/limitTrees/v28/v28_fitToMggjj_withKinFit/Radion_m1100_8TeV_m1100.root";
+  //  TString ssignal = "/afs/cern.ch/work/o/obondu/public/forRadion/limitTrees/v28/v28_fitToMggjj_withKinFit/Radion_m550_8TeV_m550.root";
   //  TString ddata = "/afs/cern.ch/work/o/obondu/public/forRadion/limitTrees/v28/v28_fitToMggjj_withKinFit/Data_m500.root";
 
   TString ddata = "/afs/cern.ch/work/o/obondu/public/forRadion/limitTrees/v44/v44_fitToMggjj_withKinFit/Data_m400.root";
-  TString ssignal = "/afs/cern.ch/work/o/obondu/public/forRadion/limitTrees/v44/v44_fitToMggjj_withKinFit/Radion_m1100_8TeV_m1100.root";
+  TString ssignal = "/afs/cern.ch/work/o/obondu/public/forRadion/limitTrees/v44/v44_fitToMggjj_withKinFit/Radion_m550_8TeV_m550.root";
 
   //
   cout<<"Signal: "<< ssignal<<endl;
@@ -390,7 +390,7 @@ w->factory(TString::Format("mtot_bkg_8TeV_norm_cat%d[1.0,0.0,100000]",c)); // is
     if(dobands)legmc->AddEntry(onesigma,"Fit #pm1 #sigma","F");
     legmc->AddEntry(plotmtotBkg[c]->getObject(1), "Background fit","L");
     if(dobands)legmc->AddEntry(twosigma,"Fit #pm2 #sigma","F");
-    //legmc->SetHeader("m_{X} = 1100 GeV");
+    //legmc->SetHeader("m_{X} = 550 GeV");
     legmc->SetBorderSize(0);
     legmc->SetFillStyle(0);
     legmc->Draw();
@@ -596,7 +596,7 @@ void MakePlots(RooWorkspace* w, Float_t Mass, RooFitResult* fitresults) {
     plotmtot[c]->SetMinimum(0.0);
     plotmtot[c]->SetMaximum(1.40*plotmtot[c]->GetMaximum());
     plotmtot[c]->GetXaxis()->SetTitle("m_{#gamma#gammajj}^{kin} (GeV)");
-
+    plotmtot[c]->SetYTitle("Norm. to unity / (10 GeV)");
 
     plotmtot[c]->Draw("SAME");
     TLegend *legmc = new TLegend(0.50,0.70,0.92,0.80);
@@ -617,7 +617,7 @@ void MakePlots(RooWorkspace* w, Float_t Mass, RooFitResult* fitresults) {
 //    lat->Draw();
     TLatex *lat2 = new TLatex(
         minMassFit+10.5,0.81*plotmtot[c]->GetMaximum(),
-        "m_{X} = 1100 GeV");
+        "m_{X} = 550 GeV");
 //    lat2->Draw();
     TLatex *lat2 = new TLatex(
         minMassFit+10.5,0.71*plotmtot[c]->GetMaximum(),catdesc.at(c));
@@ -636,14 +636,14 @@ void MakePlots(RooWorkspace* w, Float_t Mass, RooFitResult* fitresults) {
     latexLabel->SetTextSize(0.75 * ctmp->GetTopMargin());
     latexLabel->SetNDC();
     latexLabel->SetTextFont(42); // helvetica
-    latexLabel->DrawLatex(0.72, 0.96, "8 TeV");
+    latexLabel->DrawLatex(0.87, 0.96, "8 TeV");
     latexLabel->SetTextFont(61); // helvetica bold face
     latexLabel->DrawLatex(0.19, 0.89, "CMS");
     latexLabel->SetTextFont(52); // helvetica italics
     latexLabel->DrawLatex(0.19, 0.85, "Simulation");
     latexLabel->SetTextFont(42); // helvetica
     latexLabel->SetTextSize(0.6 * ctmp->GetTopMargin());
-    latexLabel->DrawLatex(0.50, 0.88, "X #rightarrow H(b#bar{b})H(#gamma#gamma), m_{X} = 1100 GeV");
+    latexLabel->DrawLatex(0.50, 0.88, "X #rightarrow H(b#bar{b})H(#gamma#gamma), m_{X} = 550 GeV");
     latexLabel->DrawLatex(0.50, 0.83, catdesc.at(c));
  
 

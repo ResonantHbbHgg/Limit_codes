@@ -842,7 +842,8 @@ RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
     if (plot_singleH) legmcH->AddEntry(plotmggBkg[c]->getObject(11),"bbH ","LPE"); // not...
     latexLabel->SetTextFont(42); // helvetica
     latexLabel->SetTextSize(0.6 * ctmp->GetTopMargin());
-    latexLabel->DrawLatex(0.50, 0.88, "H(b#bar{b})H(#gamma#gamma) nonresonant");
+    if (sigMass == 0) latexLabel->DrawLatex(0.50, 0.88, "H(b#bar{b})H(#gamma#gamma) nonresonant");
+    else latexLabel->DrawLatex(0.50, 0.88, Form("X #rightarrow H(b#bar{b})H(#gamma#gamma), m_{X} = %i GeV", sigMass));
     latexLabel->DrawLatex(0.50, 0.83, catdesc.at(c).c_str());
     if (plot_singleH) legmcH->SetHeader(" Higgs");
     legmc->SetBorderSize(0);
@@ -901,7 +902,8 @@ RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
     //plotmjjBkg[c]->SetTitle("CMS preliminary 19.7/fb");
     //plotmjjBkg[c]->SetMinimum(0.01); // no error bar in bins with zero events
 //    plotmjjBkg[c]->SetMaximum(1.40*plotmjjBkg[c]->GetMaximum());
-    plotmjjBkg[c]->GetXaxis()->SetTitle("m_{jj} (GeV)");
+    if (sigMass == 0) plotmjjBkg[c]->GetXaxis()->SetTitle("m_{jj} (GeV)");
+    else plotmjjBkg[c]->GetXaxis()->SetTitle("m_{jj}^{r} (GeV)");
     //double test = sigToFit[c]->sumEntries();
     //cout<<"number of events on dataset "<<test<<endl;
 //    pt = new TPaveText(0.1,0.94,0.9,0.99, "brNDC");
@@ -1059,7 +1061,8 @@ RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
     if (plot_singleH) legmcH->AddEntry(plotmjjBkg[c]->getObject(11),"bbH ","LPE"); // not...
     latexLabel->SetTextFont(42); // helvetica
     latexLabel->SetTextSize(0.6 * ctmp->GetTopMargin());
-    latexLabel->DrawLatex(0.50, 0.88, "H(b#bar{b})H(#gamma#gamma) nonresonant");
+    if (sigMass == 0) latexLabel->DrawLatex(0.50, 0.88, "H(b#bar{b})H(#gamma#gamma) nonresonant");
+    else latexLabel->DrawLatex(0.50, 0.88, Form("X #rightarrow H(b#bar{b})H(#gamma#gamma), m_{X} = %i GeV", sigMass));
     latexLabel->DrawLatex(0.50, 0.83, catdesc.at(c).c_str());
     legmc->SetBorderSize(0);
     legmc->SetFillStyle(0);
@@ -1376,7 +1379,8 @@ void MakePlots(RooWorkspace* w, Float_t Mass) {
     latexLabel->DrawLatex(0.19, 0.85, "Simulation");
     latexLabel->SetTextFont(42); // helvetica
     latexLabel->SetTextSize(0.6 * ctmp->GetTopMargin());
-    latexLabel->DrawLatex(0.50, 0.88, "H(b#bar{b})H(#gamma#gamma) nonresonant");
+    if (sigMass == 0) latexLabel->DrawLatex(0.50, 0.88, "H(b#bar{b})H(#gamma#gamma) nonresonant");
+    else latexLabel->DrawLatex(0.50, 0.88, Form("X #rightarrow H(b#bar{b})H(#gamma#gamma), m_{X} = %i GeV", sigMass));
     latexLabel->DrawLatex(0.50, 0.83, catdesc.at(c).c_str());
 //   TPaveText *pt = new TPaveText(0.1,0.94,0.7,0.99, "brNDC");
 //    //pt->SetName("title");
@@ -1447,7 +1451,8 @@ void MakePlots(RooWorkspace* w, Float_t Mass) {
     //plotmjj[c]->SetTitle("CMS preliminary 19.7/fb ");
     plotmjj[c]->SetMinimum(0.0);
     plotmjj[c]->SetMaximum(1.40*plotmjj[c]->GetMaximum());
-    plotmjj[c]->GetXaxis()->SetTitle("m_{jj} (GeV)");
+    if (sigMass == 0) plotmjj[c]->GetXaxis()->SetTitle("m_{jj} (GeV)");
+    else plotmjj[c]->GetXaxis()->SetTitle("m_{jj}^{r} (GeV)");
     plotmjj[c]->SetYTitle("Norm. to unity / (5 GeV)");
     TCanvas* ctmp = new TCanvas(TString::Format("ctmpSigMjj_cat%d",c),"Background Categories",0,0,500,500);
     plotmjj[c]->Draw();
@@ -1474,7 +1479,8 @@ void MakePlots(RooWorkspace* w, Float_t Mass) {
     latexLabel->DrawLatex(0.19, 0.85, "Simulation");
     latexLabel->SetTextFont(42); // helvetica
     latexLabel->SetTextSize(0.6 * ctmp->GetTopMargin());
-    latexLabel->DrawLatex(0.50, 0.88, "H(b#bar{b})H(#gamma#gamma) nonresonant");
+    if (sigMass == 0) latexLabel->DrawLatex(0.50, 0.88, "H(b#bar{b})H(#gamma#gamma) nonresonant");
+    else latexLabel->DrawLatex(0.50, 0.88, Form("X #rightarrow H(b#bar{b})H(#gamma#gamma), m_{X} = %i GeV", sigMass));
     latexLabel->DrawLatex(0.50, 0.83, catdesc.at(c).c_str());
 //    TPaveText *pt = new TPaveText(0.1,0.94,0.7,0.99, "brNDC");
 //    //pt->SetName("title");
@@ -1702,7 +1708,8 @@ void MakePlotsHiggs(RooWorkspace* w, Float_t Mass) {
          //plotmjj[c]->SetTitle("CMS preliminary 19.7/fb ");
          plotmjj[c]->SetMinimum(0.0);
          plotmjj[c]->SetMaximum(1.40*plotmjj[c]->GetMaximum());
-         plotmjj[c]->GetXaxis()->SetTitle("m_{jj} (GeV)");
+         if (sigMass == 0) plotmjj[c]->GetXaxis()->SetTitle("m_{jj} (GeV)");
+         else plotmjj[c]->GetXaxis()->SetTitle("m_{jj}^{r} (GeV)");
          TCanvas* ctmp = new TCanvas(TString::Format("ctmpHigMjj_%d_cat_%d",d,c),"Background Categories",0,0,500,500);
          plotmjj[c]->Draw();
          plotmjj[c]->Draw("SAME");
@@ -1760,7 +1767,8 @@ void MakePlotsHiggs(RooWorkspace* w, Float_t Mass) {
          //plotmjj[c]->SetTitle("CMS preliminary 19.7/fb ");
          plotmjj[c]->SetMinimum(0.0);
          plotmjj[c]->SetMaximum(1.40*plotmjj[c]->GetMaximum());
-         plotmjj[c]->GetXaxis()->SetTitle("m_{jj} (GeV)");
+         if (sigMass == 0) plotmjj[c]->GetXaxis()->SetTitle("m_{jj} (GeV)");
+         else plotmjj[c]->GetXaxis()->SetTitle("m_{jj}^{r} (GeV)");
          TCanvas* ctmp = new TCanvas(TString::Format("ctmpHigMjj_%d_cat_%d",d,c),"Background Categories",0,0,500,500);
          plotmjj[c]->Draw();
          plotmjj[c]->Draw("SAME");
