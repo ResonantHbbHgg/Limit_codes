@@ -46,6 +46,7 @@ namespace po = boost::program_options;
 //Important options first
 Bool_t doblinding = false; //True if you want to blind
 Bool_t plot_singleH = false;
+Bool_t details_signal_model = false;
 
 // this one is for 2D fit
 Int_t NCAT =0;
@@ -679,6 +680,7 @@ RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
     //plotmggBkg[c]->SetMinimum(0.01); // no error bar in bins with zero events
 //    plotmggBkg[c]->SetMaximum(1.40*plotmggBkg[c]->GetMaximum());
     plotmggBkg[c]->GetXaxis()->SetTitle("m_{#gamma#gamma} (GeV)");
+    plotmggBkg[c]->GetYaxis()->SetTitle(Form("Events / %i GeV", (int)plotmggBkg[c]->getFitRangeBinW()));
     //double test = sigToFit[c]->sumEntries();
     //cout<<"number of events on dataset "<<test<<endl;
 //    TPaveText *pt = new TPaveText(0.8,0.94,0.9,0.99, "brNDC");
@@ -827,30 +829,37 @@ RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
     // plotmggBkg[c]->SetMinimum(0.005); // no error bar in bins with zero events
     //plotmggBkg[c]->SetLogy(0);
     cout << "!!!!!!!!!!!!!!!!!" << endl;
-    TLegend *legmc = new TLegend(0.50,0.70,0.92,0.8);
+    TLegend *legmc = new TLegend(0.37,0.75,0.87,0.8);
+    TLegend *legmc2 = new TLegend(0.55,0.70,0.84,0.75);
+    legmc->SetTextFont(42);
+    legmc2->SetTextFont(42);
     legmc->SetNColumns(2);
+    legmc2->SetNColumns(2);
     TLegend *legmcH = new TLegend(0.66,0.72,0.94,0.9);
-    if(doblinding) legmc->AddEntry(plotmggBkg[c]->getObject(2),"Data ","");
-    else  legmc->AddEntry(plotmggBkg[c]->getObject(2),"Data ","LPE");
-    if(dobands)legmc->AddEntry(onesigma,"Fit #pm1 #sigma","F");
-    legmc->AddEntry(plotmggBkg[c]->getObject(1),"Background fit","L");
-    if(dobands)legmc->AddEntry(twosigma,"Fit #pm2 #sigma ","F"); // not...
+    if(doblinding) legmc->AddEntry(plotmggBkg[c]->getObject(2),"Data","");
+    else  legmc->AddEntry(plotmggBkg[c]->getObject(2),"Data","LPE");
+    legmc->AddEntry(plotmggBkg[c]->getObject(1),"Background model","L");
+    if(dobands)legmc2->AddEntry(onesigma,"#pm1 #sigma","F");
+    if(dobands)legmc2->AddEntry(twosigma,"#pm2 #sigma ","F"); // not...
     if (plot_singleH) legmcH->AddEntry(plotmggBkg[c]->getObject(3),"ggH ","LPE"); // not...
     if (plot_singleH) legmcH->AddEntry(plotmggBkg[c]->getObject(5),"ttH ","LPE"); // not...
     if (plot_singleH) legmcH->AddEntry(plotmggBkg[c]->getObject(7),"VBF ","LPE"); // not...
     if (plot_singleH) legmcH->AddEntry(plotmggBkg[c]->getObject(9),"VH ","LPE"); // not...
     if (plot_singleH) legmcH->AddEntry(plotmggBkg[c]->getObject(11),"bbH ","LPE"); // not...
     latexLabel->SetTextFont(42); // helvetica
-    latexLabel->SetTextSize(0.6 * ctmp->GetTopMargin());
-    if (sigMass == 0) latexLabel->DrawLatex(0.50, 0.88, "H(b#bar{b})H(#gamma#gamma) nonresonant");
-    else latexLabel->DrawLatex(0.50, 0.88, Form("X #rightarrow H(b#bar{b})H(#gamma#gamma), m_{X} = %i GeV", sigMass));
-    latexLabel->DrawLatex(0.50, 0.83, catdesc.at(c).c_str());
+//    latexLabel->SetTextSize(0.6 * ctmp->GetTopMargin());
+    if (sigMass == 0) latexLabel->DrawLatex(0.37, 0.88, "gg #rightarrow HH #rightarrow #gamma#gammab#bar{b}");
+    else latexLabel->DrawLatex(0.37, 0.88, Form("gg #rightarrow X #rightarrow HH #rightarrow #gamma#gammab#bar{b}, m_{X} = %i GeV", sigMass));
+    latexLabel->DrawLatex(0.37, 0.83, catdesc.at(c).c_str());
     if (plot_singleH) legmcH->SetHeader(" Higgs");
     legmc->SetBorderSize(0);
     legmc->SetFillStyle(0);
+    legmc2->SetBorderSize(0);
+    legmc2->SetFillStyle(0);
     if (plot_singleH) legmcH->SetBorderSize(0);
     if (plot_singleH) legmcH->SetFillStyle(0);
     legmc->Draw();
+    legmc2->Draw();
     if (plot_singleH) legmcH->Draw();
 //    TLatex *lat2 = new TLatex(minMggMassFit+1.5,0.85*plotmggBkg[c]->GetMaximum(),catdesc.at(c));
 //    lat2->Draw();
@@ -868,7 +877,7 @@ RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
     // Plot mjj background fit results per categories
     //************************************************//
     ctmp = new TCanvas(TString::Format("ctmpBkgMjj_cat%d",c),"mjj Background Categories",0,0,500,500);
-    nBinsMass = 24;
+    nBinsMass = 12;
     plotmjjBkg[c] = mjj->frame(nBinsMass);
     cout<<" here 1"<<endl;
     dataplot[c] = (RooDataSet*) w->data(TString::Format("Dataplot_cat%d",c));
@@ -895,15 +904,16 @@ RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
     plotmjjBkg[c]->Draw();
     if(c==0||c==2)plotmjjBkg[c]->SetMinimum(0.005); // no error bar in bins with zero events
     if(c==1||c==3)plotmjjBkg[c]->SetMinimum(0.01); // no error bar in bins with zero events
-    if(c==0)plotmjjBkg[c]->SetMaximum(13); // no error bar in bins with zero events
-    if(c==1)plotmjjBkg[c]->SetMaximum(22); // no error bar in bins with zero events
-    if(c==2)plotmjjBkg[c]->SetMaximum(12); // no error bar in bins with zero events
-    if(c==3)plotmjjBkg[c]->SetMaximum(35); // no error bar in bins with zero events
+    if(c==0)plotmjjBkg[c]->SetMaximum(15); // no error bar in bins with zero events
+    if(c==1)plotmjjBkg[c]->SetMaximum(36); // no error bar in bins with zero events
+    if(c==2)plotmjjBkg[c]->SetMaximum(15); // no error bar in bins with zero events
+    if(c==3)plotmjjBkg[c]->SetMaximum(55); // no error bar in bins with zero events
     //plotmjjBkg[c]->SetTitle("CMS preliminary 19.7/fb");
     //plotmjjBkg[c]->SetMinimum(0.01); // no error bar in bins with zero events
 //    plotmjjBkg[c]->SetMaximum(1.40*plotmjjBkg[c]->GetMaximum());
     if (sigMass == 0) plotmjjBkg[c]->GetXaxis()->SetTitle("m_{jj} (GeV)");
     else plotmjjBkg[c]->GetXaxis()->SetTitle("m_{jj}^{r} (GeV)");
+    plotmjjBkg[c]->GetYaxis()->SetTitle(Form("Events / %i GeV", (int)plotmjjBkg[c]->getFitRangeBinW()));
     //double test = sigToFit[c]->sumEntries();
     //cout<<"number of events on dataset "<<test<<endl;
 //    pt = new TPaveText(0.1,0.94,0.9,0.99, "brNDC");
@@ -1046,30 +1056,37 @@ RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
     //////////////////////////////////////////////////////////
     plotmjjBkg[c]->Draw("SAME");
     cout << "!!!!!!!!!!!!!!!!!" << endl;
-    legmc = new TLegend(0.50,0.70,0.92,0.80);
+    legmc = new TLegend(0.37,0.75,0.87,0.80);
+    legmc2 = new TLegend(0.55,0.70,0.84,0.75);
     legmc->SetNColumns(2);
+    legmc->SetTextFont(42);
+    legmc2->SetNColumns(2);
+    legmc2->SetTextFont(42);
     legmcH = new TLegend(0.66,0.72,0.94,0.9);
-    if(doblinding) legmc->AddEntry(plotmjjBkg[c]->getObject(2),"Data ","");
-    else legmc->AddEntry(plotmjjBkg[c]->getObject(2),"Data ","LPE");
-    if(dobands)legmc->AddEntry(onesigma,"Fit #pm1 #sigma","F");
-    legmc->AddEntry(plotmjjBkg[c]->getObject(1),"Background fit","L");
-    if(dobands)legmc->AddEntry(twosigma,"Fit #pm2 #sigma ","F"); // not...
+    if(doblinding) legmc->AddEntry(plotmjjBkg[c]->getObject(2),"Data","");
+    else legmc->AddEntry(plotmjjBkg[c]->getObject(2),"Data","LPE");
+    legmc->AddEntry(plotmjjBkg[c]->getObject(1),"Background model","L");
+    if(dobands)legmc2->AddEntry(onesigma,"#pm1 #sigma","F");
+    if(dobands)legmc2->AddEntry(twosigma,"#pm2 #sigma ","F"); // not...
     if (plot_singleH) legmcH->AddEntry(plotmjjBkg[c]->getObject(3),"ggH ","LPE"); // not...
     if (plot_singleH) legmcH->AddEntry(plotmjjBkg[c]->getObject(5),"ttH ","LPE"); // not...
     if (plot_singleH) legmcH->AddEntry(plotmjjBkg[c]->getObject(7),"VBF ","LPE"); // not...
     if (plot_singleH) legmcH->AddEntry(plotmjjBkg[c]->getObject(9),"VH ","LPE"); // not...
     if (plot_singleH) legmcH->AddEntry(plotmjjBkg[c]->getObject(11),"bbH ","LPE"); // not...
     latexLabel->SetTextFont(42); // helvetica
-    latexLabel->SetTextSize(0.6 * ctmp->GetTopMargin());
-    if (sigMass == 0) latexLabel->DrawLatex(0.50, 0.88, "H(b#bar{b})H(#gamma#gamma) nonresonant");
-    else latexLabel->DrawLatex(0.50, 0.88, Form("X #rightarrow H(b#bar{b})H(#gamma#gamma), m_{X} = %i GeV", sigMass));
-    latexLabel->DrawLatex(0.50, 0.83, catdesc.at(c).c_str());
+//    latexLabel->SetTextSize(0.6 * ctmp->GetTopMargin());
+    if (sigMass == 0) latexLabel->DrawLatex(0.37, 0.88, "gg #rightarrow HH #rightarrow #gamma#gammab#bar{b}");
+    else latexLabel->DrawLatex(0.37, 0.88, Form("gg #rightarrow X #rightarrow HH #rightarrow #gamma#gammab#bar{b}, m_{X} = %i GeV", sigMass));
+    latexLabel->DrawLatex(0.37, 0.83, catdesc.at(c).c_str());
     legmc->SetBorderSize(0);
     legmc->SetFillStyle(0);
     legmcH->SetBorderSize(0);
     legmcH->SetFillStyle(0);
     legmc->Draw();
     legmcH->Draw();
+    legmc2->SetBorderSize(0);
+    legmc2->SetFillStyle(0);
+    legmc2->Draw();
 //    lat2 = new TLatex(minMjjMassFit+1.5,0.85*plotmjjBkg[c]->GetMaximum(),catdesc.at(c));
 //    lat2->Draw();
     //
@@ -1338,11 +1355,11 @@ void MakePlots(RooWorkspace* w, Float_t Mass) {
     mggSig[c] ->plotOn(plotmgg[c]);
     double chi2n = plotmgg[c]->chiSquare(0) ;
     cout << "------------------------- Experimental chi2 = " << chi2n << endl;
-    mggSig[c] ->plotOn(
+    if (details_signal_model) mggSig[c] ->plotOn(
 		       plotmgg[c],
 		       Components(TString::Format("mggGaussSig_cat%d",c)),
 		       LineStyle(kDashed),LineColor(kGreen));
-    mggSig[c] ->plotOn(
+    if (details_signal_model) mggSig[c] ->plotOn(
 		       plotmgg[c],
 		       Components(TString::Format("mggCBSig_cat%d",c)),
 		       LineStyle(kDashed),LineColor(kRed));
@@ -1354,16 +1371,17 @@ void MakePlots(RooWorkspace* w, Float_t Mass) {
     plotmgg[c]->SetMinimum(0.0);
     plotmgg[c]->SetMaximum(1.40*plotmgg[c]->GetMaximum());
     plotmgg[c]->GetXaxis()->SetTitle("m_{#gamma#gamma} (GeV)");
-    plotmgg[c]->SetYTitle("Norm. to unity / (1 GeV)");
+    plotmgg[c]->SetYTitle("Norm. to unity / 1 GeV");
     TCanvas* ctmp = new TCanvas(TString::Format("ctmpSigMgg_cat%d",c),"Background Categories",0,0,500,500);
     plotmgg[c]->Draw();
     plotmgg[c]->Draw("SAME");
-    TLegend *legmc = new TLegend(0.50,0.70,0.92,0.80);
+    TLegend *legmc = new TLegend(0.37,0.75,0.95,0.80);
     legmc->SetNColumns(2);
-    legmc->AddEntry(plotmgg[c]->getObject(5),"Simulation","LPE");
-    legmc->AddEntry(plotmgg[c]->getObject(2),"Gaussian","L");
+    legmc->SetTextFont(42);
+    legmc->AddEntry(plotmgg[c]->getObject(0),"Simulation","LPE");
+    if (details_signal_model) legmc->AddEntry(plotmgg[c]->getObject(2),"Gaussian","L");
     legmc->AddEntry(plotmgg[c]->getObject(1),"Parametric model","L");
-    legmc->AddEntry(plotmgg[c]->getObject(3),"Crystal-Ball","L");
+    if (details_signal_model) legmc->AddEntry(plotmgg[c]->getObject(3),"Crystal-Ball","L");
 //    legmc->SetHeader(Form("H(b#bar{b})H(#gamma#gamma) non-res.; %s", catdesc.at(c).c_str()));
     legmc->SetBorderSize(0);
     legmc->SetFillStyle(0);
@@ -1378,10 +1396,10 @@ void MakePlots(RooWorkspace* w, Float_t Mass) {
     latexLabel->SetTextFont(52); // helvetica italics
     latexLabel->DrawLatex(0.19, 0.85, "Simulation");
     latexLabel->SetTextFont(42); // helvetica
-    latexLabel->SetTextSize(0.6 * ctmp->GetTopMargin());
-    if (sigMass == 0) latexLabel->DrawLatex(0.50, 0.88, "H(b#bar{b})H(#gamma#gamma) nonresonant");
-    else latexLabel->DrawLatex(0.50, 0.88, Form("X #rightarrow H(b#bar{b})H(#gamma#gamma), m_{X} = %i GeV", sigMass));
-    latexLabel->DrawLatex(0.50, 0.83, catdesc.at(c).c_str());
+//    latexLabel->SetTextSize(0.6 * ctmp->GetTopMargin());
+    if (sigMass == 0) latexLabel->DrawLatex(0.37, 0.88, "gg #rightarrow HH #rightarrow #gamma#gammab#bar{b}");
+    else latexLabel->DrawLatex(0.37, 0.88, Form("gg #rightarrow X #rightarrow HH #rightarrow #gamma#gammab#bar{b}, m_{X} = %i GeV", sigMass));
+    latexLabel->DrawLatex(0.37, 0.83, catdesc.at(c).c_str());
 //   TPaveText *pt = new TPaveText(0.1,0.94,0.7,0.99, "brNDC");
 //    //pt->SetName("title");
 //    pt->SetBorderSize(0);
@@ -1429,18 +1447,18 @@ void MakePlots(RooWorkspace* w, Float_t Mass) {
   // Plot Signal Categories
   //****************************//
   RooPlot* plotmjj[ncat];
-  nBinsMass = 24;
+  nBinsMass = 12;
   for (int c = 0; c < ncat; ++c) {
     plotmjj[c] = mjj->frame(Range("SigPlotRange"),Bins(nBinsMass));
     sigToFit[c]->plotOn(plotmjj[c], MarkerStyle(25));
     mjjSig[c] ->plotOn(plotmjj[c]);
     double chi2n = plotmjj[c]->chiSquare(0) ;
     cout << "------------------------- Experimental chi2 = " << chi2n << endl;
-    mjjSig[c] ->plotOn(
+    if (details_signal_model) mjjSig[c] ->plotOn(
 		       plotmjj[c],
 		       Components(TString::Format("mjjGaussSig_cat%d",c)),
 		       LineStyle(kDashed),LineColor(kGreen));
-    mjjSig[c] ->plotOn(
+    if (details_signal_model) mjjSig[c] ->plotOn(
 		       plotmjj[c],
 		       Components(TString::Format("mjjCBSig_cat%d",c)),
 		       LineStyle(kDashed),LineColor(kRed));
@@ -1453,18 +1471,19 @@ void MakePlots(RooWorkspace* w, Float_t Mass) {
     plotmjj[c]->SetMaximum(1.40*plotmjj[c]->GetMaximum());
     if (sigMass == 0) plotmjj[c]->GetXaxis()->SetTitle("m_{jj} (GeV)");
     else plotmjj[c]->GetXaxis()->SetTitle("m_{jj}^{r} (GeV)");
-    plotmjj[c]->SetYTitle("Norm. to unity / (5 GeV)");
+    plotmjj[c]->SetYTitle("Norm. to unity / 10 GeV");
     TCanvas* ctmp = new TCanvas(TString::Format("ctmpSigMjj_cat%d",c),"Background Categories",0,0,500,500);
     plotmjj[c]->Draw();
     plotmjj[c]->Draw("SAME");
     string str_desc="H(b#bar{b})H(#gamma#gamma) non-res.";
-    TLegend *legmc = new TLegend(0.50,0.70,0.92,0.80);
+    TLegend *legmc = new TLegend(0.37,0.75,0.95,0.80);
 //    legmc->SetHeader(Form("%s; %s", str_desc.c_str(), catdesc.at(c).c_str()));
     legmc->SetNColumns(2);
-    legmc->AddEntry(plotmjj[c]->getObject(5),"Simulation","LPE");
-    legmc->AddEntry(plotmjj[c]->getObject(2),"Gaussian","L");
+    legmc->SetTextFont(42);
+    legmc->AddEntry(plotmjj[c]->getObject(0),"Simulation","LPE");
+    if (details_signal_model) legmc->AddEntry(plotmjj[c]->getObject(2),"Gaussian","L");
     legmc->AddEntry(plotmjj[c]->getObject(1),"Parametric model","L");
-    legmc->AddEntry(plotmjj[c]->getObject(3),"Crystal-Ball","L");
+    if (details_signal_model) legmc->AddEntry(plotmjj[c]->getObject(3),"Crystal-Ball","L");
     legmc->SetBorderSize(0);
     legmc->SetFillStyle(0);
     legmc->Draw();
@@ -1478,10 +1497,10 @@ void MakePlots(RooWorkspace* w, Float_t Mass) {
     latexLabel->SetTextFont(52); // helvetica italics
     latexLabel->DrawLatex(0.19, 0.85, "Simulation");
     latexLabel->SetTextFont(42); // helvetica
-    latexLabel->SetTextSize(0.6 * ctmp->GetTopMargin());
-    if (sigMass == 0) latexLabel->DrawLatex(0.50, 0.88, "H(b#bar{b})H(#gamma#gamma) nonresonant");
-    else latexLabel->DrawLatex(0.50, 0.88, Form("X #rightarrow H(b#bar{b})H(#gamma#gamma), m_{X} = %i GeV", sigMass));
-    latexLabel->DrawLatex(0.50, 0.83, catdesc.at(c).c_str());
+//    latexLabel->SetTextSize(0.6 * ctmp->GetTopMargin());
+    if (sigMass == 0) latexLabel->DrawLatex(0.37, 0.88, "gg #rightarrow HH #rightarrow #gamma#gammab#bar{b}");
+    else latexLabel->DrawLatex(0.37, 0.88, Form("gg #rightarrow X #rightarrow HH #rightarrow #gamma#gammab#bar{b}, m_{X} = %i GeV", sigMass));
+    latexLabel->DrawLatex(0.37, 0.83, catdesc.at(c).c_str());
 //    TPaveText *pt = new TPaveText(0.1,0.94,0.7,0.99, "brNDC");
 //    //pt->SetName("title");
 //    pt->SetBorderSize(0);
@@ -1613,11 +1632,11 @@ void MakePlotsHiggs(RooWorkspace* w, Float_t Mass) {
       mggSig[c] ->plotOn(plotmgg[c]);
       double chi2n = plotmgg[c]->chiSquare(0) ;
       cout << "------------------------- Experimental chi2 = " << chi2n << endl;
-      mggSig[c] ->plotOn(
+      if (details_signal_model) mggSig[c] ->plotOn(
 			 plotmgg[c],
 			 Components(TString::Format("mggGaussHig_%d_cat%d",d,c)),
 			 LineStyle(kDashed),LineColor(kGreen));
-      mggSig[c] ->plotOn(
+      if (details_signal_model) mggSig[c] ->plotOn(
 			 plotmgg[c],
 			 Components(TString::Format("mggCBHig_%d_cat%d",d,c)),
 			 LineStyle(kDashed),LineColor(kRed));
@@ -1629,14 +1648,15 @@ void MakePlotsHiggs(RooWorkspace* w, Float_t Mass) {
       plotmgg[c]->SetMinimum(0.0);
       plotmgg[c]->SetMaximum(1.40*plotmgg[c]->GetMaximum());
       plotmgg[c]->GetXaxis()->SetTitle("m_{#gamma#gamma} (GeV)");
+      plotmgg[c]->GetYaxis()->SetTitle(Form("Events / %i GeV", (int)plotmgg[c]->getFitRangeBinW()));
       TCanvas* ctmp = new TCanvas(TString::Format("ctmpHigMgg_%d_cat%d",d,c),"Background Categories",0,0,500,500);
       plotmgg[c]->Draw();
       plotmgg[c]->Draw("SAME");
-      TLegend *legmc = new TLegend(0.62,0.75,0.99,0.99);
+      TLegend *legmc = new TLegend(0.35,0.75,0.85,0.80);
       legmc->AddEntry(plotmgg[c]->getObject(5),component[d],"LPE");
       legmc->AddEntry(plotmgg[c]->getObject(1),"Parametric Model","L");
-      legmc->AddEntry(plotmgg[c]->getObject(2),"Gaussian Outliers","L");
-      legmc->AddEntry(plotmgg[c]->getObject(3),"Crystal Ball component","L");
+      if (details_signal_model) legmc->AddEntry(plotmgg[c]->getObject(2),"Gaussian Outliers","L");
+      if (details_signal_model) legmc->AddEntry(plotmgg[c]->getObject(3),"Crystal Ball component","L");
       legmc->SetHeader(" ");
       legmc->SetBorderSize(0);
       legmc->SetFillStyle(0);
@@ -1693,11 +1713,11 @@ void MakePlotsHiggs(RooWorkspace* w, Float_t Mass) {
       double chi2n = plotmjj[c]->chiSquare(0) ;
       cout << "------------------------- Experimental chi2 = " << chi2n << endl;
       if(d == 1 || d == 3){
-         mjjSig[c] ->plotOn(
+         if (details_signal_model) mjjSig[c] ->plotOn(
 			 plotmjj[c],
 			 Components(TString::Format("mjjGaussHig_%d_cat%d",d,c)),
 			 LineStyle(kDashed),LineColor(kGreen));
-         mjjSig[c] ->plotOn(
+         if (details_signal_model) mjjSig[c] ->plotOn(
 			 plotmjj[c],
 			 Components(TString::Format("mjjCBHig_%d_cat%d",d,c)),
 			 LineStyle(kDashed),LineColor(kRed));
@@ -1710,15 +1730,16 @@ void MakePlotsHiggs(RooWorkspace* w, Float_t Mass) {
          plotmjj[c]->SetMaximum(1.40*plotmjj[c]->GetMaximum());
          if (sigMass == 0) plotmjj[c]->GetXaxis()->SetTitle("m_{jj} (GeV)");
          else plotmjj[c]->GetXaxis()->SetTitle("m_{jj}^{r} (GeV)");
+         plotmjj[c]->GetYaxis()->SetTitle(Form("Events / %i GeV", (int)plotmjj[c]->getFitRangeBinW()));
          TCanvas* ctmp = new TCanvas(TString::Format("ctmpHigMjj_%d_cat_%d",d,c),"Background Categories",0,0,500,500);
          plotmjj[c]->Draw();
          plotmjj[c]->Draw("SAME");
-         TLegend *legmc = new TLegend(0.62,0.75,0.99,0.99);
+         TLegend *legmc = new TLegend(0.35,0.75,0.85,0.80);
 
          legmc->AddEntry(plotmjj[c]->getObject(5),component[d],"LPE");
          legmc->AddEntry(plotmjj[c]->getObject(1),"Parametric Model","L");
-         legmc->AddEntry(plotmjj[c]->getObject(2),"Gaussian Outliers","L");
-         legmc->AddEntry(plotmjj[c]->getObject(3),"Crystal Ball component","L");
+         if (details_signal_model) legmc->AddEntry(plotmjj[c]->getObject(2),"Gaussian Outliers","L");
+         if (details_signal_model) legmc->AddEntry(plotmjj[c]->getObject(3),"Crystal Ball component","L");
          legmc->SetHeader(" ");
          legmc->SetBorderSize(0);
          legmc->SetFillStyle(0);
@@ -1769,6 +1790,7 @@ void MakePlotsHiggs(RooWorkspace* w, Float_t Mass) {
          plotmjj[c]->SetMaximum(1.40*plotmjj[c]->GetMaximum());
          if (sigMass == 0) plotmjj[c]->GetXaxis()->SetTitle("m_{jj} (GeV)");
          else plotmjj[c]->GetXaxis()->SetTitle("m_{jj}^{r} (GeV)");
+         plotmjj[c]->GetYaxis()->SetTitle(Form("Events / %i GeV", (int)plotmjj[c]->getFitRangeBinW()));
          TCanvas* ctmp = new TCanvas(TString::Format("ctmpHigMjj_%d_cat_%d",d,c),"Background Categories",0,0,500,500);
          plotmjj[c]->Draw();
          plotmjj[c]->Draw("SAME");
