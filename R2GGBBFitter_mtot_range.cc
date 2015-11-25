@@ -385,8 +385,8 @@ w->factory(TString::Format("mtot_bkg_8TeV_norm_cat%d[1.0,0.0,100000]",c)); // is
 //   ctmp->SetGrid(0);
    cout << "!!!!!!!!!!!!!!!!!" << endl;
 
-    TLegend *legmc = new TLegend(0.45,0.75,0.92,0.80);
-    TLegend *legmc2 = new TLegend(0.63,0.70,0.92,0.75);
+    TLegend *legmc = new TLegend(0.37,0.75,0.84,0.80);
+    TLegend *legmc2 = new TLegend(0.55,0.70,0.84,0.75);
     legmc->SetTextFont(42);
     legmc->SetNColumns(2);
     legmc2->SetTextFont(42);
@@ -405,9 +405,9 @@ w->factory(TString::Format("mtot_bkg_8TeV_norm_cat%d[1.0,0.0,100000]",c)); // is
     legmc->Draw();
     latexLabel->SetTextFont(42); // helvetica
 //    latexLabel->SetTextSize(0.6 * ctmp->GetTopMargin());
-    latexLabel->DrawLatex(0.45, 0.88, "X#rightarrowH(b#bar{b})H(#gamma#gamma)");
-    latexLabel->DrawLatex(0.45, 0.83, catdesc.at(c));
-    TLatex *lat1 = new TLatex(minfit+43.0,0.91*plotmtotBkg[c]->GetMaximum(),"X#rightarrowHH#rightarrow#gamma#gammab#bar{b}");
+    latexLabel->DrawLatex(0.37, 0.88, "gg #rightarrow X #rightarrow HH #rightarrow #gamma#gammab#bar{b}");
+    latexLabel->DrawLatex(0.37, 0.83, catdesc.at(c));
+    TLatex *lat1 = new TLatex(minfit+43.0,0.91*plotmtotBkg[c]->GetMaximum(),"gg #rightarrow X #rightarrow HH #rightarrow #gamma#gammab#bar{b}");
 //    lat1->Draw();
     TLatex *lat2 = new TLatex(minfit+43.0,0.81*plotmtotBkg[c]->GetMaximum(),catdesc.at(c));
 //    lat2->Draw();
@@ -608,7 +608,7 @@ void MakePlots(RooWorkspace* w, Float_t Mass, RooFitResult* fitresults) {
     plotmtot[c]->SetYTitle(Form("Norm. to unity / %i GeV", (int)plotmtot[c]->getFitRangeBinW()));
 
     plotmtot[c]->Draw("SAME");
-    TLegend *legmc = new TLegend(0.45,0.75,0.95,0.80);
+    TLegend *legmc = new TLegend(0.37,0.75,0.87,0.80);
     legmc->SetTextFont(42);
     legmc->SetNColumns(2);
     std::cout << "plotmtot[c]->getObject(0)= " << plotmtot[c]->getObject(0) << std::endl;
@@ -653,8 +653,8 @@ void MakePlots(RooWorkspace* w, Float_t Mass, RooFitResult* fitresults) {
     latexLabel->DrawLatex(0.19, 0.85, "Simulation");
     latexLabel->SetTextFont(42); // helvetica
 //    latexLabel->SetTextSize(0.6 * ctmp->GetTopMargin());
-    latexLabel->DrawLatex(0.45, 0.88, "X#rightarrowH(b#bar{b})H(#gamma#gamma), m_{X} = 550 GeV");
-    latexLabel->DrawLatex(0.45, 0.83, catdesc.at(c));
+    latexLabel->DrawLatex(0.37, 0.88, "gg #rightarrow X #rightarrow HH #rightarrow #gamma#gammab#bar{b}, m_{X} = 550 GeV");
+    latexLabel->DrawLatex(0.37, 0.83, catdesc.at(c));
  
 
    ctmp->SaveAs(TString::Format("sigmodel_cat%d.pdf",c));
