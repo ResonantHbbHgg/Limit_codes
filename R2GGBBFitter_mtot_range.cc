@@ -1,5 +1,6 @@
 //Important options first
 Bool_t doblinding =  false; //True if you want to blind
+Bool_t details_signal_model = false;
 const int minfit =320, maxfit=1200;
 
 // this one is for 4 body fit
@@ -361,6 +362,7 @@ w->factory(TString::Format("mtot_bkg_8TeV_norm_cat%d[1.0,0.0,100000]",c)); // is
     if(c==0) plotmtotBkg[c]->SetMaximum(5.5);
     if (c==1) plotmtotBkg[c]->SetMaximum(13);
     plotmtotBkg[c]->GetXaxis()->SetTitle("m_{#gamma#gammajj}^{kin} (GeV)");
+    plotmtotBkg[c]->SetYTitle(Form("Events / %i GeV", (int)plotmtotBkg[c]->getFitRangeBinW()));
   // plotmtotBkg[c]->Draw("AC");
     //////////////////////////////////////////////////////////////////
   TPaveText *pt = new TPaveText(0.2,0.93,0.8,0.99, "brNDC");
@@ -383,22 +385,29 @@ w->factory(TString::Format("mtot_bkg_8TeV_norm_cat%d[1.0,0.0,100000]",c)); // is
 //   ctmp->SetGrid(0);
    cout << "!!!!!!!!!!!!!!!!!" << endl;
 
-    TLegend *legmc = new TLegend(0.50,0.70,0.92,0.80);
+    TLegend *legmc = new TLegend(0.37,0.75,0.84,0.80);
+    TLegend *legmc2 = new TLegend(0.55,0.70,0.84,0.75);
+    legmc->SetTextFont(42);
     legmc->SetNColumns(2);
+    legmc2->SetTextFont(42);
+    legmc2->SetNColumns(2);
     if(doblinding) legmc->AddEntry(plotmtotBkg[c]->getObject(3),"Data ","");
     else legmc->AddEntry(plotmtotBkg[c]->getObject(3),"Data ","LPE");
-    if(dobands)legmc->AddEntry(onesigma,"Fit #pm1 #sigma","F");
-    legmc->AddEntry(plotmtotBkg[c]->getObject(1), "Background fit","L");
-    if(dobands)legmc->AddEntry(twosigma,"Fit #pm2 #sigma","F");
+    legmc->AddEntry(plotmtotBkg[c]->getObject(1), "Background model","L");
+    if(dobands)legmc2->AddEntry(onesigma,"#pm1 #sigma","F");
+    if(dobands)legmc2->AddEntry(twosigma,"#pm2 #sigma","F");
     //legmc->SetHeader("m_{X} = 550 GeV");
+    legmc2->SetBorderSize(0);
+    legmc2->SetFillStyle(0);
+    legmc2->Draw();
     legmc->SetBorderSize(0);
     legmc->SetFillStyle(0);
     legmc->Draw();
     latexLabel->SetTextFont(42); // helvetica
-    latexLabel->SetTextSize(0.6 * ctmp->GetTopMargin());
-    latexLabel->DrawLatex(0.50, 0.88, "X#rightarrow H(b#bar{b})H(#gamma#gamma)");
-    latexLabel->DrawLatex(0.50, 0.83, catdesc.at(c));
-    TLatex *lat1 = new TLatex(minfit+43.0,0.91*plotmtotBkg[c]->GetMaximum(),"X#rightarrowHH#rightarrow#gamma#gammab#bar{b}");
+//    latexLabel->SetTextSize(0.6 * ctmp->GetTopMargin());
+    latexLabel->DrawLatex(0.37, 0.88, "gg #rightarrow X #rightarrow HH #rightarrow #gamma#gammab#bar{b}");
+    latexLabel->DrawLatex(0.37, 0.83, catdesc.at(c));
+    TLatex *lat1 = new TLatex(minfit+43.0,0.91*plotmtotBkg[c]->GetMaximum(),"gg #rightarrow X #rightarrow HH #rightarrow #gamma#gammab#bar{b}");
 //    lat1->Draw();
     TLatex *lat2 = new TLatex(minfit+43.0,0.81*plotmtotBkg[c]->GetMaximum(),catdesc.at(c));
 //    lat2->Draw();
@@ -576,11 +585,11 @@ void MakePlots(RooWorkspace* w, Float_t Mass, RooFitResult* fitresults) {
     mtotSig[c] ->plotOn(plotmtot[c]);
     double chi2n = plotmtot[c]->chiSquare(0) ;
     cout << "------------------------- Experimentakl chi2 = " << chi2n << endl;
-    mtotSig[c] ->plotOn(
+    if (details_signal_model) mtotSig[c] ->plotOn(
         plotmtot[c],
         Components(TString::Format("mtotGaussSig_cat%d",c)),
         LineStyle(kDashed),LineColor(kGreen));
-    mtotSig[c] ->plotOn(
+    if (details_signal_model) mtotSig[c] ->plotOn(
         plotmtot[c],
         Components(TString::Format("mtotCBSig_cat%d",c)),
         LineStyle(kDashed),LineColor(kRed));
@@ -596,16 +605,17 @@ void MakePlots(RooWorkspace* w, Float_t Mass, RooFitResult* fitresults) {
     plotmtot[c]->SetMinimum(0.0);
     plotmtot[c]->SetMaximum(1.40*plotmtot[c]->GetMaximum());
     plotmtot[c]->GetXaxis()->SetTitle("m_{#gamma#gammajj}^{kin} (GeV)");
-    plotmtot[c]->SetYTitle("Norm. to unity / (10 GeV)");
+    plotmtot[c]->SetYTitle(Form("Norm. to unity / %i GeV", (int)plotmtot[c]->getFitRangeBinW()));
 
     plotmtot[c]->Draw("SAME");
-    TLegend *legmc = new TLegend(0.50,0.70,0.92,0.80);
+    TLegend *legmc = new TLegend(0.37,0.75,0.87,0.80);
+    legmc->SetTextFont(42);
     legmc->SetNColumns(2);
     std::cout << "plotmtot[c]->getObject(0)= " << plotmtot[c]->getObject(0) << std::endl;
     legmc->AddEntry(plotmtot[c]->getObject(0),"Simulation","LPE");
-    legmc->AddEntry(plotmtot[c]->getObject(2),"Gaussian ","L");
-    legmc->AddEntry(plotmtot[c]->getObject(1),"Parametric Model","L");
-    legmc->AddEntry(plotmtot[c]->getObject(3),"Crystal Ball ","L");
+    if (details_signal_model) legmc->AddEntry(plotmtot[c]->getObject(2),"Gaussian ","L");
+    legmc->AddEntry(plotmtot[c]->getObject(1),"Parametric model","L");
+    if (details_signal_model) legmc->AddEntry(plotmtot[c]->getObject(3),"Crystal Ball ","L");
     //legmc->SetHeader(" ");
     legmc->SetBorderSize(0);
     legmc->SetFillStyle(0);
@@ -642,9 +652,9 @@ void MakePlots(RooWorkspace* w, Float_t Mass, RooFitResult* fitresults) {
     latexLabel->SetTextFont(52); // helvetica italics
     latexLabel->DrawLatex(0.19, 0.85, "Simulation");
     latexLabel->SetTextFont(42); // helvetica
-    latexLabel->SetTextSize(0.6 * ctmp->GetTopMargin());
-    latexLabel->DrawLatex(0.50, 0.88, "X #rightarrow H(b#bar{b})H(#gamma#gamma), m_{X} = 550 GeV");
-    latexLabel->DrawLatex(0.50, 0.83, catdesc.at(c));
+//    latexLabel->SetTextSize(0.6 * ctmp->GetTopMargin());
+    latexLabel->DrawLatex(0.37, 0.88, "gg #rightarrow X #rightarrow HH #rightarrow #gamma#gammab#bar{b}, m_{X} = 550 GeV");
+    latexLabel->DrawLatex(0.37, 0.83, catdesc.at(c));
  
 
    ctmp->SaveAs(TString::Format("sigmodel_cat%d.pdf",c));
