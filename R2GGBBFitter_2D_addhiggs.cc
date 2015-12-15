@@ -76,8 +76,8 @@ RooFitResult* BkgModelFit(RooWorkspace*, Bool_t);
 
 RooArgSet* defineVariables()
 {
-  RooRealVar* mgg = new RooRealVar("mgg","M(#gamma#gamma)",100,180,"GeV");
-  RooRealVar* mtot = new RooRealVar("mtot","M(#gamma#gammajj)",200,1600,"GeV");
+  RooRealVar* mgg = new RooRealVar("mgg","M(#it{#gamma}#it{#gamma})",100,180,"GeV");
+  RooRealVar* mtot = new RooRealVar("mtot","M(#it{#gamma}#it{#gamma}jj)",200,1600,"GeV");
   RooRealVar* mjj = new RooRealVar("mjj","M(jj)",60,180,"GeV");
   RooRealVar* evWeight = new RooRealVar("evWeight","HqT x PUwei",0,100,"");
   RooCategory* cut_based_ct = new RooCategory("cut_based_ct","event category 4") ;
@@ -469,10 +469,10 @@ RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
     catdesc.push_back(" Medium Purity");
   }
   else{
-    catdesc.push_back("High Purity, High m_{#gamma#gammajj}^{kin}");
-    catdesc.push_back("Medium Purity, High m_{#gamma#gammajj}^{kin}");
-    catdesc.push_back("High Purity, Low m_{#gamma#gammajj}^{kin}");
-    catdesc.push_back("Medium Purity, Low m_{#gamma#gammajj}^{kin}");
+    catdesc.push_back("High Purity, High m_{#it{#gamma}#it{#gamma}jj}^{kin}");
+    catdesc.push_back("Medium Purity, High m_{#it{#gamma}#it{#gamma}jj}^{kin}");
+    catdesc.push_back("High Purity, Low m_{#it{#gamma}#it{#gamma}jj}^{kin}");
+    catdesc.push_back("Medium Purity, Low m_{#it{#gamma}#it{#gamma}jj}^{kin}");
   }
   //******************************************//
   // Fit background with model pdfs
@@ -680,7 +680,7 @@ RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
     //plotmggBkg[c]->SetTitle("CMS preliminary 19.7/fb");
     //plotmggBkg[c]->SetMinimum(0.01); // no error bar in bins with zero events
 //    plotmggBkg[c]->SetMaximum(1.40*plotmggBkg[c]->GetMaximum());
-    plotmggBkg[c]->GetXaxis()->SetTitle("m_{#gamma#gamma} (GeV)");
+    plotmggBkg[c]->GetXaxis()->SetTitle("m_{#it{#gamma}#it{#gamma}} (GeV)");
     plotmggBkg[c]->GetYaxis()->SetTitle(Form("Events / %i GeV", (int)plotmggBkg[c]->getFitRangeBinW()));
     //double test = sigToFit[c]->sumEntries();
     //cout<<"number of events on dataset "<<test<<endl;
@@ -849,8 +849,8 @@ RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
     if (plot_singleH) legmcH->AddEntry(plotmggBkg[c]->getObject(11),"bbH ","LPE"); // not...
     latexLabel->SetTextFont(42); // helvetica
 //    latexLabel->SetTextSize(0.6 * ctmp->GetTopMargin());
-    if (sigMass == 0) latexLabel->DrawLatex(0.37, 0.88, "gg #rightarrow HH #rightarrow #gamma#gammab#bar{b}");
-    else latexLabel->DrawLatex(0.37, 0.88, Form("gg #rightarrow X #rightarrow HH #rightarrow #gamma#gammab#bar{b}, m_{X} = %i GeV", sigMass));
+    if (sigMass == 0) latexLabel->DrawLatex(0.37, 0.88, "#it{gg} #rightarrow HH #rightarrow #it{#gamma}#it{#gamma}#it{b#bar{b}}");
+    else latexLabel->DrawLatex(0.37, 0.88, Form("#it{gg} #rightarrow X #rightarrow HH #rightarrow #it{#gamma}#it{#gamma}#it{b#bar{b}}, m_{X} = %i GeV", sigMass));
     latexLabel->DrawLatex(0.37, 0.83, catdesc.at(c).c_str());
     if (plot_singleH) legmcH->SetHeader(" Higgs");
     legmc->SetBorderSize(0);
@@ -1077,8 +1077,8 @@ RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
     if (plot_singleH) legmcH->AddEntry(plotmjjBkg[c]->getObject(11),"bbH ","LPE"); // not...
     latexLabel->SetTextFont(42); // helvetica
 //    latexLabel->SetTextSize(0.6 * ctmp->GetTopMargin());
-    if (sigMass == 0) latexLabel->DrawLatex(0.37, 0.88, "gg #rightarrow HH #rightarrow #gamma#gammab#bar{b}");
-    else latexLabel->DrawLatex(0.37, 0.88, Form("gg #rightarrow X #rightarrow HH #rightarrow #gamma#gammab#bar{b}, m_{X} = %i GeV", sigMass));
+    if (sigMass == 0) latexLabel->DrawLatex(0.37, 0.88, "#it{gg} #rightarrow HH #rightarrow #it{#gamma}#it{#gamma}#it{b#bar{b}}");
+    else latexLabel->DrawLatex(0.37, 0.88, Form("#it{gg} #rightarrow X #rightarrow HH #rightarrow #it{#gamma}#it{#gamma}#it{b#bar{b}}, m_{X} = %i GeV", sigMass));
     latexLabel->DrawLatex(0.37, 0.83, catdesc.at(c).c_str());
     legmc->SetBorderSize(0);
     legmc->SetFillStyle(0);
@@ -1285,10 +1285,10 @@ void MakePlots(RooWorkspace* w, Float_t Mass) {
     catdesc.push_back(" Medium Purity");
   }
   else{
-    catdesc.push_back("High Purity, High m_{#gamma#gammajj}^{kin}");
-    catdesc.push_back("Medium Purity, High m_{#gamma#gammajj}^{kin}");
-    catdesc.push_back("High Purity, Low m_{#gamma#gammajj}^{kin}");
-    catdesc.push_back("Medium Purity, Low m_{#gamma#gammajj}^{kin}");
+    catdesc.push_back("High Purity, High m_{#it{#gamma}#it{#gamma}jj}^{kin}");
+    catdesc.push_back("Medium Purity, High m_{#it{#gamma}#it{#gamma}jj}^{kin}");
+    catdesc.push_back("High Purity, Low m_{#it{#gamma}#it{#gamma}jj}^{kin}");
+    catdesc.push_back("Medium Purity, Low m_{#it{#gamma}#it{#gamma}jj}^{kin}");
   }
   // retrieve data sets from the workspace
   // RooDataSet* dataAll = (RooDataSet*) w->data("Data");
@@ -1372,7 +1372,7 @@ void MakePlots(RooWorkspace* w, Float_t Mass) {
     //plotmgg[c]->SetTitle("CMS preliminary 19.7/fb ");
     plotmgg[c]->SetMinimum(0.0);
     plotmgg[c]->SetMaximum(1.40*plotmgg[c]->GetMaximum());
-    plotmgg[c]->GetXaxis()->SetTitle("m_{#gamma#gamma} (GeV)");
+    plotmgg[c]->GetXaxis()->SetTitle("m_{#it{#gamma}#it{#gamma}} (GeV)");
     plotmgg[c]->SetYTitle("Norm. to unity / 1 GeV");
     TCanvas* ctmp = new TCanvas(TString::Format("ctmpSigMgg_cat%d",c),"Background Categories",0,0,500,500);
     plotmgg[c]->Draw();
@@ -1384,7 +1384,7 @@ void MakePlots(RooWorkspace* w, Float_t Mass) {
     if (details_signal_model) legmc->AddEntry(plotmgg[c]->getObject(2),"Gaussian","L");
     legmc->AddEntry(plotmgg[c]->getObject(1),"Parametric model","L");
     if (details_signal_model) legmc->AddEntry(plotmgg[c]->getObject(3),"Crystal-Ball","L");
-//    legmc->SetHeader(Form("H(b#bar{b})H(#gamma#gamma) non-res.; %s", catdesc.at(c).c_str()));
+//    legmc->SetHeader(Form("H(b#bar{b})H(#it{#gamma}#it{#gamma}) non-res.; %s", catdesc.at(c).c_str()));
     legmc->SetBorderSize(0);
     legmc->SetFillStyle(0);
     legmc->Draw();
@@ -1399,8 +1399,8 @@ void MakePlots(RooWorkspace* w, Float_t Mass) {
     latexLabel->DrawLatex(0.19, 0.85, "Simulation");
     latexLabel->SetTextFont(42); // helvetica
 //    latexLabel->SetTextSize(0.6 * ctmp->GetTopMargin());
-    if (sigMass == 0) latexLabel->DrawLatex(0.37, 0.88, "gg #rightarrow HH #rightarrow #gamma#gammab#bar{b}");
-    else latexLabel->DrawLatex(0.37, 0.88, Form("gg #rightarrow X #rightarrow HH #rightarrow #gamma#gammab#bar{b}, m_{X} = %i GeV", sigMass));
+    if (sigMass == 0) latexLabel->DrawLatex(0.37, 0.88, "#it{gg} #rightarrow HH #rightarrow #it{#gamma}#it{#gamma}#it{b#bar{b}}");
+    else latexLabel->DrawLatex(0.37, 0.88, Form("#it{gg} #rightarrow X #rightarrow HH #rightarrow #it{#gamma}#it{#gamma}#it{b#bar{b}}, m_{X} = %i GeV", sigMass));
     latexLabel->DrawLatex(0.37, 0.83, catdesc.at(c).c_str());
 //   TPaveText *pt = new TPaveText(0.1,0.94,0.7,0.99, "brNDC");
 //    //pt->SetName("title");
@@ -1410,7 +1410,7 @@ void MakePlots(RooWorkspace* w, Float_t Mass) {
 //    pt->AddText("CMS Preliminary Simulation ");
 //    pt->Draw();
     // float effS = effSigma(hist);
-    string str_desc = "H(b#bar{b})H(#gamma#gamma) non-res.";
+    string str_desc = "H(#it{b#bar{b}})H(#it{#gamma}#it{#gamma}) non-res.";
 //    else
 //      str_desc=TString::Format(" m_{X} = %d GeV",sigMass);
 //    TLatex *lat = new TLatex(
@@ -1431,7 +1431,7 @@ void MakePlots(RooWorkspace* w, Float_t Mass) {
     TList *MyList = ctmp->GetListOfPrimitives();
     TObject *obj1;
     TIter next(MyList);
-    while(obj1=((TObject *)next())){
+    while(obj1=((TObject *)(next()))){
 //        std::cout << "object class name " << obj1->ClassName() << std::endl;
         if (strcmp(obj1->ClassName(), "TPaveText") == 0)
         {
@@ -1477,7 +1477,7 @@ void MakePlots(RooWorkspace* w, Float_t Mass) {
     TCanvas* ctmp = new TCanvas(TString::Format("ctmpSigMjj_cat%d",c),"Background Categories",0,0,500,500);
     plotmjj[c]->Draw();
     plotmjj[c]->Draw("SAME");
-    string str_desc="H(b#bar{b})H(#gamma#gamma) non-res.";
+    string str_desc="H(#it{b#bar{b}})H(#it{#gamma}#it{#gamma}) non-res.";
     TLegend *legmc = new TLegend(0.37,0.75,0.95,0.80);
 //    legmc->SetHeader(Form("%s; %s", str_desc.c_str(), catdesc.at(c).c_str()));
     legmc->SetNColumns(2);
@@ -1500,8 +1500,8 @@ void MakePlots(RooWorkspace* w, Float_t Mass) {
     latexLabel->DrawLatex(0.19, 0.85, "Simulation");
     latexLabel->SetTextFont(42); // helvetica
 //    latexLabel->SetTextSize(0.6 * ctmp->GetTopMargin());
-    if (sigMass == 0) latexLabel->DrawLatex(0.37, 0.88, "gg #rightarrow HH #rightarrow #gamma#gammab#bar{b}");
-    else latexLabel->DrawLatex(0.37, 0.88, Form("gg #rightarrow X #rightarrow HH #rightarrow #gamma#gammab#bar{b}, m_{X} = %i GeV", sigMass));
+    if (sigMass == 0) latexLabel->DrawLatex(0.37, 0.88, "#it{gg} #rightarrow HH #rightarrow #it{#gamma}#it{#gamma}#it{b#bar{b}}");
+    else latexLabel->DrawLatex(0.37, 0.88, Form("#it{gg} #rightarrow X #rightarrow HH #rightarrow #it{#gamma}#it{#gamma}#it{b#bar{b}}, m_{X} = %i GeV", sigMass));
     latexLabel->DrawLatex(0.37, 0.83, catdesc.at(c).c_str());
 //    TPaveText *pt = new TPaveText(0.1,0.94,0.7,0.99, "brNDC");
 //    //pt->SetName("title");
@@ -1513,7 +1513,7 @@ void MakePlots(RooWorkspace* w, Float_t Mass) {
     // float effS = effSigma(hist);
 //    string str_desc;
 //    if(sigMass==0)
-//      str_desc="H(b#bar{b})H(#gamma#gamma) non-res.";
+//      str_desc="H(b#bar{b})H(#it{#gamma}#it{#gamma}) non-res.";
 //    else
 //      str_desc=TString::Format(" m_{X} = %d GeV",sigMass);
 //    TLatex *lat = new TLatex(
@@ -1534,7 +1534,7 @@ void MakePlots(RooWorkspace* w, Float_t Mass) {
     TList *MyList = ctmp->GetListOfPrimitives();
     TObject *obj1;
     TIter next(MyList);
-    while(obj1=((TObject *)next())){
+    while(obj1=((TObject *)(next()))){
 //        std::cout << "object class name " << obj1->ClassName() << std::endl;
         if (strcmp(obj1->ClassName(), "TPaveText") == 0)
         {
@@ -1557,10 +1557,10 @@ void MakePlotsHiggs(RooWorkspace* w, Float_t Mass) {
     catdesc.push_back(" Medium Purity");
   }
   else{
-    catdesc.push_back(" #splitline{High Purity}{High m_{#gamma#gammajj}^{kin}}");
-    catdesc.push_back(" #splitline{Medium Purity}{High m_{#gamma#gammajj}^{kin}}");
-    catdesc.push_back(" #splitline{High Purity}{Low m_{#gamma#gammajj}^{kin}}");
-    catdesc.push_back(" #splitline{Medium Purity}{Low m_{#gamma#gammajj}^{kin}}");
+    catdesc.push_back(" #splitline{High Purity}{High m_{#it{#gamma}#it{#gamma}jj}^{kin}}");
+    catdesc.push_back(" #splitline{Medium Purity}{High m_{#it{#gamma}#it{#gamma}jj}^{kin}}");
+    catdesc.push_back(" #splitline{High Purity}{Low m_{#it{#gamma}#it{#gamma}jj}^{kin}}");
+    catdesc.push_back(" #splitline{Medium Purity}{Low m_{#it{#gamma}#it{#gamma}jj}^{kin}}");
   }
   // retrieve data sets from the workspace
   // RooDataSet* dataAll = (RooDataSet*) w->data("Data");
@@ -1649,7 +1649,7 @@ void MakePlotsHiggs(RooWorkspace* w, Float_t Mass) {
       //plotmgg[c]->SetTitle("CMS Preliminary 19.7/fb ");
       plotmgg[c]->SetMinimum(0.0);
       plotmgg[c]->SetMaximum(1.40*plotmgg[c]->GetMaximum());
-      plotmgg[c]->GetXaxis()->SetTitle("m_{#gamma#gamma} (GeV)");
+      plotmgg[c]->GetXaxis()->SetTitle("m_{#it{#gamma}#it{#gamma}} (GeV)");
       plotmgg[c]->GetYaxis()->SetTitle(Form("Events / %i GeV", (int)plotmgg[c]->getFitRangeBinW()));
       TCanvas* ctmp = new TCanvas(TString::Format("ctmpHigMgg_%d_cat%d",d,c),"Background Categories",0,0,500,500);
       plotmgg[c]->Draw();
@@ -1680,7 +1680,7 @@ void MakePlotsHiggs(RooWorkspace* w, Float_t Mass) {
       // float effS = effSigma(hist);
       TString str_desc;
       if(sigMass==0)
-	str_desc="H(b#bar{b})H(#gamma#gamma) non-res.";
+	str_desc="H(#it{b#bar{b}})H(#it{#gamma}#it{#gamma}) non-res.";
       else
 	str_desc=TString::Format(" m_{X} = %d GeV",sigMass);
       TLatex *lat = new TLatex(
@@ -1763,7 +1763,7 @@ void MakePlotsHiggs(RooWorkspace* w, Float_t Mass) {
          // float effS = effSigma(hist);
          TString str_desc;
          if(sigMass==0)
-	    str_desc="H(b#bar{b})H(#gamma#gamma) non-res.";
+	    str_desc="H(#it{b#bar{b}})H(#it{#gamma}#it{#gamma}) non-res.";
          else
 	    str_desc=TString::Format(" m_{X} = %d GeV",sigMass);
          TLatex *lat = new TLatex(
@@ -1820,7 +1820,7 @@ void MakePlotsHiggs(RooWorkspace* w, Float_t Mass) {
          // float effS = effSigma(hist);
          TString str_desc;
          if(sigMass==0)
-	    str_desc="H(b#bar{b})H(#gamma#gamma) non-res.";
+	    str_desc="H(#it{b#bar{b}})H(#it{#gamma}#it{#gamma}) non-res.";
          else
 	    str_desc=TString::Format(" m_{X} = %d GeV",sigMass);
          TLatex *lat = new TLatex(
