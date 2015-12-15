@@ -17,6 +17,7 @@
 #include <TLegend.h>
 #include <TList.h>
 #include <TPaveText.h>
+#include <TColor.h>
 // RooFit headers
 #include <RooWorkspace.h>
 #include <RooFitResult.h>
@@ -465,13 +466,13 @@ RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
   std::vector<string> catdesc;
   if ( NCAT == 2 ){
     catdesc.push_back(" High Purity");
-    catdesc.push_back(" Med. Purity");
+    catdesc.push_back(" Medium Purity");
   }
   else{
     catdesc.push_back("High Purity, High m_{#gamma#gammajj}^{kin}");
-    catdesc.push_back("Med. Purity, High m_{#gamma#gammajj}^{kin}");
+    catdesc.push_back("Medium Purity, High m_{#gamma#gammajj}^{kin}");
     catdesc.push_back("High Purity, Low m_{#gamma#gammajj}^{kin}");
-    catdesc.push_back("Med. Purity, Low m_{#gamma#gammajj}^{kin}");
+    catdesc.push_back("Medium Purity, Low m_{#gamma#gammajj}^{kin}");
   }
   //******************************************//
   // Fit background with model pdfs
@@ -829,18 +830,18 @@ RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
     // plotmggBkg[c]->SetMinimum(0.005); // no error bar in bins with zero events
     //plotmggBkg[c]->SetLogy(0);
     cout << "!!!!!!!!!!!!!!!!!" << endl;
-    TLegend *legmc = new TLegend(0.37,0.75,0.87,0.8);
-    TLegend *legmc2 = new TLegend(0.55,0.70,0.84,0.75);
-    legmc->SetTextFont(42);
+    TLegend *legmc = new TLegend(0.37,0.75,0.85,0.8);
+    TLegend *legmc2 = new TLegend(0.52,0.70,0.84,0.75);
+    legmc->SetTextFont(41);
     legmc2->SetTextFont(42);
     legmc->SetNColumns(2);
     legmc2->SetNColumns(2);
     TLegend *legmcH = new TLegend(0.66,0.72,0.94,0.9);
     if(doblinding) legmc->AddEntry(plotmggBkg[c]->getObject(2),"Data","");
-    else  legmc->AddEntry(plotmggBkg[c]->getObject(2),"Data","LPE");
+    else  legmc->AddEntry(plotmggBkg[c]->getObject(2),"Data  ","LPE");
     legmc->AddEntry(plotmggBkg[c]->getObject(1),"Background model","L");
-    if(dobands)legmc2->AddEntry(onesigma,"#pm1 #sigma","F");
-    if(dobands)legmc2->AddEntry(twosigma,"#pm2 #sigma ","F"); // not...
+    if(dobands)legmc2->AddEntry(onesigma,"68% CL","F");
+    if(dobands)legmc2->AddEntry(twosigma,"95% CL","F"); // not...
     if (plot_singleH) legmcH->AddEntry(plotmggBkg[c]->getObject(3),"ggH ","LPE"); // not...
     if (plot_singleH) legmcH->AddEntry(plotmggBkg[c]->getObject(5),"ttH ","LPE"); // not...
     if (plot_singleH) legmcH->AddEntry(plotmggBkg[c]->getObject(7),"VBF ","LPE"); // not...
@@ -912,7 +913,7 @@ RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
     //plotmjjBkg[c]->SetMinimum(0.01); // no error bar in bins with zero events
 //    plotmjjBkg[c]->SetMaximum(1.40*plotmjjBkg[c]->GetMaximum());
     if (sigMass == 0) plotmjjBkg[c]->GetXaxis()->SetTitle("m_{jj} (GeV)");
-    else plotmjjBkg[c]->GetXaxis()->SetTitle("m_{jj}^{r} (GeV)");
+    else plotmjjBkg[c]->GetXaxis()->SetTitle("m_{jj} (GeV)");
     plotmjjBkg[c]->GetYaxis()->SetTitle(Form("Events / %i GeV", (int)plotmjjBkg[c]->getFitRangeBinW()));
     //double test = sigToFit[c]->sumEntries();
     //cout<<"number of events on dataset "<<test<<endl;
@@ -971,9 +972,10 @@ RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
         delete epdf;
       } // close for bin
       mjj->setRange("errRange",minMjjMassFit,maxMjjMassFit);
-      twosigma->SetLineColor(kYellow);
-      twosigma->SetFillColor(kYellow);
-      twosigma->SetMarkerColor(kYellow);
+      Int_t ci = TColor::GetColor("#ffff00");
+      twosigma->SetLineColor(ci);
+      twosigma->SetFillColor(ci);
+      twosigma->SetMarkerColor(ci);
       twosigma->Draw("L3 SAME");
       onesigma->SetLineColor(kGreen);
       onesigma->SetFillColor(kGreen);
@@ -1056,18 +1058,18 @@ RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
     //////////////////////////////////////////////////////////
     plotmjjBkg[c]->Draw("SAME");
     cout << "!!!!!!!!!!!!!!!!!" << endl;
-    legmc = new TLegend(0.37,0.75,0.87,0.80);
-    legmc2 = new TLegend(0.55,0.70,0.84,0.75);
+    legmc = new TLegend(0.37,0.75,0.85,0.80);
+    legmc2 = new TLegend(0.52,0.70,0.84,0.75);
     legmc->SetNColumns(2);
-    legmc->SetTextFont(42);
+    legmc->SetTextFont(41);
     legmc2->SetNColumns(2);
     legmc2->SetTextFont(42);
     legmcH = new TLegend(0.66,0.72,0.94,0.9);
     if(doblinding) legmc->AddEntry(plotmjjBkg[c]->getObject(2),"Data","");
-    else legmc->AddEntry(plotmjjBkg[c]->getObject(2),"Data","LPE");
+    else legmc->AddEntry(plotmjjBkg[c]->getObject(2),"Data  ","LPE");
     legmc->AddEntry(plotmjjBkg[c]->getObject(1),"Background model","L");
-    if(dobands)legmc2->AddEntry(onesigma,"#pm1 #sigma","F");
-    if(dobands)legmc2->AddEntry(twosigma,"#pm2 #sigma ","F"); // not...
+    if(dobands)legmc2->AddEntry(onesigma,"68% CL","F");
+    if(dobands)legmc2->AddEntry(twosigma,"95% CL","F"); // not...
     if (plot_singleH) legmcH->AddEntry(plotmjjBkg[c]->getObject(3),"ggH ","LPE"); // not...
     if (plot_singleH) legmcH->AddEntry(plotmjjBkg[c]->getObject(5),"ttH ","LPE"); // not...
     if (plot_singleH) legmcH->AddEntry(plotmjjBkg[c]->getObject(7),"VBF ","LPE"); // not...
@@ -1280,13 +1282,13 @@ void MakePlots(RooWorkspace* w, Float_t Mass) {
   std::vector<string> catdesc;
   if ( NCAT == 2 ){
     catdesc.push_back(" High Purity");
-    catdesc.push_back(" Med. Purity");
+    catdesc.push_back(" Medium Purity");
   }
   else{
     catdesc.push_back("High Purity, High m_{#gamma#gammajj}^{kin}");
-    catdesc.push_back("Med. Purity, High m_{#gamma#gammajj}^{kin}");
+    catdesc.push_back("Medium Purity, High m_{#gamma#gammajj}^{kin}");
     catdesc.push_back("High Purity, Low m_{#gamma#gammajj}^{kin}");
-    catdesc.push_back("Med. Purity, Low m_{#gamma#gammajj}^{kin}");
+    catdesc.push_back("Medium Purity, Low m_{#gamma#gammajj}^{kin}");
   }
   // retrieve data sets from the workspace
   // RooDataSet* dataAll = (RooDataSet*) w->data("Data");
@@ -1429,7 +1431,7 @@ void MakePlots(RooWorkspace* w, Float_t Mass) {
     TList *MyList = ctmp->GetListOfPrimitives();
     TObject *obj1;
     TIter next(MyList);
-    while(obj1=(TObject *)next()){
+    while(obj1=((TObject *)next())){
 //        std::cout << "object class name " << obj1->ClassName() << std::endl;
         if (strcmp(obj1->ClassName(), "TPaveText") == 0)
         {
@@ -1470,7 +1472,7 @@ void MakePlots(RooWorkspace* w, Float_t Mass) {
     plotmjj[c]->SetMinimum(0.0);
     plotmjj[c]->SetMaximum(1.40*plotmjj[c]->GetMaximum());
     if (sigMass == 0) plotmjj[c]->GetXaxis()->SetTitle("m_{jj} (GeV)");
-    else plotmjj[c]->GetXaxis()->SetTitle("m_{jj}^{r} (GeV)");
+    else plotmjj[c]->GetXaxis()->SetTitle("m_{jj} (GeV)");
     plotmjj[c]->SetYTitle("Norm. to unity / 10 GeV");
     TCanvas* ctmp = new TCanvas(TString::Format("ctmpSigMjj_cat%d",c),"Background Categories",0,0,500,500);
     plotmjj[c]->Draw();
@@ -1532,7 +1534,7 @@ void MakePlots(RooWorkspace* w, Float_t Mass) {
     TList *MyList = ctmp->GetListOfPrimitives();
     TObject *obj1;
     TIter next(MyList);
-    while(obj1=(TObject *)next()){
+    while(obj1=((TObject *)next())){
 //        std::cout << "object class name " << obj1->ClassName() << std::endl;
         if (strcmp(obj1->ClassName(), "TPaveText") == 0)
         {
@@ -1552,13 +1554,13 @@ void MakePlotsHiggs(RooWorkspace* w, Float_t Mass) {
   std::vector<TString> catdesc;
   if ( NCAT == 2 ){
     catdesc.push_back(" High Purity");
-    catdesc.push_back(" Med. Purity");
+    catdesc.push_back(" Medium Purity");
   }
   else{
     catdesc.push_back(" #splitline{High Purity}{High m_{#gamma#gammajj}^{kin}}");
-    catdesc.push_back(" #splitline{Med. Purity}{High m_{#gamma#gammajj}^{kin}}");
+    catdesc.push_back(" #splitline{Medium Purity}{High m_{#gamma#gammajj}^{kin}}");
     catdesc.push_back(" #splitline{High Purity}{Low m_{#gamma#gammajj}^{kin}}");
-    catdesc.push_back(" #splitline{Med. Purity}{Low m_{#gamma#gammajj}^{kin}}");
+    catdesc.push_back(" #splitline{Medium Purity}{Low m_{#gamma#gammajj}^{kin}}");
   }
   // retrieve data sets from the workspace
   // RooDataSet* dataAll = (RooDataSet*) w->data("Data");
@@ -1729,7 +1731,7 @@ void MakePlotsHiggs(RooWorkspace* w, Float_t Mass) {
          plotmjj[c]->SetMinimum(0.0);
          plotmjj[c]->SetMaximum(1.40*plotmjj[c]->GetMaximum());
          if (sigMass == 0) plotmjj[c]->GetXaxis()->SetTitle("m_{jj} (GeV)");
-         else plotmjj[c]->GetXaxis()->SetTitle("m_{jj}^{r} (GeV)");
+         else plotmjj[c]->GetXaxis()->SetTitle("m_{jj} (GeV)");
          plotmjj[c]->GetYaxis()->SetTitle(Form("Events / %i GeV", (int)plotmjj[c]->getFitRangeBinW()));
          TCanvas* ctmp = new TCanvas(TString::Format("ctmpHigMjj_%d_cat_%d",d,c),"Background Categories",0,0,500,500);
          plotmjj[c]->Draw();
@@ -1789,7 +1791,7 @@ void MakePlotsHiggs(RooWorkspace* w, Float_t Mass) {
          plotmjj[c]->SetMinimum(0.0);
          plotmjj[c]->SetMaximum(1.40*plotmjj[c]->GetMaximum());
          if (sigMass == 0) plotmjj[c]->GetXaxis()->SetTitle("m_{jj} (GeV)");
-         else plotmjj[c]->GetXaxis()->SetTitle("m_{jj}^{r} (GeV)");
+         else plotmjj[c]->GetXaxis()->SetTitle("m_{jj} (GeV)");
          plotmjj[c]->GetYaxis()->SetTitle(Form("Events / %i GeV", (int)plotmjj[c]->getFitRangeBinW()));
          TCanvas* ctmp = new TCanvas(TString::Format("ctmpHigMjj_%d_cat_%d",d,c),"Background Categories",0,0,500,500);
          plotmjj[c]->Draw();

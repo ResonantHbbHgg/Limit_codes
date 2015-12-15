@@ -341,9 +341,10 @@ w->factory(TString::Format("mtot_bkg_8TeV_norm_cat%d[1.0,0.0,100000]",c)); // is
       } // close for each bin
       if (c==0) mtot->setRange("errRange",minMassFit,maxMassFit);
       if (c==1) mtot->setRange("errRange",minMassFit,maxMassFit);
-      twosigma->SetLineColor(kYellow);
-      twosigma->SetFillColor(kYellow);
-      twosigma->SetMarkerColor(kYellow);
+      Int_t ci = TColor::GetColor("#ffff00");
+      twosigma->SetLineColor(ci);
+      twosigma->SetFillColor(ci);
+      twosigma->SetMarkerColor(ci);
       twosigma->Draw("L3 SAME");
       onesigma->SetLineColor(kGreen);
       onesigma->SetFillColor(kGreen);
@@ -385,17 +386,17 @@ w->factory(TString::Format("mtot_bkg_8TeV_norm_cat%d[1.0,0.0,100000]",c)); // is
 //   ctmp->SetGrid(0);
    cout << "!!!!!!!!!!!!!!!!!" << endl;
 
-    TLegend *legmc = new TLegend(0.37,0.75,0.84,0.80);
-    TLegend *legmc2 = new TLegend(0.55,0.70,0.84,0.75);
-    legmc->SetTextFont(42);
+    TLegend *legmc = new TLegend(0.37,0.75,0.85,0.80);
+    TLegend *legmc2 = new TLegend(0.52,0.70,0.84,0.75);
+    legmc->SetTextFont(41);
     legmc->SetNColumns(2);
     legmc2->SetTextFont(42);
     legmc2->SetNColumns(2);
     if(doblinding) legmc->AddEntry(plotmtotBkg[c]->getObject(3),"Data ","");
-    else legmc->AddEntry(plotmtotBkg[c]->getObject(3),"Data ","LPE");
+    else legmc->AddEntry(plotmtotBkg[c]->getObject(3),"Data  ","LPE");
     legmc->AddEntry(plotmtotBkg[c]->getObject(1), "Background model","L");
-    if(dobands)legmc2->AddEntry(onesigma,"#pm1 #sigma","F");
-    if(dobands)legmc2->AddEntry(twosigma,"#pm2 #sigma","F");
+    if(dobands)legmc2->AddEntry(onesigma,"68% CL","F");
+    if(dobands)legmc2->AddEntry(twosigma,"95% CL","F");
     //legmc->SetHeader("m_{X} = 550 GeV");
     legmc2->SetBorderSize(0);
     legmc2->SetFillStyle(0);
