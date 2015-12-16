@@ -27,8 +27,8 @@ RooFitResult* BkgModelFitBernstein(RooWorkspace*, Bool_t);
 RooArgSet* defineVariables()
 {
   // define variables of the input ntuple
-  RooRealVar* mtot = new RooRealVar("mtot","M(#it{#gamma}#it{#gamma}jj)",320,1200,"GeV");
-  RooRealVar* mgg = new RooRealVar("mgg","M(#it{#gamma}#it{#gamma})",100,180,"GeV");
+  RooRealVar* mtot = new RooRealVar("mtot","M(#gamma#gammajj)",320,1200,"GeV");
+  RooRealVar* mgg = new RooRealVar("mgg","M(#gamma#gamma)",100,180,"GeV");
   RooRealVar* mjj = new RooRealVar("mjj","M(jj)",0,500,"GeV");
   RooRealVar* evWeight = new RooRealVar("evWeight","HqT x PUwei",0,100000000,"");
   RooCategory* cut_based_ct = new RooCategory("cut_based_ct","event category 2") ;
@@ -362,7 +362,7 @@ w->factory(TString::Format("mtot_bkg_8TeV_norm_cat%d[1.0,0.0,100000]",c)); // is
    plotmtotBkg[c]->GetYaxis()->SetRangeUser(0.0000001,10);
     if(c==0) plotmtotBkg[c]->SetMaximum(5.5);
     if (c==1) plotmtotBkg[c]->SetMaximum(13);
-    plotmtotBkg[c]->GetXaxis()->SetTitle("m_{#it{#gamma}#it{#gamma}jj}^{kin} (GeV)");
+    plotmtotBkg[c]->GetXaxis()->SetTitle("m_{#gamma#gammajj}^{kin} (GeV)");
     plotmtotBkg[c]->SetYTitle(Form("Events / %i GeV", (int)plotmtotBkg[c]->getFitRangeBinW()));
   // plotmtotBkg[c]->Draw("AC");
     //////////////////////////////////////////////////////////////////
@@ -406,9 +406,9 @@ w->factory(TString::Format("mtot_bkg_8TeV_norm_cat%d[1.0,0.0,100000]",c)); // is
     legmc->Draw();
     latexLabel->SetTextFont(42); // helvetica
 //    latexLabel->SetTextSize(0.6 * ctmp->GetTopMargin());
-    latexLabel->DrawLatex(0.37, 0.88, "#it{gg} #rightarrow X #rightarrow HH #rightarrow #it{#gamma}#it{#gamma}#it{b#bar{b}}");
+    latexLabel->DrawLatex(0.37, 0.88, "gg #rightarrow X #rightarrow HH #rightarrow #gamma#gammab#bar{b}");
     latexLabel->DrawLatex(0.37, 0.83, catdesc.at(c));
-    TLatex *lat1 = new TLatex(minfit+43.0,0.91*plotmtotBkg[c]->GetMaximum(),"#it{gg} #rightarrow X #rightarrow HH #rightarrow #it{#gamma}#it{#gamma}#it{b#bar{b}}");
+    TLatex *lat1 = new TLatex(minfit+43.0,0.91*plotmtotBkg[c]->GetMaximum(),"gg #rightarrow X #rightarrow HH #rightarrow #gamma#gammab#bar{b}");
 //    lat1->Draw();
     TLatex *lat2 = new TLatex(minfit+43.0,0.81*plotmtotBkg[c]->GetMaximum(),catdesc.at(c));
 //    lat2->Draw();
@@ -605,7 +605,7 @@ void MakePlots(RooWorkspace* w, Float_t Mass, RooFitResult* fitresults) {
     //plotmtot[c]->Draw();
     plotmtot[c]->SetMinimum(0.0);
     plotmtot[c]->SetMaximum(1.40*plotmtot[c]->GetMaximum());
-    plotmtot[c]->GetXaxis()->SetTitle("m_{#it{#gamma}#it{#gamma}jj}^{kin} (GeV)");
+    plotmtot[c]->GetXaxis()->SetTitle("m_{#gamma#gammajj}^{kin} (GeV)");
     plotmtot[c]->SetYTitle(Form("Norm. to unity / %i GeV", (int)plotmtot[c]->getFitRangeBinW()));
 
     plotmtot[c]->Draw("SAME");
@@ -624,7 +624,7 @@ void MakePlots(RooWorkspace* w, Float_t Mass, RooFitResult* fitresults) {
     // float effS = effSigma(hist);
     TLatex *lat = new TLatex(
         minMassFit+10.5,0.91*plotmtot[c]->GetMaximum(),
-        "X#rightarrowHH#rightarrow#it{#gamma}#it{#gamma}#it{b#bar{b}}");
+        "X#rightarrowHH#rightarrow#gamma#gammab#bar{b}");
 //    lat->Draw();
     TLatex *lat2 = new TLatex(
         minMassFit+10.5,0.81*plotmtot[c]->GetMaximum(),
@@ -654,7 +654,7 @@ void MakePlots(RooWorkspace* w, Float_t Mass, RooFitResult* fitresults) {
     latexLabel->DrawLatex(0.19, 0.85, "Simulation");
     latexLabel->SetTextFont(42); // helvetica
 //    latexLabel->SetTextSize(0.6 * ctmp->GetTopMargin());
-    latexLabel->DrawLatex(0.37, 0.88, "#it{gg} #rightarrow X #rightarrow HH #rightarrow #it{#gamma}#it{#gamma}#it{b#bar{b}}, m_{X} = 550 GeV");
+    latexLabel->DrawLatex(0.37, 0.88, "gg #rightarrow X #rightarrow HH #rightarrow #gamma#gammab#bar{b}, m_{X} = 550 GeV");
     latexLabel->DrawLatex(0.37, 0.83, catdesc.at(c));
  
 
