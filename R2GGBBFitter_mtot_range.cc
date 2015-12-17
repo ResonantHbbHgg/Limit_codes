@@ -609,7 +609,7 @@ void MakePlots(RooWorkspace* w, Float_t Mass, RooFitResult* fitresults) {
     plotmtot[c]->SetYTitle(Form("Norm. to unity / %i GeV", (int)plotmtot[c]->getFitRangeBinW()));
 
     plotmtot[c]->Draw("SAME");
-    TLegend *legmc = new TLegend(0.37,0.75,0.87,0.80);
+    TLegend *legmc = new TLegend(0.42,0.70,0.95,0.76);
     legmc->SetTextFont(42);
     legmc->SetNColumns(2);
     std::cout << "plotmtot[c]->getObject(0)= " << plotmtot[c]->getObject(0) << std::endl;
@@ -652,10 +652,12 @@ void MakePlots(RooWorkspace* w, Float_t Mass, RooFitResult* fitresults) {
     latexLabel->DrawLatex(0.19, 0.89, "CMS");
     latexLabel->SetTextFont(52); // helvetica italics
     latexLabel->DrawLatex(0.19, 0.85, "Simulation");
+    latexLabel->DrawLatex(0.19, 0.81, "Supplementary");
     latexLabel->SetTextFont(42); // helvetica
 //    latexLabel->SetTextSize(0.6 * ctmp->GetTopMargin());
-    latexLabel->DrawLatex(0.37, 0.88, "gg #rightarrow X #rightarrow HH #rightarrow #gamma#gammab#bar{b}, m_{X} = 550 GeV");
-    latexLabel->DrawLatex(0.37, 0.83, catdesc.at(c));
+    latexLabel->DrawLatex(0.45, 0.88, "gg #rightarrow X #rightarrow HH #rightarrow #gamma#gammab#bar{b}");
+    latexLabel->DrawLatex(0.45, 0.83, "m_{X} = 550 GeV");
+    latexLabel->DrawLatex(0.45, 0.78, catdesc.at(c));
  
 
    ctmp->SaveAs(TString::Format("sigmodel_cat%d.pdf",c));

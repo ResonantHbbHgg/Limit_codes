@@ -1377,7 +1377,7 @@ void MakePlots(RooWorkspace* w, Float_t Mass) {
     TCanvas* ctmp = new TCanvas(TString::Format("ctmpSigMgg_cat%d",c),"Background Categories",0,0,500,500);
     plotmgg[c]->Draw();
     plotmgg[c]->Draw("SAME");
-    TLegend *legmc = new TLegend(0.37,0.75,0.95,0.80);
+    TLegend *legmc = new TLegend(0.42,0.70,0.95,0.76);
     legmc->SetNColumns(2);
     legmc->SetTextFont(42);
     legmc->AddEntry(plotmgg[c]->getObject(0),"Simulation","LPE");
@@ -1397,11 +1397,18 @@ void MakePlots(RooWorkspace* w, Float_t Mass) {
     latexLabel->DrawLatex(0.19, 0.89, "CMS");
     latexLabel->SetTextFont(52); // helvetica italics
     latexLabel->DrawLatex(0.19, 0.85, "Simulation");
+    latexLabel->DrawLatex(0.19, 0.81, "Supplementary");
     latexLabel->SetTextFont(42); // helvetica
 //    latexLabel->SetTextSize(0.6 * ctmp->GetTopMargin());
-    if (sigMass == 0) latexLabel->DrawLatex(0.37, 0.88, "gg #rightarrow HH #rightarrow #gamma#gammab#bar{b}");
-    else latexLabel->DrawLatex(0.37, 0.88, Form("gg #rightarrow X #rightarrow HH #rightarrow #gamma#gammab#bar{b}, m_{X} = %i GeV", sigMass));
-    latexLabel->DrawLatex(0.37, 0.83, catdesc.at(c).c_str());
+    if (sigMass == 0)
+    {
+        latexLabel->DrawLatex(0.45, 0.88, "gg #rightarrow HH #rightarrow #gamma#gammab#bar{b}");
+        latexLabel->DrawLatex(0.45, 0.83, catdesc.at(c).c_str());
+    } else {
+         latexLabel->DrawLatex(0.45, 0.88, "gg #rightarrow X #rightarrow HH #rightarrow #gamma#gammab#bar{b}");
+         latexLabel->DrawLatex(0.45, 0.83, Form("m_{X} = %i GeV", sigMass));
+         latexLabel->DrawLatex(0.45, 0.78, catdesc.at(c).c_str());
+    }
 //   TPaveText *pt = new TPaveText(0.1,0.94,0.7,0.99, "brNDC");
 //    //pt->SetName("title");
 //    pt->SetBorderSize(0);
@@ -1478,7 +1485,7 @@ void MakePlots(RooWorkspace* w, Float_t Mass) {
     plotmjj[c]->Draw();
     plotmjj[c]->Draw("SAME");
     string str_desc="H(b#bar{b})H(#gamma#gamma) non-res.";
-    TLegend *legmc = new TLegend(0.37,0.75,0.95,0.80);
+    TLegend *legmc = new TLegend(0.42,0.70,0.95,0.76);
 //    legmc->SetHeader(Form("%s; %s", str_desc.c_str(), catdesc.at(c).c_str()));
     legmc->SetNColumns(2);
     legmc->SetTextFont(42);
@@ -1498,11 +1505,18 @@ void MakePlots(RooWorkspace* w, Float_t Mass) {
     latexLabel->DrawLatex(0.19, 0.89, "CMS");
     latexLabel->SetTextFont(52); // helvetica italics
     latexLabel->DrawLatex(0.19, 0.85, "Simulation");
+    latexLabel->DrawLatex(0.19, 0.81, "Supplementary");
     latexLabel->SetTextFont(42); // helvetica
 //    latexLabel->SetTextSize(0.6 * ctmp->GetTopMargin());
-    if (sigMass == 0) latexLabel->DrawLatex(0.37, 0.88, "gg #rightarrow HH #rightarrow #gamma#gammab#bar{b}");
-    else latexLabel->DrawLatex(0.37, 0.88, Form("gg #rightarrow X #rightarrow HH #rightarrow #gamma#gammab#bar{b}, m_{X} = %i GeV", sigMass));
-    latexLabel->DrawLatex(0.37, 0.83, catdesc.at(c).c_str());
+    if (sigMass == 0)
+    {
+        latexLabel->DrawLatex(0.45, 0.88, "gg #rightarrow HH #rightarrow #gamma#gammab#bar{b}");
+        latexLabel->DrawLatex(0.45, 0.83, catdesc.at(c).c_str());
+    } else {
+        latexLabel->DrawLatex(0.45, 0.88, "gg #rightarrow X #rightarrow HH #rightarrow #gamma#gammab#bar{b}");
+        latexLabel->DrawLatex(0.45, 0.83, Form("m_{X} = %i GeV", sigMass));
+        latexLabel->DrawLatex(0.45, 0.78, catdesc.at(c).c_str());
+    }
 //    TPaveText *pt = new TPaveText(0.1,0.94,0.7,0.99, "brNDC");
 //    //pt->SetName("title");
 //    pt->SetBorderSize(0);
