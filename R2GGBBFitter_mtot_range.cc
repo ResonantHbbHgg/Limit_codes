@@ -609,8 +609,9 @@ void MakePlots(RooWorkspace* w, Float_t Mass, RooFitResult* fitresults) {
     plotmtot[c]->SetYTitle(Form("Norm. to unity / %i GeV", (int)plotmtot[c]->getFitRangeBinW()));
 
     plotmtot[c]->Draw("SAME");
-    TLegend *legmc = new TLegend(0.42,0.70,0.95,0.76);
+    TLegend *legmc = new TLegend(0.38,0.70,0.95,0.76);
     legmc->SetTextFont(42);
+    legmc->SetTextSize(0.75 * ctmp->GetTopMargin());    
     legmc->SetNColumns(2);
     std::cout << "plotmtot[c]->getObject(0)= " << plotmtot[c]->getObject(0) << std::endl;
     legmc->AddEntry(plotmtot[c]->getObject(0),"Simulation","LPE");

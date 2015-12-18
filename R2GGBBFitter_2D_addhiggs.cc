@@ -1377,9 +1377,10 @@ void MakePlots(RooWorkspace* w, Float_t Mass) {
     TCanvas* ctmp = new TCanvas(TString::Format("ctmpSigMgg_cat%d",c),"Background Categories",0,0,500,500);
     plotmgg[c]->Draw();
     plotmgg[c]->Draw("SAME");
-    TLegend *legmc = new TLegend(0.42,0.70,0.95,0.76);
+    TLegend *legmc = new TLegend(0.38,0.70,0.95,0.76);
     legmc->SetNColumns(2);
     legmc->SetTextFont(42);
+    legmc->SetTextSize(0.75 * ctmp->GetTopMargin());
     legmc->AddEntry(plotmgg[c]->getObject(0),"Simulation","LPE");
     if (details_signal_model) legmc->AddEntry(plotmgg[c]->getObject(2),"Gaussian","L");
     legmc->AddEntry(plotmgg[c]->getObject(1),"Parametric model","L");
@@ -1485,10 +1486,11 @@ void MakePlots(RooWorkspace* w, Float_t Mass) {
     plotmjj[c]->Draw();
     plotmjj[c]->Draw("SAME");
     string str_desc="H(b#bar{b})H(#gamma#gamma) non-res.";
-    TLegend *legmc = new TLegend(0.42,0.70,0.95,0.76);
+    TLegend *legmc = new TLegend(0.38,0.70,0.95,0.76);
 //    legmc->SetHeader(Form("%s; %s", str_desc.c_str(), catdesc.at(c).c_str()));
     legmc->SetNColumns(2);
     legmc->SetTextFont(42);
+    legmc->SetTextSize(0.75 * ctmp->GetTopMargin());
     legmc->AddEntry(plotmjj[c]->getObject(0),"Simulation","LPE");
     if (details_signal_model) legmc->AddEntry(plotmjj[c]->getObject(2),"Gaussian","L");
     legmc->AddEntry(plotmjj[c]->getObject(1),"Parametric model","L");
@@ -1669,6 +1671,7 @@ void MakePlotsHiggs(RooWorkspace* w, Float_t Mass) {
       plotmgg[c]->Draw();
       plotmgg[c]->Draw("SAME");
       TLegend *legmc = new TLegend(0.35,0.75,0.85,0.80);
+      legmc->SetTextSize(0.75 * ctmp->GetTopMargin());
       legmc->AddEntry(plotmgg[c]->getObject(5),component[d],"LPE");
       legmc->AddEntry(plotmgg[c]->getObject(1),"Parametric Model","L");
       if (details_signal_model) legmc->AddEntry(plotmgg[c]->getObject(2),"Gaussian Outliers","L");
@@ -1751,7 +1754,7 @@ void MakePlotsHiggs(RooWorkspace* w, Float_t Mass) {
          plotmjj[c]->Draw();
          plotmjj[c]->Draw("SAME");
          TLegend *legmc = new TLegend(0.35,0.75,0.85,0.80);
-
+         legmc->SetTextSize(0.75 * ctmp->GetTopMargin());
          legmc->AddEntry(plotmjj[c]->getObject(5),component[d],"LPE");
          legmc->AddEntry(plotmjj[c]->getObject(1),"Parametric Model","L");
          if (details_signal_model) legmc->AddEntry(plotmjj[c]->getObject(2),"Gaussian Outliers","L");
