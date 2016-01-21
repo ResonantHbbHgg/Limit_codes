@@ -465,14 +465,14 @@ RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
   const Int_t ncat = NCAT;
   std::vector<string> catdesc;
   if ( NCAT == 2 ){
-    catdesc.push_back(" High Purity");
-    catdesc.push_back(" Medium Purity");
+    catdesc.push_back(" High-purity");
+    catdesc.push_back(" Medium-purity");
   }
   else{
-    catdesc.push_back("High Purity, High m_{#gamma#gammajj}^{kin}");
-    catdesc.push_back("Medium Purity, High m_{#gamma#gammajj}^{kin}");
-    catdesc.push_back("High Purity, Low m_{#gamma#gammajj}^{kin}");
-    catdesc.push_back("Medium Purity, Low m_{#gamma#gammajj}^{kin}");
+    catdesc.push_back("High-purity, High m_{#gamma#gammajj}^{kin}");
+    catdesc.push_back("Medium-purity, High m_{#gamma#gammajj}^{kin}");
+    catdesc.push_back("High-purity, Low m_{#gamma#gammajj}^{kin}");
+    catdesc.push_back("Medium-purity, Low m_{#gamma#gammajj}^{kin}");
   }
   //******************************************//
   // Fit background with model pdfs
@@ -1281,14 +1281,14 @@ void MakePlots(RooWorkspace* w, Float_t Mass) {
   const Int_t ncat = NCAT;
   std::vector<string> catdesc;
   if ( NCAT == 2 ){
-    catdesc.push_back(" High Purity");
-    catdesc.push_back(" Medium Purity");
+    catdesc.push_back(" High-purity");
+    catdesc.push_back(" Medium-purity");
   }
   else{
-    catdesc.push_back("High Purity, High m_{#gamma#gammajj}^{kin}");
-    catdesc.push_back("Medium Purity, High m_{#gamma#gammajj}^{kin}");
-    catdesc.push_back("High Purity, Low m_{#gamma#gammajj}^{kin}");
-    catdesc.push_back("Medium Purity, Low m_{#gamma#gammajj}^{kin}");
+    catdesc.push_back("High-purity, High m_{#gamma#gammajj}^{kin}");
+    catdesc.push_back("Medium-purity, High m_{#gamma#gammajj}^{kin}");
+    catdesc.push_back("High-purity, Low m_{#gamma#gammajj}^{kin}");
+    catdesc.push_back("Medium-purity, Low m_{#gamma#gammajj}^{kin}");
   }
   // retrieve data sets from the workspace
   // RooDataSet* dataAll = (RooDataSet*) w->data("Data");
@@ -1569,14 +1569,14 @@ void MakePlotsHiggs(RooWorkspace* w, Float_t Mass) {
   const Int_t ncat = NCAT;
   std::vector<TString> catdesc;
   if ( NCAT == 2 ){
-    catdesc.push_back(" High Purity");
-    catdesc.push_back(" Medium Purity");
+    catdesc.push_back(" High-purity");
+    catdesc.push_back(" Medium-purity");
   }
   else{
-    catdesc.push_back(" #splitline{High Purity}{High m_{#gamma#gammajj}^{kin}}");
-    catdesc.push_back(" #splitline{Medium Purity}{High m_{#gamma#gammajj}^{kin}}");
-    catdesc.push_back(" #splitline{High Purity}{Low m_{#gamma#gammajj}^{kin}}");
-    catdesc.push_back(" #splitline{Medium Purity}{Low m_{#gamma#gammajj}^{kin}}");
+    catdesc.push_back(" #splitline{High-purity}{High m_{#gamma#gammajj}^{kin}}");
+    catdesc.push_back(" #splitline{Medium-purity}{High m_{#gamma#gammajj}^{kin}}");
+    catdesc.push_back(" #splitline{High-purity}{Low m_{#gamma#gammajj}^{kin}}");
+    catdesc.push_back(" #splitline{Medium-purity}{Low m_{#gamma#gammajj}^{kin}}");
   }
   // retrieve data sets from the workspace
   // RooDataSet* dataAll = (RooDataSet*) w->data("Data");

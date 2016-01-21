@@ -207,8 +207,8 @@ void SigModelFit(RooWorkspace* w, Float_t mass) {
 RooFitResult* BkgModelFitBernstein(RooWorkspace* w, Bool_t dobands) {
   const Int_t ncat = NCAT; dobands=true;
   std::vector<TString> catdesc;
-  catdesc.push_back("High purity");//2 btag");
-  catdesc.push_back("Medium purity");//1 btag");
+  catdesc.push_back("High-purity");//2 btag");
+  catdesc.push_back("Medium-purity");//1 btag");
   //******************************************//
   // Fit background with model pdfs
   //******************************************//
@@ -543,8 +543,8 @@ void MakePlots(RooWorkspace* w, Float_t Mass, RooFitResult* fitresults) {
   const Int_t ncat = NCAT;
   const int minsigfit =Mass - 120, maxsigfit=Mass +120;
   std::vector<TString> catdesc;
-  catdesc.push_back("High purity");//2 btag");
-  catdesc.push_back("Medium purity");//1 btag");
+  catdesc.push_back("High-purity");//2 btag");
+  catdesc.push_back("Medium-purity");//1 btag");
   RooDataSet* signalAll = (RooDataSet*) w->data("Sig");
   // blinded dataset
   RooDataSet* sigToFit[ncat];
