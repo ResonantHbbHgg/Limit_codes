@@ -392,8 +392,8 @@ w->factory(TString::Format("mtot_bkg_8TeV_norm_cat%d[1.0,0.0,100000]",c)); // is
     legmc->SetNColumns(2);
     legmc2->SetTextFont(42);
     legmc2->SetNColumns(2);
-    if(doblinding) legmc->AddEntry(plotmtotBkg[c]->getObject(3),"Data ","");
-    else legmc->AddEntry(plotmtotBkg[c]->getObject(3),"Data  ","LPE");
+    if(doblinding) legmc->AddEntry(plotmtotBkg[c]->getObject(2),"Data ","");
+    else legmc->AddEntry(plotmtotBkg[c]->getObject(2),"Data  ","LPE");
     legmc->AddEntry(plotmtotBkg[c]->getObject(1), "Background model","L");
     if(dobands)legmc2->AddEntry(onesigma,"68% CL","F");
     if(dobands)legmc2->AddEntry(twosigma,"95% CL","F");
