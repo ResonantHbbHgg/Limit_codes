@@ -725,6 +725,7 @@ RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
         RooAbsReal *nll = epdf->createNLL(*(data[c]),Extended());
         RooMinimizer minim(*nll);
         minim.setStrategy(0);
+//        minim.setMaxIterations(5000);
 //        double clone = 1.0 - 2.0*RooStats::SignificanceToPValue(1.0);
         double cltwo = 1.0 - 2.0*RooStats::SignificanceToPValue(2.0);
         minim.migrad();
@@ -942,6 +943,8 @@ RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
       RooRealVar *nlim = new RooRealVar(TString::Format("nlim%d",c),"",0.0,0.0,10.0);
       nlim->removeRange();
       RooCurve *nomcurve = dynamic_cast<RooCurve*>(plotmjjBkg[c]->getObject(1));
+      float x1one,x2one,y1Lone,y1Hone,y2Lone,y2Hone,Xone,YLone,YHone;
+      float x1two,x2two,y1Ltwo,y1Htwo,y2Ltwo,y2Htwo,Xtwo,YLtwo,YHtwo;
       for (int i=1; i<(plotmjjBkg[c]->GetXaxis()->GetNbins()+1); ++i) {
         double lowedge = plotmjjBkg[c]->GetXaxis()->GetBinLowEdge(i);
         double upedge = plotmjjBkg[c]->GetXaxis()->GetBinUpEdge(i);
@@ -961,6 +964,26 @@ RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
         // printf("errlo = %5f, errhi = %5f\n",nlim->getErrorLo(),nlim->getErrorHi());
         onesigma->SetPoint(i-1,center,nombkg);
         onesigma->SetPointError(i-1,0.,0.,-nlim->getErrorLo(),nlim->getErrorHi());
+        if (sigMass != 0 && c == 0 && (i-1) <= 2)
+        {
+            if ((i-1) == 0)
+            {
+                x1one = center; y1Lone = nlim->getErrorLo(); y1Hone = nlim->getErrorHi();
+            }
+            if ((i-1) == 1)
+            {
+                Xone = center; YLone = nlim->getErrorLo(); YHone = nlim->getErrorHi();
+            }
+            if ((i-1) == 2)
+            {
+                x2one = center; y2Lone = nlim->getErrorLo(); y2Hone = nlim->getErrorHi();
+                float newyLone = y1Lone + ((y2Lone-y1Lone)/(float)(x2one-x1one))*(Xone - x1one);
+                float newyHone = y1Hone + ((y2Hone-y1Hone)/(float)(x2one-x1one))*(Xone - x1one);
+                onesigma->SetPointError(1,0.,0., -newyLone, newyHone);
+                std::cout << "@@@@@ YLone= " << YLone << "\tnewyLone= " << newyLone << "\tYHone= " << YHone << "\tnewyHone= " << newyHone << std::endl;
+            }
+            std::cout << "@@@@@ point " << i-1 << "\tcenter= " << center << "\tnombkg= " << nombkg << "\t-nlim->getErrorLo()= " << -nlim->getErrorLo() << "\tnlim->getErrorHi()= " << nlim->getErrorHi() << std::endl;
+        }
         minim.setErrorLevel(0.5*pow(ROOT::Math::normal_quantile(1-0.5*(1-cltwo),1.0), 2));
         // the 0.5 is because qmu is -2*NLL
         // eventually if cl = 0.95 this is the usual 1.92!
@@ -968,6 +991,26 @@ RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
         minim.minos(*nlim);
         twosigma->SetPoint(i-1,center,nombkg);
         twosigma->SetPointError(i-1,0.,0.,-nlim->getErrorLo(),nlim->getErrorHi());
+        if (sigMass != 0 && c == 0 && (i-1) <= 2)
+        {
+            if ((i-1) == 0)
+            {
+                x1two = center; y1Ltwo = nlim->getErrorLo(); y1Htwo = nlim->getErrorHi();
+            }
+            if ((i-1) == 1)
+            {
+                Xtwo = center; YLtwo = nlim->getErrorLo(); YHtwo = nlim->getErrorHi();
+            }
+            if ((i-1) == 2)
+            {
+                x2two = center; y2Ltwo = nlim->getErrorLo(); y2Htwo = nlim->getErrorHi();
+                float newyLtwo = y1Ltwo + ((y2Ltwo-y1Ltwo)/(float)(x2two-x1two))*(Xtwo - x1two);
+                float newyHtwo = y1Htwo + ((y2Htwo-y1Htwo)/(float)(x2two-x1two))*(Xtwo - x1two);
+                twosigma->SetPointError(1,0.,0., -newyLtwo, newyHtwo);
+                std::cout << "@@@@@ YLtwo= " << YLtwo << "\tnewyLtwo= " << newyLtwo << "\tYHtwo= " << YHtwo << "\tnewyHtwo= " << newyHtwo << std::endl;
+            }
+            std::cout << "@@@@@ point " << i-1 << "\tcenter= " << center << "\tnombkg= " << nombkg << "\t-nlim->getErrorLo()= " << -nlim->getErrorLo() << "\tnlim->getErrorHi()= " << nlim->getErrorHi() << std::endl;
+        }
         delete nll;
         delete epdf;
       } // close for bin
