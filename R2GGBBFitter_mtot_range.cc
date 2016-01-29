@@ -215,6 +215,7 @@ RooFitResult* BkgModelFitBernstein(RooWorkspace* w, Bool_t dobands) {
   // retrieve pdfs and datasets from workspace to fit with pdf models
   RooDataSet* data[ncat];
   RooDataSet* dataplot[ncat];
+  RooDataSet* emptyplot[ncat];
   //RooBernstein* mtotBkg[ncat];
   RooPlot* plotmtotBkg[ncat];
   RooPlot* plotlinemtotBkg[ncat];
@@ -287,13 +288,14 @@ w->factory(TString::Format("mtot_bkg_8TeV_norm_cat%d[1.0,0.0,100000]",c)); // is
    plotmtotBkg[c] = mtot->frame(minfit,maxfit,nBinsMass);
    //plotlinemtotBkg[c] = mtot->frame(nBinsMass);
    dataplot[c] = (RooDataSet*) w->data(TString::Format("Dataplot_cat%d",c));
-   if(doblinding) dataplot[c]->plotOn(plotmtotBkg[c], Invisible());
-   else dataplot[c]->plotOn(plotmtotBkg[c]);
- 
+   emptyplot[c] = (RooDataSet*) w->data(TString::Format("Dataplot_cat%d",c));
+   if(doblinding) dataplot[c]->plotOn(plotmtotBkg[c], Invisible(), Name(Form("Dataplot_cat%d_plot",c)));
+   else dataplot[c]->plotOn(plotmtotBkg[c], Name(Form("Dataplot_cat%d_plot",c)));
+
    mtotBkgExt.plotOn(
         plotmtotBkg[c],
         LineColor(kBlue),
-        Range("fitrange"),NormRange("fitrange"));
+        Range(minfit+10., maxfit-10.),NormRange("fitrange"));
 
 
     cout << "!!!!!!!!!!!!!!!!!" << endl;
@@ -353,13 +355,48 @@ w->factory(TString::Format("mtot_bkg_8TeV_norm_cat%d[1.0,0.0,100000]",c)); // is
       //plotmtotBkg[c]->Draw("SAME");
     } // close dobands
 
+   if(doblinding) emptyplot[c]->plotOn(plotmtotBkg[c], Invisible(), Name(Form("emptyplot_cat%d_plot",c)));
+   else emptyplot[c]->plotOn(plotmtotBkg[c], Name(Form("emptyplot_cat%d_plot",c)), MarkerSize(0));
+   
+   const double alpha = 1 - 0.6827;
+   for (int i = 0; i < (plotmtotBkg[c]->getHist(Form("Dataplot_cat%d_plot",c)))->GetN() ; i++)
+   {
+        Double_t x,y;
+        (plotmtotBkg[c]->getHist(Form("Dataplot_cat%d_plot",c)))->GetPoint(i, x, y);
+        int N = y;
+        double L =  (N==0) ? 0  : (ROOT::Math::gamma_quantile(alpha/2,N,1.));
+        double U =  ROOT::Math::gamma_quantile_c(alpha/2,N+1,1);
+        (plotmtotBkg[c]->getHist(Form("Dataplot_cat%d_plot",c)))->SetPointError(i, 0, 0, N-L, U-N);
+        if (N==0)
+        {
+            (plotmtotBkg[c]->getHist(Form("emptyplot_cat%d_plot",c)))->SetPoint(i, x, 1.0e-6);
+            (plotmtotBkg[c]->getHist(Form("emptyplot_cat%d_plot",c)))->SetPointError(i, 0, 0, N-L, U-N);
+        } else {
+            (plotmtotBkg[c]->getHist(Form("emptyplot_cat%d_plot",c)))->SetPoint(i, x, 0.);
+        }
+   }
+
 
    //plotlinemtotBkg[c]->Draw("SAME");
    // //plotmtotBkg[c]->getObject(1)->Draw("SAME");
-    if(doblinding) dataplot[c]->plotOn(plotmtotBkg[c],Invisible());
-    else dataplot[c]->plotOn(plotmtotBkg[c]);
+//    if(doblinding) dataplot[c]->plotOn(plotmtotBkg[c],Invisible());
+//    else dataplot[c]->plotOn(plotmtotBkg[c]);
+   int nbins = (plotmtotBkg[c]->getHist(Form("Dataplot_cat%d_plot",c)))->GetN();
+   if(doblinding) dataplot[c]->plotOn(plotmtotBkg[c], Invisible(), Name(Form("Dataplot_cat%d_plot",c)));
+   else dataplot[c]->plotOn(plotmtotBkg[c], Name(Form("Dataplot_cat%d_plot",c)));
+   const double alpha = 1 - 0.6827;
+
+   for (int i = 0; i < nbins ; i++)
+   {
+        Double_t x,y;
+        (plotmtotBkg[c]->getHist(Form("Dataplot_cat%d_plot",c)))->GetPoint(i, x, y);
+        int N = y;
+        double L =  (N==0) ? 0  : (ROOT::Math::gamma_quantile(alpha/2,N,1.));
+        double U =  ROOT::Math::gamma_quantile_c(alpha/2,N+1,1);
+        (plotmtotBkg[c]->getHist(Form("Dataplot_cat%d_plot",c)))->SetPointError(i, 0, 0, N-L, U-N);
+   }
    plotmtotBkg[c]->Draw("SAME");
-   plotmtotBkg[c]->GetYaxis()->SetRangeUser(0.0000001,10);
+   plotmtotBkg[c]->GetYaxis()->SetRangeUser(1.0e-7,10);
     if(c==0) plotmtotBkg[c]->SetMaximum(5.5);
     if (c==1) plotmtotBkg[c]->SetMaximum(13);
     plotmtotBkg[c]->GetXaxis()->SetTitle("m_{#gamma#gammajj}^{kin} (GeV)");
@@ -392,8 +429,8 @@ w->factory(TString::Format("mtot_bkg_8TeV_norm_cat%d[1.0,0.0,100000]",c)); // is
     legmc->SetNColumns(2);
     legmc2->SetTextFont(42);
     legmc2->SetNColumns(2);
-    if(doblinding) legmc->AddEntry(plotmtotBkg[c]->getObject(2),"Data ","");
-    else legmc->AddEntry(plotmtotBkg[c]->getObject(2),"Data  ","LPE");
+    if(doblinding) legmc->AddEntry(plotmtotBkg[c]->getObject(3),"Data ","");
+    else legmc->AddEntry(plotmtotBkg[c]->getObject(3),"Data  ","LPE");
     legmc->AddEntry(plotmtotBkg[c]->getObject(1), "Background model","L");
     if(dobands)legmc2->AddEntry(onesigma,"68% CL","F");
     if(dobands)legmc2->AddEntry(twosigma,"95% CL","F");
