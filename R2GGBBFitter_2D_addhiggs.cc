@@ -19,6 +19,7 @@
 #include <TPaveText.h>
 #include <TColor.h>
 // RooFit headers
+#include <RooHist.h>
 #include <RooWorkspace.h>
 #include <RooFitResult.h>
 #include <RooRealVar.h>
@@ -480,6 +481,7 @@ RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
   // retrieve pdfs and datasets from workspace to fit with pdf models
   RooDataSet* data[ncat];
   RooDataSet* dataplot[ncat]; // the data
+  RooDataSet* emptyplot[ncat]; // the data
 //  RooBernstein* mggBkg[ncat];// the polinomial of 4* order
 //  RooBernstein* mjjBkg[ncat];// the polinomial of 4* order
   RooPlot* plotmggBkg[ncat];
@@ -648,35 +650,39 @@ RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
     plotmggBkg[c] = mgg->frame(nBinsMass);
     cout<<" here 1"<<endl;
     dataplot[c] = (RooDataSet*) w->data(TString::Format("Dataplot_cat%d",c));
+    emptyplot[c] = (RooDataSet*) w->data(TString::Format("Dataplot_cat%d",c));
     cout<<" here 1"<<endl;
     if(sigMass == 260) plotmggBkg[c]->GetXaxis()->SetRangeUser(100.,145.);
     if(sigMass == 270) plotmggBkg[c]->GetXaxis()->SetRangeUser(100.,155.);
-    if(c==0||c==2)plotmggBkg[c]->SetMinimum(0.005); // no error bar in bins with zero events
-    if(c==1||c==3)plotmggBkg[c]->SetMinimum(0.01); // no error bar in bins with zero events
+    plotmggBkg[c]->SetMinimum(1.0e-5);
+//    if(c==0||c==2)plotmggBkg[c]->SetMinimum(0.005); // no error bar in bins with zero events
+//    if(c==1||c==3)plotmggBkg[c]->SetMinimum(0.01); // no error bar in bins with zero events
     if(c==0)plotmggBkg[c]->SetMaximum(9.0); // no error bar in bins with zero events
     if(c==1)plotmggBkg[c]->SetMaximum(14); // no error bar in bins with zero events
     if(c==2)plotmggBkg[c]->SetMaximum(8.); // no error bar in bins with zero events
     if(c==3)plotmggBkg[c]->SetMaximum(22); // no error bar in bins with zero events
-    if(doblinding) dataplot[c]->plotOn(plotmggBkg[c],Invisible());
-    else dataplot[c]->plotOn(plotmggBkg[c]);
+    if(doblinding) dataplot[c]->plotOn(plotmggBkg[c],Invisible(), Name(Form("dataplot_cat%d_plot",c)));
+    else dataplot[c]->plotOn(plotmggBkg[c], Name(Form("dataplot_cat%d_plot",c)));
     if(sigMass == 0)
     {
-       if(c == 0 || c == 2) mggBkgTmpExp1->plotOn(plotmggBkg[c],LineColor(kBlue),Range("BkgFitRange"),NormRange("BkgFitRange"));
-       else if(c == 1 || c == 3) mggBkgTmpPow1->plotOn(plotmggBkg[c],LineColor(kBlue),Range("BkgFitRange"),NormRange("BkgFitRange"));
+       if(c == 0 || c == 2) mggBkgTmpExp1->plotOn(plotmggBkg[c],LineColor(kBlue),Range(minMggMassFit+0.5, maxMggMassFit-0.5),NormRange("BkgFitRange"));
+       else if(c == 1 || c == 3) mggBkgTmpPow1->plotOn(plotmggBkg[c],LineColor(kBlue),Range(minMggMassFit+0.5, maxMggMassFit-0.5),NormRange("BkgFitRange"));
     }
     else if(sigMass != 0)
     {
-       if(c == 0) mggBkgTmpBer1->plotOn(plotmggBkg[c],LineColor(kBlue),Range("BkgFitRange"),NormRange("BkgFitRange"));
-       else if(c == 1) mggBkgTmpPow1->plotOn(plotmggBkg[c],LineColor(kBlue),Range("BkgFitRange"),NormRange("BkgFitRange"));
+       if(c == 0) mggBkgTmpBer1->plotOn(plotmggBkg[c],LineColor(kBlue),Range(minMggMassFit+0.5, maxMggMassFit-0.5),NormRange("BkgFitRange"));
+       else if(c == 1) mggBkgTmpPow1->plotOn(plotmggBkg[c],LineColor(kBlue),Range(minMggMassFit+0.5, maxMggMassFit-0.5),NormRange("BkgFitRange"));
     }
-    if(doblinding) dataplot[c]->plotOn(plotmggBkg[c], Invisible());
-    else dataplot[c]->plotOn(plotmggBkg[c]);
+    if(doblinding) dataplot[c]->plotOn(plotmggBkg[c], Invisible(), Name(Form("dataplot_cat%d_plot",c)));
+    else dataplot[c]->plotOn(plotmggBkg[c], Name(Form("dataplot_cat%d_plot",c)));
     cout << "!!!!!!!!!!!!!!!!!" << endl;
     cout << "!!!!!!!!!!!!!!!!!" << endl; // now we fit the gaussian on signal
     //plotmggBkg[c]->SetMinimum(0.01); // no error bar in bins with zero events
-    if(c==0||c==2)plotmggBkg[c]->SetMinimum(0.001); // no error bar in bins with zero events
-    if(c==1||c==3)plotmggBkg[c]->SetMinimum(0.001); // no error bar in bins with zero events
+    if(c==0||c==2)plotmggBkg[c]->SetMinimum(1.0e-5); // no error bar in bins with zero events
+    if(c==1||c==3)plotmggBkg[c]->SetMinimum(1.0e-5); // no error bar in bins with zero events
+    plotmggBkg[c]->SetMinimum(1.0e-5);
     plotmggBkg[c]->Draw();
+    plotmggBkg[c]->SetMinimum(1.0e-5);
     //plotmggBkg[c]->SetTitle("CMS preliminary 19.7/fb");
     //plotmggBkg[c]->SetMinimum(0.01); // no error bar in bins with zero events
 //    plotmggBkg[c]->SetMaximum(1.40*plotmggBkg[c]->GetMaximum());
@@ -752,8 +758,38 @@ RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
       onesigma->SetFillColor(kGreen);
       onesigma->SetMarkerColor(kGreen);
       onesigma->Draw("L3 SAME");
+      plotmggBkg[c]->SetMinimum(1.0e-5);;
       plotmggBkg[c]->Draw("SAME");
-    } else plotmggBkg[c]->Draw("SAME"); // close dobands
+    } else {
+      plotmggBkg[c]->SetMinimum(1.0e-5);;
+      plotmggBkg[c]->Draw("SAME"); // close dobands
+    }
+    plotmggBkg[c]->SetMinimum(1.0e-5);
+    std::cout << "Before trying the trick with the error bars" << std::endl;
+    if(doblinding) emptyplot[c]->plotOn(plotmggBkg[c],Invisible(), Name(Form("emptyplot_cat%d_plot",c)));
+    else emptyplot[c]->plotOn(plotmggBkg[c], Name(Form("emptyplot_cat%d_plot",c)), MarkerSize(0));
+    const double alpha = 1 - 0.6827;
+    for (int i = 0; i < (plotmggBkg[c]->getHist(Form("dataplot_cat%d_plot",c)))->GetN() ; i++)
+    {
+         Double_t x,y;
+         (plotmggBkg[c]->getHist(Form("dataplot_cat%d_plot",c)))->GetPoint(i, x, y);
+//         std::cout << "c= " << c << "\tx= " << x << "\ty= " << y << std::endl;
+         int N = y;
+         double L =  (N==0) ? 0  : (ROOT::Math::gamma_quantile(alpha/2,N,1.));
+         double U =  ROOT::Math::gamma_quantile_c(alpha/2,N+1,1);
+         (plotmggBkg[c]->getHist(Form("dataplot_cat%d_plot",c)))->SetPointError(i, 0, 0, N-L, U-N);
+         if (N==0)
+         {
+             (plotmggBkg[c]->getHist(Form("emptyplot_cat%d_plot",c)))->SetPoint(i, x, 1.0e-4);
+             (plotmggBkg[c]->getHist(Form("emptyplot_cat%d_plot",c)))->SetPointError(i, 0, 0, N-L, U-N);
+         } else {
+             (plotmggBkg[c]->getHist(Form("emptyplot_cat%d_plot",c)))->SetPoint(i, x, 0.);
+         }
+    }
+    plotmggBkg[c]->SetMinimum(1.0e-5);
+    plotmggBkg[c]->Draw("same");
+
+ 
     //plotmggBkg[c]->getObject(1)->Draw("SAME");
     //plotmggBkg[c]->getObject(2)->Draw("P SAME");
     ////////////////////////////////////////////////////////// plot higgs
@@ -827,6 +863,7 @@ RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
 		       Normalization(norm4,RooAbsPdf::NumEvent),LineColor(kBlue),LineStyle(1));
 
     //////////////////////////////////////////////////////////
+    plotmggBkg[c]->SetMinimum(1.0e-5);
     plotmggBkg[c]->Draw("SAME");
     // plotmggBkg[c]->SetMinimum(0.005); // no error bar in bins with zero events
     //plotmggBkg[c]->SetLogy(0);
@@ -884,28 +921,38 @@ RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
     cout<<" here 1"<<endl;
     dataplot[c] = (RooDataSet*) w->data(TString::Format("Dataplot_cat%d",c));
     cout<<" here 1"<<endl;
-    if(c==0||c==2)plotmggBkg[c]->SetMinimum(0.005); // no error bar in bins with zero events
-    if(c==1||c==3)plotmggBkg[c]->SetMinimum(0.01); // no error bar in bins with zero events
-    if(doblinding) dataplot[c]->plotOn(plotmjjBkg[c],Invisible());
-    else dataplot[c]->plotOn(plotmjjBkg[c]);
+    if(c==0||c==2)plotmggBkg[c]->SetMinimum(1.0e-5); // no error bar in bins with zero events
+    if(c==1||c==3)plotmggBkg[c]->SetMinimum(1.0e-5); // no error bar in bins with zero events
+    if(doblinding) dataplot[c]->plotOn(plotmjjBkg[c],Invisible(),Name(Form("dataplot_cat%d_plot",c)));
+    else dataplot[c]->plotOn(plotmjjBkg[c], Name(Form("dataplot_cat%d_plot",c)));
+    for (int i = 0; i < (plotmjjBkg[c]->getHist(Form("dataplot_cat%d_plot",c)))->GetN() ; i++)
+    {
+        (plotmjjBkg[c]->getHist(Form("dataplot_cat%d_plot",c)))->SetPointEXhigh(i, 0.);
+        (plotmjjBkg[c]->getHist(Form("dataplot_cat%d_plot",c)))->SetPointEXlow(i, 0.);
+    }
     if(sigMass == 0)
     {
-       if(c == 0 || c == 2)mjjBkgTmpExp1->plotOn(plotmjjBkg[c],LineColor(kBlue),Range("BkgFitRange"),NormRange("BkgFitRange"));
-       else if(c == 1 || c == 3) mjjBkgTmpPow1->plotOn(plotmjjBkg[c],LineColor(kBlue),Range("BkgFitRange"),NormRange("BkgFitRange"));
+       if(c == 0 || c == 2)mjjBkgTmpExp1->plotOn(plotmjjBkg[c],LineColor(kBlue),Range(minMjjMassFit+5, maxMjjMassFit-5),NormRange("BkgFitRange"));
+       else if(c == 1 || c == 3) mjjBkgTmpPow1->plotOn(plotmjjBkg[c],LineColor(kBlue),Range(minMjjMassFit+5, maxMjjMassFit-5),NormRange("BkgFitRange"));
     }
     else if(sigMass != 0)
     {
-       if(c == 0) mjjBkgTmpBer1->plotOn(plotmjjBkg[c],LineColor(kBlue),Range("BkgFitRange"),NormRange("BkgFitRange"));
-       else if(c == 1) mjjBkgTmpPow1->plotOn(plotmjjBkg[c],LineColor(kBlue),Range("BkgFitRange"),NormRange("BkgFitRange"));
+       if(c == 0) mjjBkgTmpBer1->plotOn(plotmjjBkg[c],LineColor(kBlue),Range(minMjjMassFit+5, maxMjjMassFit-5),NormRange("BkgFitRange"));
+       else if(c == 1) mjjBkgTmpPow1->plotOn(plotmjjBkg[c],LineColor(kBlue),Range(minMjjMassFit+5, maxMjjMassFit-5),NormRange("BkgFitRange"));
     }
-    if(doblinding) dataplot[c]->plotOn(plotmjjBkg[c],Invisible());
-    else dataplot[c]->plotOn(plotmjjBkg[c]);
+    if(doblinding) dataplot[c]->plotOn(plotmjjBkg[c],Invisible(), Name(Form("dataplot_cat%d_plot",c)));
+    else dataplot[c]->plotOn(plotmjjBkg[c], Name(Form("dataplot_cat%d_plot",c)));
     cout << "!!!!!!!!!!!!!!!!!" << endl;
     cout << "!!!!!!!!!!!!!!!!!" << endl; // now we fit the gaussian on signal
-    //plotmjjBkg[c]->SetMinimum(0.01); // no error bar in bins with zero events
+    for (int i = 0; i < (plotmjjBkg[c]->getHist(Form("dataplot_cat%d_plot",c)))->GetN() ; i++)
+    {
+        (plotmjjBkg[c]->getHist(Form("dataplot_cat%d_plot",c)))->SetPointEXhigh(i, 0.);
+        (plotmjjBkg[c]->getHist(Form("dataplot_cat%d_plot",c)))->SetPointEXlow(i, 0.);
+    }
+    plotmjjBkg[c]->SetMinimum(1.0e-5); // no error bar in bins with zero events
     plotmjjBkg[c]->Draw();
-    if(c==0||c==2)plotmjjBkg[c]->SetMinimum(0.005); // no error bar in bins with zero events
-    if(c==1||c==3)plotmjjBkg[c]->SetMinimum(0.01); // no error bar in bins with zero events
+    if(c==0||c==2)plotmjjBkg[c]->SetMinimum(1.0e-5); // no error bar in bins with zero events
+    if(c==1||c==3)plotmjjBkg[c]->SetMinimum(1.0e-5); // no error bar in bins with zero events
     if(c==0)plotmjjBkg[c]->SetMaximum(15); // no error bar in bins with zero events
     if(c==1)plotmjjBkg[c]->SetMaximum(36); // no error bar in bins with zero events
     if(c==2)plotmjjBkg[c]->SetMaximum(15); // no error bar in bins with zero events
@@ -1024,11 +1071,36 @@ RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
       onesigma->SetFillColor(kGreen);
       onesigma->SetMarkerColor(kGreen);
       onesigma->Draw("L3 SAME");
+      plotmjjBkg[c]->SetMinimum(1.0e-5); // no error bar in bins with zero events
       plotmjjBkg[c]->Draw("SAME");
     } else {
+        plotmjjBkg[c]->SetMinimum(1.0e-5); // no error bar in bins with zero events
         plotmjjBkg[c]->Draw("SAME"); // close dobands
     }
-    //plotmjjBkg[c]->getObject(1)->Draw("SAME");
+    std::cout << "Before trying the trick with the error bars" << std::endl;
+    if(doblinding) emptyplot[c]->plotOn(plotmjjBkg[c],Invisible(), Name(Form("emptyplot_cat%d_plot",c)));
+    else emptyplot[c]->plotOn(plotmjjBkg[c], Name(Form("emptyplot_cat%d_plot",c)), MarkerSize(0));
+    for (int i = 0; i < (plotmjjBkg[c]->getHist(Form("dataplot_cat%d_plot",c)))->GetN() ; i++)
+    {
+         Double_t x,y;
+         (plotmjjBkg[c]->getHist(Form("dataplot_cat%d_plot",c)))->GetPoint(i, x, y);
+//         std::cout << "c= " << c << "\tx= " << x << "\ty= " << y << std::endl;
+         int N = y;
+         double L =  (N==0) ? 0  : (ROOT::Math::gamma_quantile(alpha/2,N,1.));
+         double U =  ROOT::Math::gamma_quantile_c(alpha/2,N+1,1);
+         (plotmjjBkg[c]->getHist(Form("dataplot_cat%d_plot",c)))->SetPointError(i, 0, 0, N-L, U-N);
+         if (N==0)
+         {
+             (plotmjjBkg[c]->getHist(Form("emptyplot_cat%d_plot",c)))->SetPoint(i, x, 1.0e-4);
+             (plotmjjBkg[c]->getHist(Form("emptyplot_cat%d_plot",c)))->SetPointError(i, 0, 0, N-L, U-N);
+         } else {
+             (plotmjjBkg[c]->getHist(Form("emptyplot_cat%d_plot",c)))->SetPoint(i, x, 0.);
+         }
+    }
+    plotmjjBkg[c]->SetMinimum(1.0e-5);
+    plotmjjBkg[c]->Draw("same");
+
+//plotmjjBkg[c]->getObject(1)->Draw("SAME");
     //plotmjjBkg[c]->getObject(2)->Draw("P SAME");
     ////////////////////////////////////////////////////////// plot higgs
     sigToFit0[c] = (RooDataSet*) w->data(TString::Format("Hig_0_cat%d",c));
@@ -1099,6 +1171,12 @@ RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
 		       plotmjjBkg[c],
 		       Normalization(norm4,RooAbsPdf::NumEvent),LineColor(kBlue),LineStyle(1));
     //////////////////////////////////////////////////////////
+    for (int i = 0; i < (plotmjjBkg[c]->getHist(Form("dataplot_cat%d_plot",c)))->GetN() ; i++)
+    {
+        (plotmjjBkg[c]->getHist(Form("dataplot_cat%d_plot",c)))->SetPointEXhigh(i, 0.);
+        (plotmjjBkg[c]->getHist(Form("dataplot_cat%d_plot",c)))->SetPointEXlow(i, 0.);
+    }
+    plotmjjBkg[c]->SetMinimum(1.0e-5); // no error bar in bins with zero events
     plotmjjBkg[c]->Draw("SAME");
     cout << "!!!!!!!!!!!!!!!!!" << endl;
     legmc = new TLegend(0.37,0.75,0.85,0.80);
@@ -1413,7 +1491,7 @@ void MakePlots(RooWorkspace* w, Float_t Mass) {
     // TCanvas* dummy = new TCanvas("dummy", "dummy",0, 0, 400, 400);
 //    TH1F *hist = new TH1F(TString::Format("histMgg_cat%d",c), "hist", 400, minSigPlotMgg, maxSigPlotMgg);
     //plotmgg[c]->SetTitle("CMS preliminary 19.7/fb ");
-    plotmgg[c]->SetMinimum(0.0);
+    plotmgg[c]->SetMinimum(1.0e-5);
     plotmgg[c]->SetMaximum(1.40*plotmgg[c]->GetMaximum());
     plotmgg[c]->GetXaxis()->SetTitle("m_{#gamma#gamma} (GeV)");
     plotmgg[c]->SetYTitle("Norm. to unity / 1 GeV");
@@ -1520,7 +1598,7 @@ void MakePlots(RooWorkspace* w, Float_t Mass) {
     // TCanvas* dummy = new TCanvas("dummy", "dummy",0, 0, 400, 400);
 //    TH1F *hist = new TH1F(TString::Format("histMjj_cat%d",c), "hist", 400, minSigPlotMjj, maxSigPlotMjj);
     //plotmjj[c]->SetTitle("CMS preliminary 19.7/fb ");
-    plotmjj[c]->SetMinimum(0.0);
+    plotmjj[c]->SetMinimum(1.0e-5);
     plotmjj[c]->SetMaximum(1.40*plotmjj[c]->GetMaximum());
     if (sigMass == 0) plotmjj[c]->GetXaxis()->SetTitle("m_{jj} (GeV)");
     else plotmjj[c]->GetXaxis()->SetTitle("m_{jj} (GeV)");
@@ -1706,7 +1784,7 @@ void MakePlotsHiggs(RooWorkspace* w, Float_t Mass) {
       // TCanvas* dummy = new TCanvas("dummy", "dummy",0, 0, 400, 400);
 //      TH1F *hist = new TH1F(TString::Format("histMgg_%d_cat%d",d,c), "hist", 400, minHigPlotMgg, maxHigPlotMgg);
       //plotmgg[c]->SetTitle("CMS Preliminary 19.7/fb ");
-      plotmgg[c]->SetMinimum(0.0);
+      plotmgg[c]->SetMinimum(1.0e-5);
       plotmgg[c]->SetMaximum(1.40*plotmgg[c]->GetMaximum());
       plotmgg[c]->GetXaxis()->SetTitle("m_{#gamma#gamma} (GeV)");
       plotmgg[c]->GetYaxis()->SetTitle(Form("Events / %i GeV", (int)plotmgg[c]->getFitRangeBinW()));
@@ -1788,7 +1866,7 @@ void MakePlotsHiggs(RooWorkspace* w, Float_t Mass) {
          // TCanvas* dummy = new TCanvas("dummy", "dummy",0, 0, 400, 400);
 //         TH1F *hist = new TH1F(TString::Format("histMjj_%d_cat%d",d,c), "hist", 400, minHigPlotMjj, maxHigPlotMjj);
          //plotmjj[c]->SetTitle("CMS preliminary 19.7/fb ");
-         plotmjj[c]->SetMinimum(0.0);
+         plotmjj[c]->SetMinimum(1.0e-5);
          plotmjj[c]->SetMaximum(1.40*plotmjj[c]->GetMaximum());
          if (sigMass == 0) plotmjj[c]->GetXaxis()->SetTitle("m_{jj} (GeV)");
          else plotmjj[c]->GetXaxis()->SetTitle("m_{jj} (GeV)");
@@ -1848,7 +1926,7 @@ void MakePlotsHiggs(RooWorkspace* w, Float_t Mass) {
          // TCanvas* dummy = new TCanvas("dummy", "dummy",0, 0, 400, 400);
 //         TH1F *hist = new TH1F(TString::Format("histMjj_%d_cat%d",d,c), "hist", 400, minHigPlotMjj, maxHigPlotMjj);
          //plotmjj[c]->SetTitle("CMS preliminary 19.7/fb ");
-         plotmjj[c]->SetMinimum(0.0);
+         plotmjj[c]->SetMinimum(1.0e-5);
          plotmjj[c]->SetMaximum(1.40*plotmjj[c]->GetMaximum());
          if (sigMass == 0) plotmjj[c]->GetXaxis()->SetTitle("m_{jj} (GeV)");
          else plotmjj[c]->GetXaxis()->SetTitle("m_{jj} (GeV)");
