@@ -17,7 +17,6 @@
 #include <TLegend.h>
 #include <TList.h>
 #include <TPaveText.h>
-#include <TColor.h>
 // RooFit headers
 #include <RooHist.h>
 #include <RooWorkspace.h>
@@ -470,10 +469,10 @@ RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
     catdesc.push_back(" Medium-purity");
   }
   else{
-    catdesc.push_back("High-purity, High m_{#gamma#gammajj}^{kin}");
-    catdesc.push_back("Medium-purity, High m_{#gamma#gammajj}^{kin}");
-    catdesc.push_back("High-purity, Low m_{#gamma#gammajj}^{kin}");
-    catdesc.push_back("Medium-purity, Low m_{#gamma#gammajj}^{kin}");
+    catdesc.push_back("High-purity, m_{#gamma#gammajj}^{kin} > 350 GeV");
+    catdesc.push_back("Medium-purity, m_{#gamma#gammajj}^{kin} > 350 GeV");
+    catdesc.push_back("High-purity, m_{#gamma#gammajj}^{kin} < 350 GeV");
+    catdesc.push_back("Medium-purity, m_{#gamma#gammajj}^{kin} < 350 GeV");
   }
   //******************************************//
   // Fit background with model pdfs
@@ -750,9 +749,9 @@ RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
         delete epdf;
       } // close for bin
       mgg->setRange("errRange",minMggMassFit,maxMggMassFit);
-      twosigma->SetLineColor(kYellow);
-      twosigma->SetFillColor(kYellow);
-      twosigma->SetMarkerColor(kYellow);
+      twosigma->SetLineColor(kYellow-4);
+      twosigma->SetFillColor(kYellow-4);
+      twosigma->SetMarkerColor(kYellow-4);
       twosigma->Draw("L3 SAME");
       onesigma->SetLineColor(kGreen);
       onesigma->SetFillColor(kGreen);
@@ -887,8 +886,8 @@ RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
     if (plot_singleH) legmcH->AddEntry(plotmggBkg[c]->getObject(11),"bbH ","LPE"); // not...
     latexLabel->SetTextFont(42); // helvetica
 //    latexLabel->SetTextSize(0.6 * ctmp->GetTopMargin());
-    if (sigMass == 0) latexLabel->DrawLatex(0.37, 0.88, "gg #rightarrow HH #rightarrow #gamma#gammab#bar{b}");
-    else latexLabel->DrawLatex(0.37, 0.88, Form("gg #rightarrow X #rightarrow HH #rightarrow #gamma#gammab#bar{b}, m_{X} = %i GeV", sigMass));
+    if (sigMass == 0) latexLabel->DrawLatex(0.37, 0.88, "pp #rightarrow HH #rightarrow #gamma#gammab#bar{b}");
+    else latexLabel->DrawLatex(0.37, 0.88, Form("pp #rightarrow X #rightarrow HH #rightarrow #gamma#gammab#bar{b}, m_{X} = %i GeV", sigMass));
     latexLabel->DrawLatex(0.37, 0.83, catdesc.at(c).c_str());
     if (plot_singleH) legmcH->SetHeader(" Higgs");
     legmc->SetBorderSize(0);
@@ -1062,10 +1061,9 @@ RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
         delete epdf;
       } // close for bin
       mjj->setRange("errRange",minMjjMassFit,maxMjjMassFit);
-      Int_t ci = TColor::GetColor("#ffff00");
-      twosigma->SetLineColor(ci);
-      twosigma->SetFillColor(ci);
-      twosigma->SetMarkerColor(ci);
+      twosigma->SetLineColor(kYellow-4);
+      twosigma->SetFillColor(kYellow-4);
+      twosigma->SetMarkerColor(kYellow-4);
       twosigma->Draw("L3 SAME");
       onesigma->SetLineColor(kGreen);
       onesigma->SetFillColor(kGreen);
@@ -1198,8 +1196,8 @@ RooFitResult* BkgModelFit(RooWorkspace* w, Bool_t dobands) {
     if (plot_singleH) legmcH->AddEntry(plotmjjBkg[c]->getObject(11),"bbH ","LPE"); // not...
     latexLabel->SetTextFont(42); // helvetica
 //    latexLabel->SetTextSize(0.6 * ctmp->GetTopMargin());
-    if (sigMass == 0) latexLabel->DrawLatex(0.37, 0.88, "gg #rightarrow HH #rightarrow #gamma#gammab#bar{b}");
-    else latexLabel->DrawLatex(0.37, 0.88, Form("gg #rightarrow X #rightarrow HH #rightarrow #gamma#gammab#bar{b}, m_{X} = %i GeV", sigMass));
+    if (sigMass == 0) latexLabel->DrawLatex(0.37, 0.88, "pp #rightarrow HH #rightarrow #gamma#gammab#bar{b}");
+    else latexLabel->DrawLatex(0.37, 0.88, Form("pp #rightarrow X #rightarrow HH #rightarrow #gamma#gammab#bar{b}, m_{X} = %i GeV", sigMass));
     latexLabel->DrawLatex(0.37, 0.83, catdesc.at(c).c_str());
     legmc->SetBorderSize(0);
     legmc->SetFillStyle(0);
@@ -1406,10 +1404,10 @@ void MakePlots(RooWorkspace* w, Float_t Mass) {
     catdesc.push_back(" Medium-purity");
   }
   else{
-    catdesc.push_back("High-purity, High m_{#gamma#gammajj}^{kin}");
-    catdesc.push_back("Medium-purity, High m_{#gamma#gammajj}^{kin}");
-    catdesc.push_back("High-purity, Low m_{#gamma#gammajj}^{kin}");
-    catdesc.push_back("Medium-purity, Low m_{#gamma#gammajj}^{kin}");
+    catdesc.push_back("High-purity, m_{#gamma#gammajj}^{kin} > 350 GeV");
+    catdesc.push_back("Medium-purity, m_{#gamma#gammajj}^{kin} > 350 GeV");
+    catdesc.push_back("High-purity, m_{#gamma#gammajj}^{kin} < 350 GeV");
+    catdesc.push_back("Medium-purity, m_{#gamma#gammajj}^{kin} < 350 GeV");
   }
   // retrieve data sets from the workspace
   // RooDataSet* dataAll = (RooDataSet*) w->data("Data");
@@ -1524,10 +1522,10 @@ void MakePlots(RooWorkspace* w, Float_t Mass) {
 //    latexLabel->SetTextSize(0.6 * ctmp->GetTopMargin());
     if (sigMass == 0)
     {
-        latexLabel->DrawLatex(0.45, 0.88, "gg #rightarrow HH #rightarrow #gamma#gammab#bar{b}");
+        latexLabel->DrawLatex(0.45, 0.88, "pp #rightarrow HH #rightarrow #gamma#gammab#bar{b}");
         latexLabel->DrawLatex(0.45, 0.83, catdesc.at(c).c_str());
     } else {
-         latexLabel->DrawLatex(0.45, 0.88, "gg #rightarrow X #rightarrow HH #rightarrow #gamma#gammab#bar{b}");
+         latexLabel->DrawLatex(0.45, 0.88, "pp #rightarrow X #rightarrow HH #rightarrow #gamma#gammab#bar{b}");
          latexLabel->DrawLatex(0.45, 0.83, Form("m_{X} = %i GeV", sigMass));
          latexLabel->DrawLatex(0.45, 0.78, catdesc.at(c).c_str());
     }
@@ -1633,10 +1631,10 @@ void MakePlots(RooWorkspace* w, Float_t Mass) {
 //    latexLabel->SetTextSize(0.6 * ctmp->GetTopMargin());
     if (sigMass == 0)
     {
-        latexLabel->DrawLatex(0.45, 0.88, "gg #rightarrow HH #rightarrow #gamma#gammab#bar{b}");
+        latexLabel->DrawLatex(0.45, 0.88, "pp #rightarrow HH #rightarrow #gamma#gammab#bar{b}");
         latexLabel->DrawLatex(0.45, 0.83, catdesc.at(c).c_str());
     } else {
-        latexLabel->DrawLatex(0.45, 0.88, "gg #rightarrow X #rightarrow HH #rightarrow #gamma#gammab#bar{b}");
+        latexLabel->DrawLatex(0.45, 0.88, "pp #rightarrow X #rightarrow HH #rightarrow #gamma#gammab#bar{b}");
         latexLabel->DrawLatex(0.45, 0.83, Form("m_{X} = %i GeV", sigMass));
         latexLabel->DrawLatex(0.45, 0.78, catdesc.at(c).c_str());
     }
@@ -1694,10 +1692,10 @@ void MakePlotsHiggs(RooWorkspace* w, Float_t Mass) {
     catdesc.push_back(" Medium-purity");
   }
   else{
-    catdesc.push_back(" #splitline{High-purity}{High m_{#gamma#gammajj}^{kin}}");
-    catdesc.push_back(" #splitline{Medium-purity}{High m_{#gamma#gammajj}^{kin}}");
-    catdesc.push_back(" #splitline{High-purity}{Low m_{#gamma#gammajj}^{kin}}");
-    catdesc.push_back(" #splitline{Medium-purity}{Low m_{#gamma#gammajj}^{kin}}");
+    catdesc.push_back(" #splitline{High-purity}{m_{#gamma#gammajj}^{kin}} > 350 GeV");
+    catdesc.push_back(" #splitline{Medium-purity}{m_{#gamma#gammajj}^{kin}} > 350 GeV");
+    catdesc.push_back(" #splitline{High-purity}{m_{#gamma#gammajj}^{kin}} > 350 GeV");
+    catdesc.push_back(" #splitline{Medium-purity}{m_{#gamma#gammajj}^{kin}} > 350 GeV");
   }
   // retrieve data sets from the workspace
   // RooDataSet* dataAll = (RooDataSet*) w->data("Data");

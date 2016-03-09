@@ -343,10 +343,9 @@ w->factory(TString::Format("mtot_bkg_8TeV_norm_cat%d[1.0,0.0,100000]",c)); // is
       } // close for each bin
       if (c==0) mtot->setRange("errRange",minMassFit,maxMassFit);
       if (c==1) mtot->setRange("errRange",minMassFit,maxMassFit);
-      Int_t ci = TColor::GetColor("#ffff00");
-      twosigma->SetLineColor(ci);
-      twosigma->SetFillColor(ci);
-      twosigma->SetMarkerColor(ci);
+      twosigma->SetLineColor(kYellow-4);
+      twosigma->SetFillColor(kYellow-4);
+      twosigma->SetMarkerColor(kYellow-4);
       twosigma->Draw("L3 SAME");
       onesigma->SetLineColor(kGreen);
       onesigma->SetFillColor(kGreen);
@@ -443,9 +442,9 @@ w->factory(TString::Format("mtot_bkg_8TeV_norm_cat%d[1.0,0.0,100000]",c)); // is
     legmc->Draw();
     latexLabel->SetTextFont(42); // helvetica
 //    latexLabel->SetTextSize(0.6 * ctmp->GetTopMargin());
-    latexLabel->DrawLatex(0.37, 0.88, "gg #rightarrow X #rightarrow HH #rightarrow #gamma#gammab#bar{b}");
+    latexLabel->DrawLatex(0.37, 0.88, "pp #rightarrow X #rightarrow HH #rightarrow #gamma#gammab#bar{b}");
     latexLabel->DrawLatex(0.37, 0.83, catdesc.at(c));
-    TLatex *lat1 = new TLatex(minfit+43.0,0.91*plotmtotBkg[c]->GetMaximum(),"gg #rightarrow X #rightarrow HH #rightarrow #gamma#gammab#bar{b}");
+    TLatex *lat1 = new TLatex(minfit+43.0,0.91*plotmtotBkg[c]->GetMaximum(),"pp #rightarrow X #rightarrow HH #rightarrow #gamma#gammab#bar{b}");
 //    lat1->Draw();
     TLatex *lat2 = new TLatex(minfit+43.0,0.81*plotmtotBkg[c]->GetMaximum(),catdesc.at(c));
 //    lat2->Draw();
@@ -693,7 +692,7 @@ void MakePlots(RooWorkspace* w, Float_t Mass, RooFitResult* fitresults) {
     latexLabel->DrawLatex(0.19, 0.81, "Supplementary");
     latexLabel->SetTextFont(42); // helvetica
 //    latexLabel->SetTextSize(0.6 * ctmp->GetTopMargin());
-    latexLabel->DrawLatex(0.45, 0.88, "gg #rightarrow X #rightarrow HH #rightarrow #gamma#gammab#bar{b}");
+    latexLabel->DrawLatex(0.45, 0.88, "pp #rightarrow X #rightarrow HH #rightarrow #gamma#gammab#bar{b}");
     latexLabel->DrawLatex(0.45, 0.83, "m_{X} = 550 GeV");
     latexLabel->DrawLatex(0.45, 0.78, catdesc.at(c));
  
